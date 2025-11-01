@@ -265,7 +265,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                 style={{
                   display: "flex",
                   gap: "16px",
-                  width: "135%", 
+                  width: "120%", 
                   flexWrap: "wrap",
                   marginBottom: "20px",
                   paddingBottom: "20px",
@@ -304,7 +304,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                 {/* 2. Đơn giá điện năng */}
                 <div
                   className="input-row"
-                  style={{ width: "100px", marginBottom: "21px" }}
+                  style={{ width: "130px", marginBottom: "21px" }}
                 >
                   <label
                     htmlFor={`dongiadiennang-${index}`}
@@ -362,7 +362,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`monthlyElectricityCost-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Điện năng tiêu thụ/tháng
+                    Điện năng <br/> tiêu thụ/tháng
                   </label>
                   <input
                     type="number"
@@ -387,7 +387,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`averageMonthlyTunnelProduction-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Sản lượng mét lò BQ
+                    Sản lượng <br/>mét lò bình quân
                   </label>
                   <input
                     type="number"
@@ -416,7 +416,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`dinhmucdiennang-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Định mức điện năng
+                    Định mức <br/> điện năng
                   </label>
                   <input
                     type="text"
@@ -436,7 +436,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`chiphidiennang-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Chi phí điện năng
+                    Chi phí <br/> điện năng
                   </label>
                   <input
                     type="text"
