@@ -21,6 +21,7 @@ const EyeToggle: React.FC<EyeToggleProps> = ({ onToggle }) => {
       style={{
         display: "flex",
         alignItems: "center",
+        
         justifyContent: "center",
         cursor: "pointer",
         width: "100%",

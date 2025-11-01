@@ -92,7 +92,9 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
   };
 
   // KHI NGƯỜI DÙNG THAY ĐỔI LỰA CHỌN TRONG DROPDOWN
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSelectChange = async (selected: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
     setSelectedEquipmentIds(newSelectedIds);
 
@@ -239,10 +241,6 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
             }}
           />
         </div>
-
-        {/* ============================================== */}
-        {/* HIỂN THỊ CÁC HÀNG THIẾT BỊ          */}
-        {/* ============================================== */}
         <div
           style={{
             marginTop: "80px",

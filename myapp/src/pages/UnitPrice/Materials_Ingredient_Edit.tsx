@@ -123,7 +123,7 @@ export default function Materials_Ingredient_Input({ onClose }: { onClose?: () =
     setRows((prevRows) =>
       prevRows.map((row) => {
         if (row.id === id) {
-          let updatedRow = { ...row, [field]: value };
+          const updatedRow = { ...row, [field]: value };
 
           // Xử lý logic tính toán total khi quantity thay đổi
           if (field === "quantity") {
