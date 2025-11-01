@@ -302,7 +302,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                   htmlFor={`dinhMucThoiGian-${index}`}
                   style={{ textAlign: "center", height: "30px" }}
                 >
-                  Định mức thời gian thay thế
+                  Định mức thời gian thay thế tháng
                 </label>
                 <div className="tooltip-wrapper">
                   <input

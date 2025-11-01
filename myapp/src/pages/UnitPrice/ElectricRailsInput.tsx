@@ -5,7 +5,7 @@ import Select from "react-select"; // Import react-select
 import { useApi } from "../../hooks/useFetchData"; // Import hook API
 import PATHS from "../../hooks/path"; // Import PATHS
 import "../../layout/layout_input.css";
-import "../../components/transactionselector.css"; // Import CSS cho react-select
+import "../../components/transactionselector.css"; // Import CSS (NƠI CHỨA TOOLTIP VÀ NÚT XÓA)
 
 // === Định nghĩa interface cho dữ liệu ===
 
@@ -69,15 +69,12 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
   );
 
   // 3. API GET BY ID (Dùng để lấy chi tiết khi chọn)
-  // *** SỬA LỖI: Dùng hàm fetchById và loading từ hook ***
   const { fetchById: getEquipmentDetail, loading: isLoadingRows } =
     useApi<EquipmentDetail>("/api/catalog/equipment"); // Base path
 
   // === State ===
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
   const [equipmentRows, setEquipmentRows] = useState<EquipmentRowData[]>([]);
-  // Không cần state loading thủ công nữa
-  // const [isLoadingRows, setIsLoadingRows] = useState(false); 
 
   // === Memoized Options cho Dropdown ===
   const equipmentOptions = useMemo(() => {
@@ -96,7 +93,6 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
 
   // KHI NGƯỜI DÙNG THAY ĐỔI LỰA CHỌN TRONG DROPDOWN
   const handleSelectChange = async (selected: any) => {
-    // Không cần set loading thủ công
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
     setSelectedEquipmentIds(newSelectedIds);
 
@@ -106,14 +102,12 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
     }
 
     try {
-      // *** SỬA LỖI: Gọi hàm 'getEquipmentDetail' (chính là 'fetchById') ***
       const detailPromises = newSelectedIds.map((id: string) =>
         getEquipmentDetail(id) // Gọi hàm từ hook
       );
 
       const detailedEquipments = await Promise.all(detailPromises);
-      
-      // Lọc ra các kết quả không null (vì fetchById có thể trả về null)
+
       const validEquipments = detailedEquipments.filter(
         (eq): eq is EquipmentDetail => eq !== null
       );
@@ -143,8 +137,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
     } catch (error) {
       console.error("Lỗi khi tải chi tiết thiết bị:", error);
       setEquipmentRows([]);
-    } 
-    // Không cần finally để set loading
+    }
   };
 
   // Khi người dùng nhập liệu vào một hàng
@@ -197,6 +190,15 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
     }
   };
 
+  // === THÊM MỚI: HÀM XÓA HÀNG ===
+  const handleRemoveEquipmentRow = (indexToRemove: number) => {
+    // Lọc ra mảng mới, loại bỏ hàng có 'indexToRemove'
+    const newRows = equipmentRows.filter((_, index) => index !== indexToRemove);
+    // Cập nhật lại state
+    setEquipmentRows(newRows);
+  };
+  // === KẾT THÚC THÊM MỚI ===
+
   // Lấy các options đang được chọn cho react-select
   const selectedOptions = equipmentOptions.filter((opt) =>
     selectedEquipmentIds.includes(opt.value)
@@ -231,8 +233,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
             className="transaction-select-wrapper"
             classNamePrefix="transaction-select"
             placeholder="Chọn Mã thiết bị"
-            // *** SỬA LỖI: Dùng state loading từ hook getById ***
-            isDisabled={isLoadingRows} 
+            isDisabled={isLoadingRows}
             styles={{
               menu: (provided) => ({ ...provided, zIndex: 9999 }),
             }}
@@ -240,7 +241,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
         </div>
 
         {/* ============================================== */}
-        {/* HIỂN THỊ CÁC HÀNG THIẾT BỊ          */}
+        {/* HIỂN THỊ CÁC HÀNG THIẾT BỊ          */}
         {/* ============================================== */}
         <div
           style={{
@@ -248,10 +249,9 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
             width: "100%",
             maxHeight: "400px",
             overflowY: "auto",
-            minHeight: "100px", 
+            minHeight: "100px",
           }}
         >
-          {/* *** SỬA LỖI: Dùng state loading từ hook getById *** */}
           {isLoadingRows && (
             <div style={{ textAlign: "center", padding: "20px" }}>
               Đang tải dữ liệu thiết bị...
@@ -265,14 +265,14 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                 style={{
                   display: "flex",
                   gap: "16px",
-                  width: "120%", 
+                  width: "120%",
                   flexWrap: "wrap",
                   marginBottom: "20px",
                   paddingBottom: "20px",
                   borderBottom: "1px dashed #ccc",
                 }}
               >
-                {/* === CÁC TRƯỜNG READ-ONLY === */}
+                {/* === CÁC TRƯỜNG READ-ONLY (ĐÃ THÊM TOOLTIP) === */}
                 {/* 1. Tên thiết bị */}
                 <div
                   className="input-row"
@@ -290,15 +290,20 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                   >
                     Tên thiết bị
                   </label>
-                  <input
-                    type="text"
-                    id={`tenThietbi-${index}`}
-                    name="tenThietbi"
-                    className="input-text"
-                    value={row.tenThietbi}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      id={`tenThietbi-${index}`}
+                      name="tenThietbi"
+                      className="input-text"
+                      value={row.tenThietbi}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">{row.tenThietbi}</span>
+                  </div>
                 </div>
 
                 {/* 2. Đơn giá điện năng */}
@@ -318,15 +323,22 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                   >
                     Đơn giá điện năng
                   </label>
-                  <input
-                    type="text"
-                    id={`dongiadiennang-${index}`}
-                    name="dongiadiennang"
-                    className="input-text"
-                    value={row.dongiadiennang.toLocaleString("vi-VN")}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      id={`dongiadiennang-${index}`}
+                      name="dongiadiennang"
+                      className="input-text"
+                      value={row.dongiadiennang.toLocaleString("vi-VN")}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {row.dongiadiennang.toLocaleString("vi-VN")}
+                    </span>
+                  </div>
                 </div>
 
                 {/* 3. Đơn vị tính */}
@@ -346,40 +358,52 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                   >
                     ĐVT
                   </label>
-                  <input
-                    id={`donViTinh-${index}`}
-                    name="donViTinh"
-                    className="input-text"
-                    value={row.donViTinh}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      id={`donViTinh-${index}`}
+                      name="donViTinh"
+                      className="input-text"
+                      value={row.donViTinh}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">{row.donViTinh}</span>
+                  </div>
                 </div>
 
-                {/* === CÁC TRƯỜNG EDITABLE === */}
+                {/* === CÁC TRƯỜNG EDITABLE (ĐÃ THÊM TOOLTIP) === */}
                 <div className="input-row" style={{ width: "120px" }}>
                   <label
                     htmlFor={`monthlyElectricityCost-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Điện năng <br/> tiêu thụ/tháng
+                    Điện năng <br /> tiêu thụ/tháng
                   </label>
-                  <input
-                    type="number"
-                    id={`monthlyElectricityCost-${index}`}
-                    name="monthlyElectricityCost"
-                    placeholder="Nhập điện năng"
-                    className="input-text"
-                    value={row.monthlyElectricityCost}
-                    onChange={(e) =>
-                      handleRowChange(
-                        index,
-                        "monthlyElectricityCost",
-                        e.target.value
-                      )
-                    }
-                    autoComplete="off"
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="number"
+                      id={`monthlyElectricityCost-${index}`}
+                      name="monthlyElectricityCost"
+                      placeholder="Nhập điện năng"
+                      className="input-text"
+                      value={row.monthlyElectricityCost}
+                      onChange={(e) =>
+                        handleRowChange(
+                          index,
+                          "monthlyElectricityCost",
+                          e.target.value
+                        )
+                      }
+                      autoComplete="off"
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {row.monthlyElectricityCost || "Chưa nhập"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="input-row" style={{ width: "120px" }}>
@@ -387,27 +411,35 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`averageMonthlyTunnelProduction-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Sản lượng <br/>mét lò bình quân
+                    Sản lượng <br />
+                    mét lò bình quân
                   </label>
-                  <input
-                    type="number"
-                    id={`averageMonthlyTunnelProduction-${index}`}
-                    name="averageMonthlyTunnelProduction"
-                    placeholder="Nhập sản lượng"
-                    className="input-text"
-                    value={row.averageMonthlyTunnelProduction}
-                    onChange={(e) =>
-                      handleRowChange(
-                        index,
-                        "averageMonthlyTunnelProduction",
-                        e.target.value
-                      )
-                    }
-                    autoComplete="off"
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="number"
+                      id={`averageMonthlyTunnelProduction-${index}`}
+                      name="averageMonthlyTunnelProduction"
+                      placeholder="Nhập sản lượng"
+                      className="input-text"
+                      value={row.averageMonthlyTunnelProduction}
+                      onChange={(e) =>
+                        handleRowChange(
+                          index,
+                          "averageMonthlyTunnelProduction",
+                          e.target.value
+                        )
+                      }
+                      autoComplete="off"
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {row.averageMonthlyTunnelProduction || "Chưa nhập"}
+                    </span>
+                  </div>
                 </div>
 
-                {/* === CÁC TRƯỜNG TÍNH TOÁN === */}
+                {/* === CÁC TRƯỜNG TÍNH TOÁN (ĐÃ THÊM TOOLTIP) === */}
                 <div
                   className="input-row"
                   style={{ width: "100px", marginBottom: "21px" }}
@@ -416,17 +448,24 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`dinhmucdiennang-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Định mức <br/> điện năng
+                    Định mức <br /> điện năng
                   </label>
-                  <input
-                    type="text"
-                    id={`dinhmucdiennang-${index}`}
-                    name="dinhmucdiennang"
-                    className="input-text"
-                    value={row.dinhmucdiennang}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      id={`dinhmucdiennang-${index}`}
+                      name="dinhmucdiennang"
+                      className="input-text"
+                      value={row.dinhmucdiennang}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {row.dinhmucdiennang}
+                    </span>
+                  </div>
                 </div>
                 <div
                   className="input-row"
@@ -436,18 +475,36 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                     htmlFor={`chiphidiennang-${index}`}
                     style={{ textAlign: "center", height: "30px" }}
                   >
-                    Chi phí <br/> điện năng
+                    Chi phí <br /> điện năng
                   </label>
-                  <input
-                    type="text"
-                    id={`chiphidiennang-${index}`}
-                    name="chiphidiennang"
-                    className="input-text"
-                    value={row.chiphidiennang}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      id={`chiphidiennang-${index}`}
+                      name="chiphidiennang"
+                      className="input-text"
+                      value={row.chiphidiennang}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {row.chiphidiennang}
+                    </span>
+                  </div>
                 </div>
+
+                {/* === THÊM MỚI: NÚT XÓA HÀNG === */}
+                <button
+                  type="button"
+                  className="row-remove-button" // Sử dụng class CSS từ file .css
+                  title="Xóa hàng này"
+                  onClick={() => handleRemoveEquipmentRow(index)} // Gọi hàm xóa
+                >
+                  <X size={16} />
+                </button>
+                {/* === KẾT THÚC THÊM MỚI === */}
               </div>
             ))}
 
@@ -460,7 +517,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                 color: "#888",
               }}
             >
-
+              {/* (Nội dung trống khi không có dữ liệu) */}
             </div>
           )}
         </div>
@@ -473,8 +530,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
         <button
           className="btn-confirm"
           onClick={handleSubmit}
-          // *** SỬA LỖI: Dùng cả hai state loading ***
-          disabled={isSubmitting || isLoadingRows} 
+          disabled={isSubmitting || isLoadingRows}
         >
           {isSubmitting ? "Đang xử lý..." : "Xác nhận"}
         </button>
