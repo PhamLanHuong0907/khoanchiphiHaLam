@@ -31,13 +31,13 @@ const ElectricRails: React.FC = () => {
     "Tên thiết bị",
     "ĐVT",
     "Đơn giá điện năng",
-    "Điện năng tiêu thụ cho 01 thiết bị / tháng",
+    "Điện năng tiêu thụ cho 1 thiết bị / tháng",
     "Sản lượng mét đào lò bình quân tháng",
-    "Điện năng tiêu thụ cho 01 thiết bị / 01 mét lò đào",
-    "Chi phí điện năng cho 01 thiết bị / 01 mét lò đào (đ/m)",
+    "Điện năng tiêu thụ cho 1 thiết bị / 1 mét lò đào",
+    "Chi phí điện năng cho 1 thiết bị / 1 mét lò đào (đ/m)",
     "Sửa",
   ];
-  const columnWidths = [6, 10, 20, 9, 12, 10, 10, 10, 10, 4];
+  const columnWidths = [6, 8, 18, 4, 8, 14, 13, 14, 13, 4];
 
   // 7. (Khai báo API đã xong ở trên)
 
@@ -69,7 +69,7 @@ const ElectricRails: React.FC = () => {
 
   // 11. Căn chỉnh cột (giữ nguyên)
   const columnLefts = [
-    'undefined', 'undefined', 'undefined', 5.5, 'undefined',
+    'undefined', 'undefined', 'undefined', 'undefined', 'undefined',
     'undefined', 'undefined', 'undefined', 'undefined', 'undefined'
   ];
 
