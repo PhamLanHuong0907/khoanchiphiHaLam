@@ -11,7 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import "./navbar.css";
 import DropdownMenu from "./dropdown";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 const Navbar = () => {
   return (
     <header className="navbar-container">
