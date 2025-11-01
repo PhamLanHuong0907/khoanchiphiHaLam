@@ -63,13 +63,12 @@ const SlideRails: React.FC = () => {
       formatNumber(row.totalPrice), // Tổng tiền đã định dạng
       
       // Pass equipmentId cho component con
-      <EyeToggle
-            key={row.equipmentId}
-            // 👈 TỐI ƯU LAZY LOAD
-            renderDetailComponent={() => (
-              <SlideRailExample id={row.equipmentId} />
-            )}
-          />,
+        <EyeToggle
+        key={`${row.equipmentId}-eye`} // Thêm key
+        // Giả định component "test" (Materials_Ingredient_Grouped)
+        // có thể xử lý ID từ slideunitprice
+        detailComponent={<SlideRailExample id={row.equipmentId} />}
+      />,
       <PencilButton
         key={`${row.equipmentId}-pencil`} // Thêm key
         id={row.equipmentId}

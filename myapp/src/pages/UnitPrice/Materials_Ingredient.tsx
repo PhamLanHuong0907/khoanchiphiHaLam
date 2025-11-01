@@ -125,12 +125,11 @@ const Materials_Ingredient: React.FC = () => {
           row.code || "",
           row.totalPrice?.toLocaleString() || "0",
           <EyeToggle
-            key={row.id}
-            // 👈 TỐI ƯU LAZY LOAD
-            renderDetailComponent={() => (
-              <Materials_Ingredient_Grouped id={row.id} />
-            )}
-          />,
+        key={`${row.id}-eye`} // Thêm key
+        // Giả định component "test" (Materials_Ingredient_Grouped)
+        // có thể xử lý ID từ slideunitprice
+        detailComponent={<Materials_Ingredient_Grouped id={row.id} />}
+      />,
           <PencilButton
             id={row.id}
             // 👈 TỐI ƯU LAZY LOAD (Giả sử PencilButton hỗ trợ)

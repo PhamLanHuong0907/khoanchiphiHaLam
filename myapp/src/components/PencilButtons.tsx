@@ -1,5 +1,5 @@
 import React from "react";
-
+import pencil from "../../assets/pencil.png";
 interface PencilButtonProps {
   id: string;
   onEdit?: (id: string, element: React.ReactElement) => void; // ✅ callback gửi lên cha
@@ -20,7 +20,7 @@ const PencilButton: React.FC<PencilButtonProps> = ({ id, onEdit, editElement }) 
       }}
     >
       <img
-        src="../assets/pencil.png"
+        src={pencil}
         alt="edit"
         style={{
           border: "none",
