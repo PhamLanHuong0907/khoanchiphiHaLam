@@ -29,9 +29,9 @@ const EyeToggle: React.FC<EyeToggleProps> = ({ onToggle }) => {
       onClick={handleToggle}
     >
       {showDetail ? (
-        <EyeOff size={16} className="hover:text-blue-600" />
-      ) : (
         <Eye size={16} className="hover:text-blue-600" />
+      ) : (
+        <EyeOff size={16} className="hover:text-blue-600" />
       )}
     </div>
   );
