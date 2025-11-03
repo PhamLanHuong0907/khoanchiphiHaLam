@@ -153,7 +153,7 @@ const MaterialsEdit: React.FC<MaterialsEditProps> = ({ id, onClose, onSuccess })
   const handleCostRowChange = (
     rowIndex: number,
     fieldName: keyof CostRow,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     value: any
   ) => {
     setCostRows(currentRows =>

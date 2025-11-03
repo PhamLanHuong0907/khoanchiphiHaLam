@@ -13,7 +13,7 @@ const ProductionStepGroup: React.FC = () => {
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`; // dùng cho GET
 
   // ✅ Gọi API danh sách (Đã tối ưu)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   const { data, loading, error, refresh } = useApi<any>(fetchPath);
 
   // ✅ Cấu hình cột bảng
@@ -34,7 +34,7 @@ const ProductionStepGroup: React.FC = () => {
   // ✅ Chuẩn hóa dữ liệu bảng từ API
   const tableData =
     data && Array.isArray(data)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       ? data.map((row: any, index: number) => [
           index + 1,
           row.code,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -84,9 +83,9 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
     onClose?.();
     if (!onClose && closePath) navigate(closePath);
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   const handleSelectChange = (selected: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
     setSelectedEquipmentIds(newSelectedIds);
     const newRows = allPartsData
@@ -253,13 +252,13 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                       id={`${item.name}-${index}`}
                       name={item.name}
                       className="input-text"
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      
                       value={(row as any)[item.name]}
                       readOnly
                       style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
                     <span className="tooltip-text">
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any
+                      , @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any
                       {(row as any)[item.name]}
                     </span>
                   </div>

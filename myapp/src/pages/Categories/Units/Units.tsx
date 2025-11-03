@@ -11,7 +11,7 @@ const Unit: React.FC = () => {
   // ✅ tách riêng URL: (Đã tối ưu)
   const basePath = `/api/catalog/unitofmeasure`; // dùng cho POST / PUT / DELETE
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`; // dùng cho GET
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   const { data, loading, error, refresh } = useApi<any>(fetchPath);
 
   const columns = [
@@ -26,7 +26,7 @@ const Unit: React.FC = () => {
 
   const tableData =
     data && Array.isArray(data)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       ? data.map((row: any, index: number) => [
           index + 1,
           row.name,

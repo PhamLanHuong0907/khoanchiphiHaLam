@@ -46,6 +46,7 @@
   margin: 0 auto;
   gap: 8.8px;
   flex-wrap: nowrap;
+  margin-bottom: 20px;
 }
 .toolbar-left,
 .toolbar-center,
@@ -194,6 +195,8 @@
   border-radius: 8.8px;
   overflow: hidden;
   box-sizing: border-box;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 .advanced-table {
   width: 100%;

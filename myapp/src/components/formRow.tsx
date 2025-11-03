@@ -13,28 +13,49 @@ import X from "../../assets/X.png";
 import { Calendar } from "lucide-react";
 import { PlusCircle } from "lucide-react";
 
-// Interface này mô tả dữ liệu cho MỘT ô input
-interface FieldData {
+// CẬP NHẬT: Sử dụng Discriminated Unions để loại bỏ 'any'
+
+// 1. Interface cơ sở cho các trường chung
+interface BaseFieldData {
   label: string;
   placeholder: string;
-  type?: "text" | "number" | "date";
   readOnly?: boolean;
-  value: string | Date | null; // 'value' là bắt buộc
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onChange: (value: any) => void; // 'onChange' là bắt buộc
 }
+
+// 2. Interface cho input 'text' hoặc 'number'
+interface InputFieldData extends BaseFieldData {
+  type?: "text" | "number";
+  value: string | null;
+  onChange: (value: string) => void; // 👈 Kiểu 'string' chính xác
+}
+
+// 3. Interface cho input 'date'
+interface DateFieldData extends BaseFieldData {
+  type: "date";
+  value: Date | null;
+  onChange: (value: Date | null) => void; // 👈 Kiểu 'Date | null' chính xác
+}
+
+// 4. Kiểu FieldData gộp (Discriminated Union)
+type FieldData = InputFieldData | DateFieldData;
 
 // Props của FormRow giờ nhận MỘT MẢNG CÁC HÀNG (rows)
 interface FormRowProps {
   title?: string;
   title1?: string;
   // 'rows' là một mảng các hàng, mỗi hàng là một mảng các ô input (FieldData)
-  rows: FieldData[][];
+  rows: FieldData[][]; // 👈 Sử dụng kiểu union mới
   onAdd?: () => void;
   onRemove?: (rowIndex: number) => void; // Prop mới để báo cho cha biết cần xóa hàng
 }
 
-const FormRow: React.FC<FormRowProps> = ({ title,title1, rows, onAdd, onRemove }) => {
+const FormRow: React.FC<FormRowProps> = ({
+  title,
+  title1,
+  rows,
+  onAdd,
+  onRemove,
+}) => {
   // Ref để mở lịch (vẫn giữ lại)
   const datePickerRefs = useRef<(DatePicker | null)[][]>([]);
 
@@ -53,6 +74,7 @@ const FormRow: React.FC<FormRowProps> = ({ title,title1, rows, onAdd, onRemove }
               <label>{field.label}</label>
               <div className="input-wrapper">
                 {field.type === "date" ? (
+                  // CẬP NHẬT: Nhánh này TypeScript tự động hiểu 'field' là DateFieldData
                   <div className="date-input-container">
                     <DatePicker
                       ref={(el) => {
@@ -60,8 +82,8 @@ const FormRow: React.FC<FormRowProps> = ({ title,title1, rows, onAdd, onRemove }
                           datePickerRefs.current[rowIndex] = [];
                         datePickerRefs.current[rowIndex][fieldIndex] = el;
                       }}
-                      selected={field.value as Date | null} // Lấy value từ cha
-                      onChange={(date) => field.onChange(date)} // Gọi hàm onChange của cha
+                      selected={field.value} // 👈 Bỏ 'as Date | null'
+                      onChange={(date) => field.onChange(date)} // 👈 'date' là Date | null, khớp hoàn hảo
                       dateFormat="dd/MM/yyyy"
                       placeholderText={field.placeholder}
                       className="datepicker-input"
@@ -79,10 +101,11 @@ const FormRow: React.FC<FormRowProps> = ({ title,title1, rows, onAdd, onRemove }
                     />
                   </div>
                 ) : (
+                  // CẬP NHẬT: Nhánh này TypeScript tự động hiểu 'field' là InputFieldData
                   <input
                     type={field.type || "text"}
-                    value={(field.value as string) || ""} // Lấy value từ cha
-                    onChange={(e) => field.onChange(e.target.value)} // Gọi hàm onChange của cha
+                    value={field.value || ""} // 👈 Bỏ 'as string'
+                    onChange={(e) => field.onChange(e.target.value)} // 👈 'e.target.value' là string, khớp hoàn hảo
                     placeholder={field.placeholder}
                     readOnly={field.readOnly}
                   />
@@ -107,9 +130,13 @@ const FormRow: React.FC<FormRowProps> = ({ title,title1, rows, onAdd, onRemove }
       {/* Nút Thêm: Gọi hàm 'onAdd' của cha */}
       {onAdd && (
         <div className="add-btn-wrapper">
-          <button className="add-btn" onClick={onAdd}  title="Thêm dòng">
-            <PlusCircle size={20} strokeWidth={2}
-  color="rgba(0, 123, 255, 1)" alt="add"/>
+          <button className="add-btn" onClick={onAdd} title="Thêm dòng">
+            <PlusCircle
+              size={20}
+              strokeWidth={2}
+              color="rgba(0, 123, 255, 1)"
+              alt="add"
+            />
             Thêm đơn giá {title1}
           </button>
         </div>

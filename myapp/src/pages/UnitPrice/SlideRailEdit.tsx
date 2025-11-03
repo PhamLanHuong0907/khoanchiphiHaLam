@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { X } from "lucide-react";
+import { X } from "lucide-react"; // Icon X đã được import
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { useApi } from "../../hooks/useFetchData";
 import PATHS from "../../hooks/path";
 import "../../layout/layout_input.css";
-import "../../components/transactionselector.css";
+import "../../components/transactionselector.css"; // File CSS chứa .tooltip-wrapper và .row-remove-button
 
 // === Định nghĩa interface cho dữ liệu ===
 
@@ -237,6 +237,13 @@ export default function SlideRailsEdit({
     setPartRows(newRows);
   };
 
+  // === THÊM MỚI: HÀM XÓA HÀNG ===
+  const handleRemoveRow = (indexToRemove: number) => {
+    const newRows = partRows.filter((_, index) => index !== indexToRemove);
+    setPartRows(newRows);
+  };
+  // === KẾT THÚC THÊM MỚI ===
+
   // === THAY ĐỔI: Cập nhật handleSubmit ===
   // Khi người dùng nhấn nút "Xác nhận" (SUBMIT)
   const handleSubmit = async () => {
@@ -287,7 +294,15 @@ export default function SlideRailsEdit({
   // === Hiển thị loading nếu đang tải dữ liệu ban đầu ===
   if (isLoadingData) {
     return (
-      <div className="layout-input-container" style={{ position: "relative", zIndex: 10000, height: "auto", padding: "20px" }}>
+      <div
+        className="layout-input-container"
+        style={{
+          position: "relative",
+          zIndex: 10000,
+          height: "auto",
+          padding: "20px",
+        }}
+      >
         Đang tải dữ liệu chỉnh sửa...
       </div>
     );
@@ -353,6 +368,8 @@ export default function SlideRailsEdit({
                 borderBottom: "1px dashed #ccc",
               }}
             >
+              {/* === BẮT ĐẦU THAY ĐỔI: THÊM TOOLTIP === */}
+
               {[
                 { label: "Tên phụ tùng", name: "tenPhuTung" },
                 { label: "Đơn giá vật tư", name: "donGiaVatTu" },
@@ -374,15 +391,22 @@ export default function SlideRailsEdit({
                   >
                     {item.label}
                   </label>
-                  <input
-                    type="text"
-                    id={`${item.name}-${index}`}
-                    name={item.name}
-                    className="input-text"
-                    value={(row as any)[item.name]}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      id={`${item.name}-${index}`}
+                      name={item.name}
+                      className="input-text"
+                      value={(row as any)[item.name]}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {(row as any)[item.name]}
+                    </span>
+                  </div>
                 </div>
               ))}
               {[
@@ -405,15 +429,22 @@ export default function SlideRailsEdit({
                   >
                     {item.label}
                   </label>
-                  <input
-                    type="text"
-                    id={`${item.name}-${index}`}
-                    name={item.name}
-                    className="input-text"
-                    value={(row as any)[item.name]}
-                    readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                  />
+                  {/* Bọc input bằng tooltip-wrapper */}
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      id={`${item.name}-${index}`}
+                      name={item.name}
+                      className="input-text"
+                      value={(row as any)[item.name]}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    {/* Đây là nội dung popup */}
+                    <span className="tooltip-text">
+                      {(row as any)[item.name]}
+                    </span>
+                  </div>
                 </div>
               ))}
               {/* Input các trường còn lại */}
@@ -424,18 +455,25 @@ export default function SlideRailsEdit({
                 >
                   Định mức thời gian thay thế
                 </label>
-                <input
-                  type="number"
-                  id={`dinhMucThoiGian-${index}`}
-                  name="dinhMucThoiGian"
-                  placeholder="Nhập định mức"
-                  className="input-text"
-                  value={row.dinhMucThoiGian} // <-- Giữ nguyên
-                  onChange={(e) =>
-                    handleRowChange(index, "dinhMucThoiGian", e.target.value)
-                  }
-                  autoComplete="off"
-                />
+                {/* Bọc input bằng tooltip-wrapper */}
+                <div className="tooltip-wrapper">
+                  <input
+                    type="number"
+                    id={`dinhMucThoiGian-${index}`}
+                    name="dinhMucThoiGian"
+                    placeholder="Nhập định mức"
+                    className="input-text"
+                    value={row.dinhMucThoiGian}
+                    onChange={(e) =>
+                      handleRowChange(index, "dinhMucThoiGian", e.target.value)
+                    }
+                    autoComplete="off"
+                  />
+                  {/* Đây là nội dung popup */}
+                  <span className="tooltip-text">
+                    {row.dinhMucThoiGian || "Chưa nhập"}
+                  </span>
+                </div>
               </div>
 
               <div className="input-row" style={{ width: "120px" }}>
@@ -445,18 +483,25 @@ export default function SlideRailsEdit({
                 >
                   Số lượng vật tư thay thế
                 </label>
-                <input
-                  type="number"
-                  id={`soLuongVatTu-${index}`}
-                  name="soLuongVatTu"
-                  placeholder="Nhập số lượng"
-                  className="input-text"
-                  value={row.soLuongVatTu} // <-- Giữ nguyên
-                  onChange={(e) =>
-                    handleRowChange(index, "soLuongVatTu", e.target.value)
-                  }
-                  autoComplete="off"
-                />
+                {/* Bọc input bằng tooltip-wrapper */}
+                <div className="tooltip-wrapper">
+                  <input
+                    type="number"
+                    id={`soLuongVatTu-${index}`}
+                    name="soLuongVatTu"
+                    placeholder="Nhập số lượng"
+                    className="input-text"
+                    value={row.soLuongVatTu}
+                    onChange={(e) =>
+                      handleRowChange(index, "soLuongVatTu", e.target.value)
+                    }
+                    autoComplete="off"
+                  />
+                  {/* Đây là nội dung popup */}
+                  <span className="tooltip-text">
+                    {row.soLuongVatTu || "Chưa nhập"}
+                  </span>
+                </div>
               </div>
 
               <div className="input-row" style={{ width: "120px" }}>
@@ -466,18 +511,25 @@ export default function SlideRailsEdit({
                 >
                   Sản lượng mét lò đào bình quân
                 </label>
-                <input
-                  type="number"
-                  id={`sanLuongMetLo-${index}`}
-                  name="sanLuongMetLo"
-                  placeholder="Nhập sản lượng"
-                  className="input-text"
-                  value={row.sanLuongMetLo} // <-- Giữ nguyên
-                  onChange={(e) =>
-                    handleRowChange(index, "sanLuongMetLo", e.target.value)
-                  }
-                  autoComplete="off"
-                />
+                {/* Bọc input bằng tooltip-wrapper */}
+                <div className="tooltip-wrapper">
+                  <input
+                    type="number"
+                    id={`sanLuongMetLo-${index}`}
+                    name="sanLuongMetLo"
+                    placeholder="Nhập sản lượng"
+                    className="input-text"
+                    value={row.sanLuongMetLo}
+                    onChange={(e) =>
+                      handleRowChange(index, "sanLuongMetLo", e.target.value)
+                    }
+                    autoComplete="off"
+                  />
+                  {/* Đây là nội dung popup */}
+                  <span className="tooltip-text">
+                    {row.sanLuongMetLo || "Chưa nhập"}
+                  </span>
+                </div>
               </div>
 
               {/* 2 cột kết quả tính toán */}
@@ -491,15 +543,22 @@ export default function SlideRailsEdit({
                 >
                   Định mức vật tư SCTX
                 </label>
-                <input
-                  type="text"
-                  id={`dinhMucVatTuSCTX-${index}`}
-                  name="dinhMucVatTuSCTX"
-                  className="input-text"
-                  value={row.dinhMucVatTuSCTX} // <-- Giữ nguyên
-                  readOnly
-                  style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                />
+                {/* Bọc input bằng tooltip-wrapper */}
+                <div className="tooltip-wrapper">
+                  <input
+                    type="text"
+                    id={`dinhMucVatTuSCTX-${index}`}
+                    name="dinhMucVatTuSCTX"
+                    className="input-text"
+                    value={row.dinhMucVatTuSCTX}
+                    readOnly
+                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                  />
+                  {/* Đây là nội dung popup */}
+                  <span className="tooltip-text">
+                    {row.dinhMucVatTuSCTX}
+                  </span>
+                </div>
               </div>
               <div
                 className="input-row"
@@ -511,16 +570,34 @@ export default function SlideRailsEdit({
                 >
                   Chi phí vật tư SCTX
                 </label>
-                <input
-                  type="text"
-                  id={`chiPhiVatTuSCTX-${index}`}
-                  name="chiPhiVatTuSCTX"
-                  className="input-text"
-                  value={row.chiPhiVatTuSCTX} // <-- Giữ nguyên
-                  readOnly
-                  style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                />
+                {/* Bọc input bằng tooltip-wrapper */}
+                <div className="tooltip-wrapper">
+                  <input
+                    type="text"
+                    id={`chiPhiVatTuSCTX-${index}`}
+                    name="chiPhiVatTuSCTX"
+                    className="input-text"
+                    value={row.chiPhiVatTuSCTX}
+                    readOnly
+                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                  />
+                  {/* Đây là nội dung popup */}
+                  <span className="tooltip-text">
+                    {row.chiPhiVatTuSCTX}
+                  </span>
+                </div>
               </div>
+
+              {/* === THÊM MỚI: NÚT XÓA HÀNG === */}
+              <button
+                type="button"
+                className="row-remove-button" // Sử dụng class CSS
+                title="Xóa hàng này"
+                onClick={() => handleRemoveRow(index)} // Gọi hàm xóa
+              >
+                <X size={16} />
+              </button>
+              {/* === KẾT THÚC THÊM MỚI === */}
             </div>
           ))}
         </div>

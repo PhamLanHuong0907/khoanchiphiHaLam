@@ -16,7 +16,7 @@ interface PaginatedResponse<T> {
  * @param basePath - Đường dẫn API (có thể chứa query params động)
  * @param options - { autoRefresh?: number, autoFetch?: boolean }
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export function useApi<T = any>(
   basePath: string,
   options: { 
@@ -74,7 +74,7 @@ export function useApi<T = any>(
       // --- 🔼 KẾT THÚC LOGIC MỚI 🔼 ---
 
       setSuccess(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     } catch (err: any) {
       console.error("Error fetching data:", err);
       setError(err.message || "Error fetching data");

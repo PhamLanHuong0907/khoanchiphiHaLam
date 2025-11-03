@@ -114,7 +114,7 @@ const MaterialsInput: React.FC<MaterialsInputProps> = ({ onClose, onSuccess }) =
   const handleCostRowChange = (
     rowIndex: number,
     fieldName: keyof CostRow, // 'startDate', 'endDate', hoặc 'amount'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     value: any
   ) => {
     setCostRows(currentRows =>

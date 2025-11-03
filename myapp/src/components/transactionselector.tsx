@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import "./transactionselector.css";
 
 export interface TransactionRow {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   materialId: any;
   id: string;
   code: string;
@@ -44,9 +44,9 @@ const TransactionSelector: React.FC<TransactionSelectorProps> = ({
     selectedCodes.includes(opt.value)
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   const handleSelectChange = (selected: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const newValues = selected ? selected.map((s: any) => s.value) : [];
     onSelectChange(newValues);
   };

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
@@ -15,17 +14,47 @@ import {
 import { motion } from "framer-motion";
 import "./bodytable.css";
 import ConfirmDeleteModal from "./confirmdeletemodal";
-import "./confirmdeletemodal.css"
+import "./confirmdeletemodal.css";
 import type { JSX } from "react/jsx-dev-runtime";
 import NavbarMini, { type NavItem } from "./navbar_mini";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import EyeToggle from "./eye";
+import EyeToggle from "./eye"; // Giả sử EyeToggle chấp nhận 'onToggle'
+
+// ========== CÁC KIỂU (TYPE) TÙY CHỈNH ĐỂ THAY THẾ 'ANY' ==========
+
+/** Kiểu dữ liệu cơ bản cho một ô (cell) */
+type CellData = string | number | JSX.Element;
+
+/**
+ * Props mong đợi cho các component được clone trong modal (Tạo mới / Chỉnh sửa).
+ */
+type ModalCloneProps = {
+  id?: string;
+  onClose?: () => void;
+};
+
+/**
+ * Props mong đợi cho component "Pencil" (Chỉnh sửa) có thể được truyền vào bảng.
+ */
+type EditButtonProps = {
+  id?: string | number; // ID của mục cần sửa
+  onEdit?: (id: string, element: React.ReactElement) => void;
+};
+
+/**
+ * Props mong đợi cho component "Eye" (Xem) có thể được truyền vào bảng.
+ */
+type EyeToggleProps = {
+  onToggle?: (visible: boolean) => void;
+  detailComponent?: React.ReactNode;
+};
+
+// ================================================================
 
 interface AdvancedTableProps {
   title01?: string;
   title?: string;
   columns: (string | React.ReactNode)[];
-  data: (string | number | JSX.Element)[][];
+  data: CellData[][]; // 👈 Sử dụng CellData
   itemsPerPage?: number;
   columnWidths?: number[];
   createElement?: React.ReactElement;
@@ -36,7 +65,7 @@ interface AdvancedTableProps {
   columnLefts?: (string | number)[];
 }
 
-// 🔽 HÀM HỖ TRỢ: Đọc văn bản từ một ReactNode
+// 🔽 HÀM HỖ TRỢ: Đọc văn bản từ một ReactNode (Đã bỏ 'any')
 const getHeaderText = (node: React.ReactNode): string => {
   if (typeof node === "string") return node;
   if (typeof node === "number") return String(node);
@@ -46,10 +75,13 @@ const getHeaderText = (node: React.ReactNode): string => {
     return node.map(getHeaderText).find((text) => text.length > 0) || "";
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (React.isValidElement(node) && (node.props as any).children) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return getHeaderText((node.props as any).children);
+  // 🔽 Thay thế 'any'
+  if (React.isValidElement(node)) {
+    // Ép kiểu an toàn để kiểm tra props.children
+    const props = node.props as { children?: React.ReactNode };
+    if (props.children) {
+      return getHeaderText(props.children);
+    }
   }
 
   return "";
@@ -72,7 +104,6 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [search, setSearch] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
   const [showCreate, setShowCreate] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
@@ -130,7 +161,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     const indexes: number[] = [];
     for (let i = 0; i < firstRow.length; i++) {
       const cellValue = firstRow[i];
-      if (typeof cellValue === 'string' || typeof cellValue === 'number') {
+      if (typeof cellValue === "string" || typeof cellValue === "number") {
         indexes.push(i);
       }
     }
@@ -142,7 +173,6 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     const firstSortableIndex = sortableColumnIndexes[0] || 0;
     setTempSortColumn(String(firstSortableIndex));
   }, [sortableColumnIndexes]);
-
 
   const [colWidths, setColWidths] = useState<number[]>(
     columnWidths && columnWidths.length === columns.length
@@ -165,7 +195,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
       sortableData.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
-        
+
         if (aValue == null) return sortConfig.direction === "asc" ? -1 : 1;
         if (bValue == null) return sortConfig.direction === "asc" ? 1 : -1;
 
@@ -174,9 +204,10 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
             ? aValue - bValue
             : bValue - aValue;
         }
-
-        const aString = aValue.toString().toLowerCase();
-        const bString = bValue.toString().toLowerCase();
+        
+        // Cẩn thận khi cell là JSX.Element, chỉ so sánh nếu là string/number
+        const aString = React.isValidElement(aValue) ? '' : String(aValue).toLowerCase();
+        const bString = React.isValidElement(bValue) ? '' : String(bValue).toLowerCase();
 
         if (aString < bString) return sortConfig.direction === "asc" ? -1 : 1;
         if (aString > bString) return sortConfig.direction === "asc" ? 1 : -1;
@@ -189,6 +220,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   // 🔽 CẬP NHẬT filteredData ĐỂ DÙNG sortedData (thay vì tableData)
   const filteredData = sortedData.filter((row) =>
     row.some((cell) =>
+      // Chỉ tìm kiếm nếu cell không phải là React Element
+      !React.isValidElement(cell) &&
       cell?.toString().toLowerCase().includes(search.toLowerCase())
     )
   );
@@ -234,7 +267,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     );
   };
 
-  // 🔽 CẬP NHẬT LOGIC XÓA ĐỂ DÙNG `sortedData`
+  // 🔽 CẬP NHẬT LOGIC XÓA ĐỂ DÙNG `sortedData` (Đã bỏ 'any')
   const handleDelete = async () => {
     if (selectedRows.length === 0) return;
 
@@ -244,14 +277,22 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
           // Lấy ID từ `sortedData`
           const idsToDelete = selectedRows
             .map((i) => {
-              const pencilButton = sortedData[i].find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (cell) => React.isValidElement(cell) && (cell as any).props?.id
+              const row = sortedData[i];
+              if (!row) return null;
+
+              // 🔽 Tìm cell là React Element và có prop 'id'
+              const pencilButton = row.find(
+                (cell): cell is React.ReactElement<EditButtonProps> =>
+                  React.isValidElement(cell) &&
+                  typeof (cell.props as EditButtonProps).id !== "undefined"
               );
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              return pencilButton ? (pencilButton as any).props.id : null;
+
+              return pencilButton ? pencilButton.props.id : null;
             })
-            .filter(Boolean);
+            // 🔽 Lọc ra các ID hợp lệ (string hoặc number)
+            .filter(
+              (id): id is string | number => id !== null && id !== undefined
+            );
 
           for (const id of idsToDelete) {
             const res = await fetch(`${basePath}/${id}`, {
@@ -264,9 +305,11 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
           if (onDeleted) onDeleted();
         } else {
           // Xử lý xóa local, cập nhật `tableData`
-          const rowsInSortedData = selectedRows.map(i => sortedData[i]);
-          const updated = tableData.filter(row => !rowsInSortedData.includes(row));
-          
+          const rowsInSortedData = selectedRows.map((i) => sortedData[i]);
+          const updated = tableData.filter(
+            (row) => !rowsInSortedData.includes(row)
+          );
+
           const reordered = updated.map((row, idx) => {
             const newRow = [...row];
             newRow[0] = idx + 1;
@@ -360,7 +403,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                         value="asc"
                         checked={tempSortDirection === "asc"}
                         onChange={() => setTempSortDirection("asc")}
-                      /> Tăng dần
+                      />{" "}
+                      Tăng dần
                     </label>
                     <label>
                       <input
@@ -369,7 +413,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                         value="desc"
                         checked={tempSortDirection === "desc"}
                         onChange={() => setTempSortDirection("desc")}
-                      /> Giảm dần
+                      />{" "}
+                      Giảm dần
                     </label>
                   </div>
 
@@ -395,7 +440,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                       className="btn btn-light"
                       onClick={() => {
                         setSortConfig(null);
-                        const firstSortableIndex = sortableColumnIndexes[0] || 0;
+                        const firstSortableIndex =
+                          sortableColumnIndexes[0] || 0;
                         setTempSortColumn(String(firstSortableIndex));
                         setTempSortDirection("asc");
                         setShowSortPopover(false);
@@ -436,194 +482,213 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ==== Bảng dữ liệu (Giữ nguyên) ==== */}
-        <div className="table-wrapper">
-          <table className="advanced-table">
-            <thead>
-              <tr>
-                <th className="checkbox-cell">
-                  <input
-                    type="checkbox"
-                    onChange={(e) => toggleSelectAll(e.target.checked)}
-                    checked={
-                      visibleData.length > 0 &&
-                      visibleData.every((_, i) =>
-                        selectedRows.includes(i + startIndex)
-                      )
-                    }
-                  />
+      {/* ==== Bảng dữ liệu (Giữ nguyên) ==== */}
+      <div className="table-wrapper">
+        <table className="advanced-table">
+          <thead>
+            <tr>
+              <th className="checkbox-cell">
+                <input
+                  type="checkbox"
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
+                  checked={
+                    visibleData.length > 0 &&
+                    visibleData.every((_, i) =>
+                      selectedRows.includes(i + startIndex)
+                    )
+                  }
+                />
+              </th>
+              {columns.map((col, i) => (
+                <th
+                  key={i}
+                  ref={(el) => {
+                    colRefs.current[i] = el;
+                  }}
+                  style={{
+                    width: `${colWidths[i]}%`,
+                  }}
+                >
+                  {col}
+                  {useFixedWidth && (
+                    <div
+                      className="resize-handle"
+                      onMouseDown={(e) => startResize(i, e)}
+                    />
+                  )}
                 </th>
-                {columns.map((col, i) => (
-                  <th
-                    key={i}
-                    ref={(el) => {
-                      colRefs.current[i] = el;
-                    }}
-                    style={{
-                      width: `${colWidths[i]}%`,
-                    }}
-                  >
-                    {col}
-                    {useFixedWidth && (
-                      <div
-                        className="resize-handle"
-                        onMouseDown={(e) => startResize(i, e)}
-                      />
-                    )}
-                  </th>
-                ))}
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {visibleData.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length + 1} className="no-data">
+                  Không có dữ liệu
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {visibleData.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length + 1} className="no-data">
-                    Không có dữ liệu
-                  </td>
-                </tr>
-              ) : (
-                visibleData.map((row, i) => {
-                  const globalIndex = startIndex + i;
-                  const isChecked = selectedRows.includes(globalIndex);
-                  const hasEyeToggle = columns.includes("Xem");
+            ) : (
+              visibleData.map((row, i) => {
+                const globalIndex = startIndex + i;
+                const isChecked = selectedRows.includes(globalIndex);
+                const hasEyeToggle = columns.includes("Xem");
 
-                  return (
-                    <React.Fragment key={i}>
-                      <tr className={i % 2 === 1 ? "row-alt" : ""}>
-                        <td className="checkbox-cell">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleSelectRow(globalIndex)}
-                          />
-                        </td>
+                return (
+                  <React.Fragment key={i}>
+                    <tr className={i % 2 === 1 ? "row-alt" : ""}>
+                      <td className="checkbox-cell">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleSelectRow(globalIndex)}
+                        />
+                      </td>
 
-                        {row.map((cell, j) => {
-                          const colName = columns[j];
+                      {row.map((cell, j) => {
+                        const colName = columns[j];
 
-                          if (colName === "Xem" && React.isValidElement(cell)) {
-                            return (
-                              <td key={j}>
-                                {React.isValidElement(cell)
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                  ? React.cloneElement(cell as any, {
+                        // 🔽 Xử lý cột "Xem" (Đã bỏ 'any')
+                        if (colName === "Xem" && React.isValidElement(cell)) {
+                          return (
+                            <td key={j}>
+                              {React.isValidElement(cell)
+                                ? React.cloneElement(
+                                    // Ép kiểu cell sang kiểu có prop 'onToggle'
+                                    cell as React.ReactElement<EyeToggleProps>,
+                                    {
                                       onToggle: (visible: boolean) => {
                                         setExpandedRow(
                                           visible ? globalIndex : null
                                         );
                                       },
-                                    })
-                                  : cell}
-                              </td>
-                            );
-                          }
-
-                          return (
-                            <td
-                              key={j}
-                              style={
-                                columnLefts && columnLefts[j] !== "undefined"
-                                  ? {
-                                      position: "relative",
-                                      paddingRight: `${columnLefts[j]}%`,
-                                      paddingLeft: "0px",
-                                      zIndex: 1,
-                                      textAlign: "center",
                                     }
-                                  : undefined
-                              }
-                            >
-                              {React.isValidElement(cell)
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                ? React.cloneElement(cell as any, {
+                                  )
+                                : cell}
+                            </td>
+                          );
+                        }
+
+                        // 🔽 Xử lý các cột khác (Đã bỏ 'any')
+                        return (
+                          <td
+                            key={j}
+                            style={
+                              columnLefts && columnLefts[j] !== "undefined"
+                                ? {
+                                    position: "relative",
+                                    paddingRight: `${columnLefts[j]}%`,
+                                    paddingLeft: "0px",
+                                    zIndex: 1,
+                                    textAlign: "center",
+                                  }
+                                : undefined
+                            }
+                          >
+                            {React.isValidElement(cell)
+                              ? React.cloneElement(
+                                  // Ép kiểu cell sang kiểu có prop 'onEdit'
+                                  cell as React.ReactElement<EditButtonProps>,
+                                  {
                                     onEdit: (
                                       id: string,
                                       element: React.ReactElement
                                     ) => setActiveEdit({ id, element }),
-                                  })
-                                : cell}
-                            </td>
-                          );
-                        })}
-                      </tr>
-
-                      {/* Hàng chi tiết mở rộng */}
-                      {hasEyeToggle && expandedRow === globalIndex && (
-                        <tr className="row-expanded">
-                          <td colSpan={columns.length + 1} style={{ padding: 0, textAlign:"initial"}}>
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              whileHover={{ backgroundColor: "#fff" }}
-                              style={{
-                                overflow: "hidden",
-                                borderTop: "1px solid #ddd",
-                                backgroundColor: "white",
-                                textAlign: "initial"
-                              }}
-                            >
-                              {(
-                                row.find(
-                                  (_, idx) => columns[idx] === "Xem"
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                ) as any
-                              )?.props?.detailComponent}
-                            </motion.div>
+                                  }
+                                )
+                              : cell}
                           </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                        );
+                      })}
+                    </tr>
 
-          {/* ==== Phân trang (Giữ nguyên) ==== */}
-                    <div className="pagination">
-            <div className="info">
-              Hiển thị {startIndex + 1}-
-              {Math.min(startIndex + rowsPerPage, filteredData.length)} trên{" "}
-              {filteredData.length} mục
-            </div>
-            <div className="pagination-controls">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(1)}
-              >
-                ««
-              </button>
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-              >
-                <ChevronLeft size={10} strokeWidth={1} />
-              </button>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-              >
-                <ChevronRight size={10} strokeWidth={1} />
-              </button>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(totalPages)}
-              >
-                »»
-              </button>
-            </div>
-            <div className="page-info">
-              <span>
-                Trang {currentPage}/{totalPages}
-              </span>
-            </div>
+                    {/* Hàng chi tiết mở rộng (Đã bỏ 'any') */}
+                    {hasEyeToggle && expandedRow === globalIndex && (
+                      <tr className="row-expanded">
+                        <td
+                          colSpan={columns.length + 1}
+                          style={{ padding: 0, textAlign: "initial" }}
+                        >
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            whileHover={{ backgroundColor: "#fff" }}
+                            style={{
+                              overflow: "hidden",
+                              borderTop: "1px solid #ddd",
+                              backgroundColor: "white",
+                              textAlign: "initial",
+                            }}
+                          >
+                            {(() => {
+                              // 🔽 Tìm cell "Xem" một cách an toàn
+                              const detailCell = row.find(
+                                (_, idx) => columns[idx] === "Xem"
+                              );
+                              
+                              // 🔽 Kiểm tra và truy cập 'detailComponent'
+                              if (React.isValidElement(detailCell)) {
+                                return (
+                                  detailCell.props as EyeToggleProps
+                                ).detailComponent;
+                              }
+                              return null;
+                            })()}
+                          </motion.div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+
+        {/* ==== Phân trang (Giữ nguyên) ==== */}
+        <div className="pagination">
+          <div className="info">
+            Hiển thị {startIndex + 1}-
+            {Math.min(startIndex + rowsPerPage, filteredData.length)} trên{" "}
+            {filteredData.length} mục
+          </div>
+          <div className="pagination-controls">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(1)}
+            >
+              ««
+            </button>
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              <ChevronLeft size={10} strokeWidth={1} />
+            </button>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              <ChevronRight size={10} strokeWidth={1} />
+            </button>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+            >
+              »»
+            </button>
+          </div>
+          <div className="page-info">
+            <span>
+              Trang {currentPage}/{totalPages}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ==== Modals (Giữ nguyên) ==== */}
+      {/* ==== Modals (Đã bỏ 'any') ==== */}
       <ConfirmDeleteModal
         isOpen={showDeleteModal}
         message={`Bạn có chắc chắn muốn xóa ${selectedRows.length} mục không? Hành động này không thể hoàn tác.`}
@@ -637,28 +702,32 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
         }}
       />
 
-      {showCreate && (
+      {showCreate && createElement && ( // Thêm kiểm tra createElement tồn tại
         <div className="overlay-create" onClick={() => setShowCreate(false)}>
           <div className="overlay-body" onClick={(e) => e.stopPropagation()}>
             {React.cloneElement(
-              createElement as React.ReactElement<{ onClose?: () => void }>,
+              // Ép kiểu component sang kiểu có prop 'onClose'
+              createElement as React.ReactElement<ModalCloneProps>,
               { onClose: () => setShowCreate(false) }
             )}
           </div>
         </div>
       )}
 
-      {activeEdit && (
+      {activeEdit && activeEdit.element && ( // Thêm kiểm tra activeEdit.element tồn tại
         <div
           className="overlay-edit"
           onClick={() => setActiveEdit(null)}
         >
           <div className="overlay-body" onClick={(e) => e.stopPropagation()}>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any
-            {React.cloneElement(activeEdit.element as any, {
-              id: activeEdit.id,
-              onClose: () => setActiveEdit(null),
-            })}
+            {React.cloneElement(
+              // Ép kiểu component sang kiểu có prop 'id' và 'onClose'
+              activeEdit.element as React.ReactElement<ModalCloneProps>,
+              {
+                id: activeEdit.id,
+                onClose: () => setActiveEdit(null),
+              }
+            )}
           </div>
         </div>
       )}
@@ -666,4 +735,4 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   );
 };
 
-export default AdvancedTable; 
+export default AdvancedTable;
