@@ -22,7 +22,7 @@
   width: 50%;
   font-weight: 300;
   font-family: "Roboto", sans-serif;
-  padding-left: 7.7%;
+  padding-left: 1%;
 }
 .material-header-right {
   width: 80px;
@@ -45,7 +45,7 @@
 }
 
 .material-table thead {
-  background-color: rgba(241, 242, 245, 1);
+  background-color: rgb(217,220,226);
 }
 
 .material-table th,

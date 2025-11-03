@@ -52,9 +52,41 @@ const SparePartsInput: React.FC<SparePartsInputProps> = ({ onClose, onSuccess })
   ]);
 
   // ====== Load dropdowns ======
-  useEffect(() => {
-    fetchUnits();
-    fetchEquipments();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+useEffect(() => {
+    // 1. Định nghĩa một hàm async bên trong
+    const fetchAllData = async () => {
+      setIsInitialLoading(true); // Bắt đầu loading
+
+      try {
+        // 2. Gọi Promise.allSettled với MẢNG các hàm fetch
+        const results = await Promise.allSettled([
+          fetchUnits(),
+          fetchEquipments(),
+        ]);
+
+        // 3. (Tùy chọn) Kiểm tra kết quả
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            // Log ra API nào bị lỗi
+            console.error(`API call ${index} thất bại:`, result.reason);
+          }
+        });
+
+      } catch (error) {
+        // 4. Bắt các lỗi cú pháp hoặc lỗi không mong đợi
+        console.error('Lỗi không mong đợi khi fetch dữ liệu:', error);
+      } finally {
+        // 5. Tắt loading sau khi TẤT CẢ đã hoàn thành
+        setIsInitialLoading(false);
+      }
+    };
+
+    // 6. Gọi hàm async
+    fetchAllData();
+
+    // 7. Mảng dependencies giữ nguyên
   }, [fetchUnits, fetchEquipments]);
 
   // Map options for dropdowns

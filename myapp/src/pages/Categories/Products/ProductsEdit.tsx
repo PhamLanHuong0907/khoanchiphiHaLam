@@ -79,11 +79,43 @@ const ProductsEdit: React.FC<ProductsEditProps> = ({ id, onClose, onSuccess }) =
   }, [id, fetchById]);
 
   // 6. ====== Load dropdowns ======
-  useEffect(() => {
-    fetchProcessGroups();
-    fetchHardness();
-    fetchStoneClampRatios();
-    fetchInsertItems();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+useEffect(() => {
+    // 1. Định nghĩa một hàm async bên trong
+    const fetchAllData = async () => {
+      setIsInitialLoading(true); // Bắt đầu loading
+
+      try {
+        // 2. Gọi Promise.allSettled với MẢNG các hàm fetch
+        const results = await Promise.allSettled([
+          fetchProcessGroups(),
+          fetchHardness(),
+          fetchStoneClampRatios(),
+          fetchInsertItems(),
+        ]);
+
+        // 3. (Tùy chọn) Kiểm tra kết quả
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            // Log ra API nào bị lỗi
+            console.error(`API call ${index} thất bại:`, result.reason);
+          }
+        });
+
+      } catch (error) {
+        // 4. Bắt các lỗi cú pháp hoặc lỗi không mong đợi
+        console.error('Lỗi không mong đợi khi fetch dữ liệu:', error);
+      } finally {
+        // 5. Tắt loading sau khi TẤT CẢ đã hoàn thành
+        setIsInitialLoading(false);
+      }
+    };
+
+    // 6. Gọi hàm async
+    fetchAllData();
+
+    // 7. Mảng dependencies giữ nguyên
   }, [fetchProcessGroups, fetchHardness, fetchStoneClampRatios, fetchInsertItems]);
 
   // 7. ====== Sync data to form (QUAN TRỌNG) ======
@@ -156,9 +188,6 @@ const ProductsEdit: React.FC<ProductsEditProps> = ({ id, onClose, onSuccess }) =
     { type: "custom1" as const }, // Placeholder cho Nhóm CĐSX
     { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập mã sản phẩm, ví dụ: SP01" },
     { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm, ví dụ: Lò chợ 11-1.26 lò chống..." },
-    { type: "custom2" as const }, // Placeholder cho Độ kiên cố than đá
-    { type: "custom3" as const }, // Placeholder cho Tỷ lệ đá kẹp
-    { type: "custom4" as const }, // Placeholder cho Chèn
   ];
 
   // 11. Tính toán trạng thái loading/error tổng
@@ -191,36 +220,6 @@ const ProductsEdit: React.FC<ProductsEditProps> = ({ id, onClose, onSuccess }) =
             onChange={setSelectedProcessGroup}
             placeholder="Chọn mã nhóm công đoạn sản xuất"
             isDisabled={loadingProcessGroup}
-          />
-        </div>
-        <div className="custom2" key={2}>
-          <DropdownMenuSearchable
-            label="Độ kiên cố than đá"
-            options={hardnessOptions}
-            value={selectedHardness}
-            onChange={setSelectedHardness}
-            placeholder="Chọn độ kiên cố than đá"
-            isDisabled={loadingHardness}
-          />
-        </div>
-        <div className="custom3" key={3}>
-          <DropdownMenuSearchable
-            label="Nhóm công đoạn sản xuất"
-            options={stoneClampOptions}
-            value={selectedStoneClamp}
-            onChange={setSelectedStoneClamp}
-            placeholder="Chọn tỷ lệ đá kẹp"
-            isDisabled={loadingStoneClamp}
-          />
-        </div>
-        <div className="custom4" key={4}>
-          <DropdownMenuSearchable
-            label="Chèn"
-            options={insertItemOptions}
-            value={selectedInsertItem}
-            onChange={setSelectedInsertItem}
-            placeholder="Chọn chèn"
-            isDisabled={loadingInsertItem}
           />
         </div>
       </LayoutInput>

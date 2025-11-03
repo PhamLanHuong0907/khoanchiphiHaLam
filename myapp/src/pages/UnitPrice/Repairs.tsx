@@ -51,7 +51,7 @@ const Repairs: React.FC = () => {
   ];
 
   // Chiều rộng từng cột (Giữ nguyên)
-  const columnWidths = [6, 18, 57, 10, 3, 4];
+  const columnWidths = [6, 18.2, 59, 9.8, 3, 4];
 
   // 5. Map dữ liệu từ API
   const tableData =

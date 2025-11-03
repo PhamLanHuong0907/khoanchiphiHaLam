@@ -61,23 +61,50 @@ const ProductsInput: React.FC<ProductsInputProps> = ({ onClose, onSuccess }) => 
   // (State cho "Mã sản phẩm" và "Tên sản phẩm" được quản lý nội bộ bởi LayoutInput)
 
   // 6. ====== Load dropdowns ======
-  useEffect(() => {
-    fetchProcessGroups();
-    fetchHardness();
-    fetchStoneClampRatios();
-    fetchInsertItems();
-  }, [fetchProcessGroups, fetchHardness, fetchStoneClampRatios, fetchInsertItems]);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // Map data API sang định dạng DropdownOption
+useEffect(() => {
+    // 1. Định nghĩa một hàm async bên trong
+    const fetchAllData = async () => {
+      setIsInitialLoading(true); // Bắt đầu loading
+
+      try {
+        // 2. Gọi Promise.allSettled với MẢNG các hàm fetch
+        const results = await Promise.allSettled([
+          fetchProcessGroups(),
+          fetchHardness(),
+          fetchStoneClampRatios(),
+          fetchInsertItems(),
+        ]);
+
+        // 3. (Tùy chọn) Kiểm tra kết quả
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            // Log ra API nào bị lỗi
+            console.error(`API call ${index} thất bại:`, result.reason);
+          }
+        });
+
+      } catch (error) {
+        // 4. Bắt các lỗi cú pháp hoặc lỗi không mong đợi
+        console.error('Lỗi không mong đợi khi fetch dữ liệu:', error);
+      } finally {
+        // 5. Tắt loading sau khi TẤT CẢ đã hoàn thành
+        setIsInitialLoading(false);
+      }
+    };
+
+    // 6. Gọi hàm async
+    fetchAllData();
+
+    // 7. Mảng dependencies giữ nguyên
+  }, [fetchProcessGroups, fetchHardness, fetchStoneClampRatios, fetchInsertItems]);
   const processGroupOptions: DropdownOption[] =
     processGroups?.map((g) => ({ value: g.id, label: g.code })) || [];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const hardnessOptions: DropdownOption[] =
     hardness?.map((h) => ({ value: h.id, label: h.value })) || [];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const stoneClampOptions: DropdownOption[] =
     stoneClampRatios?.map((s) => ({ value: s.id, label: s.value })) || [];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const insertItemOptions: DropdownOption[] =
     insertItems?.map((i) => ({ value: i.id, label: i.value })) || [];
 
@@ -120,9 +147,6 @@ const ProductsInput: React.FC<ProductsInputProps> = ({ onClose, onSuccess }) => 
     { type: "custom1" as const }, // Placeholder cho Nhóm CĐSX
     { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập tên mã sản phẩm" },
     { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm" },
-    { type: "custom2" as const }, // Placeholder cho Độ kiên cố than đá
-    { type: "custom3" as const }, // Placeholder cho Tỷ lệ đá kẹp
-    { type: "custom4" as const }, // Placeholder cho Chèn
   ];
 
   // 9. Tính toán trạng thái loading/error tổng
@@ -155,36 +179,6 @@ const ProductsInput: React.FC<ProductsInputProps> = ({ onClose, onSuccess }) => 
             onChange={setSelectedProcessGroup}
             placeholder="Chọn nhóm CĐSX"
             isDisabled={loadingProcessGroup}
-          />
-        </div>
-        <div className="custom2" key={2}>
-          <DropdownMenuSearchable
-            label="Độ kiên cố than đá"
-            options={hardnessOptions}
-            value={selectedHardness}
-            onChange={setSelectedHardness}
-            placeholder="Chọn độ kiên cố than đá"
-            isDisabled={loadingHardness}
-          />
-        </div>
-        <div className="custom3" key={3}>
-          <DropdownMenuSearchable
-            label="Nhóm công đoạn sản xuất"
-            options={stoneClampOptions}
-            value={selectedStoneClamp}
-            onChange={setSelectedStoneClamp}
-            placeholder="Chọn tỷ lệ đá kẹp"
-            isDisabled={loadingStoneClamp}
-          />
-        </div>
-        <div className="custom4" key={4}>
-          <DropdownMenuSearchable
-            label="Chèn"
-            options={insertItemOptions}
-            value={selectedInsertItem}
-            onChange={setSelectedInsertItem}
-            placeholder="Chọn chèn"
-            isDisabled={loadingInsertItem}
           />
         </div>
       </LayoutInput>

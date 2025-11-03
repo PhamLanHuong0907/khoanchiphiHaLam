@@ -111,7 +111,7 @@ const Materials_Ingredient: React.FC = () => {
     "Sửa",
   ];
 
-  const columnWidths = [6.3, 18.6, 57.5, 10.2, 3, 4];
+  const columnWidths = [6.3, 18.6, 62, 9, 4, 4];
 
   // 6. Map dữ liệu từ API (Bọc trong useMemo)
   const tableData = useMemo(() => {

@@ -34,14 +34,14 @@ const MaterialGroupTable: React.FC<MaterialGroupTableProps> = ({ title, data }) 
       <table className="material-table">
         <thead>
           <tr>
-            <th style={{width: "7.8%"}}>STT</th>
-            <th style={{width: " 19.2%", textAlign: "left"}}>Mã giao khoán</th>
-            <th style={{width: "16%", textAlign:"left", paddingLeft:"2%"}}>Mã vật tư, tài sản</th>
-            <th style={{width: "18%", textAlign:"left"}}>Tên vật tư, tài sản</th>
-            <th style={{width: "5%", textAlign: "left"}}>ĐVT</th>
-            <th style={{width: "14%", textAlign:"left", paddingLeft:"3%"}}>Đơn giá</th>
-            <th style={{width: "8.5%", textAlign:"left"}}>Định mức</th>
-            <th  style={{width: "11.5%",textAlign:"left"}}>Thành tiền</th>
+            <th style={{width: "7%", backgroundColor: "rgb(217,220,226)"}}>STT</th>
+            <th style={{width: " 12.2%", textAlign: "left", backgroundColor: "rgb(217,220,226)"}}>Mã giao khoán</th>
+            <th style={{width: "17%", textAlign:"left", paddingLeft:"2%", backgroundColor: "rgb(217,220,226)"}}>Mã vật tư, tài sản</th>
+            <th style={{width: "18%", textAlign:"left", backgroundColor: "rgb(217,220,226)"}}>Tên vật tư, tài sản</th>
+            <th style={{width: "5%", textAlign: "left", backgroundColor: "rgb(217,220,226)"}}>ĐVT</th>
+            <th style={{width: "12%", textAlign:"left", paddingLeft:"3%", backgroundColor: "rgb(217,220,226)"}}>Đơn giá</th>
+            <th style={{width: "8%", textAlign:"left", backgroundColor: "rgb(217,220,226)"}}>Định mức</th>
+            <th  style={{width: "11%",textAlign:"left", backgroundColor: "rgb(217,220,226)"}}>Thành tiền</th>
           </tr>
         </thead>
         <tbody>

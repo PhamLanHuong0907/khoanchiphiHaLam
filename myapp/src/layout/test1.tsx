@@ -81,7 +81,7 @@ const Repairs_Grouped: React.FC<MaterialsIngredientGroupedProps> = ({ id }) => {
 
   // 7. Render (với xử lý loading/error)
   return (
-    <div style={{paddingLeft: "28.6px"}}>
+    <div style={{paddingLeft: "111px"}}>
       {loading && (
         <div style={{ padding: "20px", textAlign: "center" }}>
           Đang tải chi tiết...

@@ -258,7 +258,6 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                       style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
                     <span className="tooltip-text">
-                      , @typescript-eslint/no-explicit-any, @typescript-eslint/no-explicit-any
                       {(row as any)[item.name]}
                     </span>
                   </div>
