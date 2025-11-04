@@ -6,6 +6,7 @@ import EyeToggle from "../../components/eye";
 import Materials_Ingredient_Grouped from "../../layout/test";
 import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
 import Materials_Ingredient_Input from "../UnitPrice/Materials_Ingredient_Input";
+import SCTX_PlanPrice from "../../layout/CPSCTX_KH";
 const Repairs_PlanCost: React.FC = () => {
   const columns = [
     "STT",
@@ -43,7 +44,7 @@ const Repairs_PlanCost: React.FC = () => {
   const data = dataRows.map((row) => [
     row.id,
     row.ma,
-    <EyeToggle detailComponent={<Materials_Ingredient_Grouped/>}/>,
+    <EyeToggle detailComponent={<SCTX_PlanPrice/>}/>,
     <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit/>}/>,
   ]);
   return (

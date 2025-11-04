@@ -3,9 +3,9 @@ import Layout from "../../layout/layout_filter";
 import AdvancedTable from "../../components/bodytable";
 import PencilButton from "../../components/PencilButtons";
 import EyeToggle from "../../components/eye";
-import Materials_Ingredient_Grouped from "../../layout/test";
 import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
 import Materials_Ingredient_Input from "../UnitPrice/Materials_Ingredient_Input";
+import Electric_Price from "../../layout/CPDN_TH";
 const Electricity_Cost: React.FC = () => {
   const columns = [
     "STT",
@@ -43,7 +43,7 @@ const Electricity_Cost: React.FC = () => {
   const data = dataRows.map((row) => [
     row.id,
     row.ma,
-    <EyeToggle detailComponent={<Materials_Ingredient_Grouped/>}/>,
+    <EyeToggle detailComponent={<Electric_Price/>}/>,
     <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit/>}/>,
   ]);
   return (

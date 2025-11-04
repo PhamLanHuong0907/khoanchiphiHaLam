@@ -3,9 +3,9 @@ import Layout from "../../layout/layout_filter";
 import AdvancedTable from "../../components/bodytable";
 import PencilButton from "../../components/PencilButtons";
 import EyeToggle from "../../components/eye";
-import Materials_Ingredient_Grouped from "../../layout/test";
 import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
-import Materials_Ingredient_Input from "../UnitPrice/Materials_Ingredient_Input";
+import SCTX_Price from "../../layout/CPSCTX_TH";
+import RepairsCostInput from "./Repairs_Cost_Input";
 const Repairs_Cost: React.FC = () => {
   const columns = [
     "STT",
@@ -43,7 +43,7 @@ const Repairs_Cost: React.FC = () => {
   const data = dataRows.map((row) => [
     row.id,
     row.ma,
-    <EyeToggle detailComponent={<Materials_Ingredient_Grouped/>}/>,
+    <EyeToggle detailComponent={<SCTX_Price/>}/>,
     <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit/>}/>,
   ]);
   return (
@@ -55,7 +55,7 @@ const Repairs_Cost: React.FC = () => {
           columns={columns}
           columnWidths={columnWidths}
           data={data}
-          createElement={<Materials_Ingredient_Input/>}
+          createElement={<RepairsCostInput/>}
           navbarMiniItems={items}
           columnLefts={['undefined','undefined','undefined','undefined']}
         />

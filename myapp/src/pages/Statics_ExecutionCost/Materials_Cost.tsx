@@ -6,6 +6,7 @@ import EyeToggle from "../../components/eye";
 import Materials_Ingredient_Grouped from "../../layout/test";
 import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
 import Materials_Ingredient_Input from "../UnitPrice/Materials_Ingredient_Input";
+import Material_Price from "../../layout/CPVL_TH";
 const Materials_Cost: React.FC = () => {
   const columns = [
     "STT",
@@ -18,9 +19,9 @@ const Materials_Cost: React.FC = () => {
     6, 93,3,4
   ];
   const items = [
-    { label: "Chi phí vật liệu kế hoạch", path: "/MaterialsCost" },
-    { label: "Chi phí SCTX kế hoạch", path: "/RepairsCost" },
-    { label: "Chi phí điện năng kế hoạch", path: "/ElectricityCost" },
+    { label: "Chi phí vật liệu thực hiện", path: "/MaterialsCost" },
+    { label: "Chi phí SCTX thực hiện", path: "/RepairsCost" },
+    { label: "Chi phí điện năng thực hiện", path: "/ElectricityCost" },
   ];
 
   // ✅ Dữ liệu gốc
@@ -43,7 +44,7 @@ const Materials_Cost: React.FC = () => {
   const data = dataRows.map((row) => [
     row.id,
     row.ma,
-    <EyeToggle detailComponent={<Materials_Ingredient_Grouped/>}/>,
+    <EyeToggle detailComponent={<Material_Price/>}/>,
     <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit/>}/>,
   ]);
   return (

@@ -1,0 +1,68 @@
+.data-display-container {
+  font-family: Arial, sans-serif;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #ffffff;
+}
+
+/* 1. Kiểu cho Thông tin chung */
+.general-info-section {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-item {
+  display: flex;
+  font-size: 14px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #333;
+  width: 220px; /* Điều chỉnh độ rộng của nhãn */
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: #555;
+}
+
+/* 2. Kiểu cho các Bảng */
+.table-section {
+  width: 100%;
+  overflow-x: auto; /* Cho phép cuộn ngang nếu bảng quá rộng */
+  
+}
+
+.dynamic-table {
+  width: 100%;
+  border-collapse: collapse; /* Gộp viền */
+}
+
+.dynamic-table th,
+.dynamic-table td {
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.dynamic-table th {
+  font-weight: 600;
+  color: #333;
+  background-color: #f9f9f9; /* Màu nền header mặc định */
+}
+
+/* CSS cho bảng cuối cùng không có viền dưới */
+.data-display-container .table-section:last-child .dynamic-table tr:last-child td {
+  border-bottom: none;
+}
+.dynamic-table thead tr th{
+    background-color: rgb(217,220,226);
+}
+.dynamic-table tbody tr:hover td{
+    background-color: #f1f1f1;
+}
