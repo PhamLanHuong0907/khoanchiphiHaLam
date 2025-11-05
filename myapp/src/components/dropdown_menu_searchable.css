@@ -33,7 +33,7 @@
 .dropdown-search__menu {
   font-family: "Roboto", sans-serif;
   font-size: 14px;
-  z-index: 999;
+  z-index: 99999999999999999999999999999999999999;
 }
 
 .dropdown-search__option {

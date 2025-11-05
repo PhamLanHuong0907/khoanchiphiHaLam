@@ -67,7 +67,7 @@ export default function ElectricRailsEdit({ id, onClose }: ElectricRailsEditProp
   // 1. API GET cho dropdown (Tự động chạy khi mount)
   // (Vẫn cần để hiển thị tên trong dropdown bị vô hiệu hóa)
   const { data: equipmentListData = [] } = useApi<EquipmentListItem>(
-    "/api/catalog/equipment"
+    "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
 
   // 2. API (CRUD)

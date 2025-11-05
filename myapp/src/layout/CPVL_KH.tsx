@@ -11,11 +11,11 @@ const generalInfoData = [
 // 2. Định nghĩa cho Bảng 1 (Công đoạn)
 const phaseHeaders: ColumnDefinition[] = [
   { key: 'code', label: 'Mã công đoạn', width: '11%' },
-  { key: 'name', label: 'Tên công đoạn', width: '39%' },
+  { key: 'material_code', label: 'Mã định mức vật liệu', width: '30%', textAlign: 'left' },
   { key: 'unit', label: 'ĐVT', width: '5%', textAlign: 'left' },
-  { key: 'quantity', label: 'Sản lượng', width: '10%', textAlign: 'left' },
-  { key: 'material_code', label: 'Mã định mức vật liệu', width: '18%', textAlign: 'left' },
-  { key: 'stone_scale', label: 'Tỷ lệ đá kẹp', width: '17%', textAlign: 'left' },
+  { key: 'quantity', label: 'Sản lượng', width: '9%', textAlign: 'left' },
+  { key: 'stone_scale', label: 'Tỷ lệ đá kẹp', width: '35%', textAlign: 'left' },
+  { key: 'cost', label: <>Chi phí <br/> kế hoạch</>, width: '10%', textAlign: 'left' },
 ];
 
 const phaseData = [
@@ -28,13 +28,13 @@ const equipmentHeaders: ColumnDefinition[] = [
   { key: 'WorkCode_ID', label: 'Mã giao khoán', width: '11%' },
   { key: 'Material_ID', label: 'Mã vật tư', width: '11%' },
   { key: 'Material_name', label: 'Tên vật tư, tài sản', width: '19%' , textAlign: 'left'},
-  { key: 'quantity', label: 'Số lượng', width: '9%' },
   { key: 'Unit', label: 'ĐVT', width: '5%' },
+  { key: 'quantity', label: 'Số lượng', width: '9%' },
   { key: 'origin_adjustment', label: 'Định mức gốc', width: '10%' },
-  { key: 'adjustment', label: <>Hệ số điều chỉnh định mức</>, width: '12%' },
+  { key: 'adjustment', label: <>Hệ số <br/>điều chỉnh <br/> định mức</>, width: '10%' },
   { key: 'new_adjustment', label: 'Định mức', width: '6%' },
   { key: 'price', label: 'Đơn giá bình quân', width: '9%' },
-  { key: 'total', label: 'Chi phí kế hoạch', width: '8%' },
+  { key: 'total', label: 'Thành tiền', width: '10%' },
 ];
 
 const equipmentData = [

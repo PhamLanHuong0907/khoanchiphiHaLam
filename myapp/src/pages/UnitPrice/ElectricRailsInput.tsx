@@ -60,7 +60,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
   // === Gọi API ===
   // 1. API GET cho dropdown (Tự động chạy khi mount)
   const { data: equipmentListData = [] } = useApi<EquipmentListItem>(
-    "/api/catalog/equipment"
+    "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
 
   // 2. API POST (Dùng để submit)
@@ -263,7 +263,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                 style={{
                   display: "flex",
                   gap: "16px",
-                  width: "120%",
+                  width: "125%",
                   flexWrap: "wrap",
                   marginBottom: "20px",
                   paddingBottom: "20px",

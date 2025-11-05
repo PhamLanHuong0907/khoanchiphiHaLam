@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select"; // Dùng cho CHỌN NHIỀU (Thiết bị)
@@ -63,7 +63,7 @@ interface EquipmentRow {
   maThietBi: string;
   donGia: number;
   soLuong: string;
-  k1: string; k2: string; k3: string; k4: string; k5: string; k6: string; k7: string;
+  k1: string; k2: string; k3: string; 
 }
 
 // === THAY ĐỔI 1: Giá trị ProductData rỗng mặc định ===
@@ -76,7 +76,7 @@ const DEFAULT_EMPTY_PRODUCT: ProductData = {
 };
 
 // === COMPONENT ===
-export default function RepairsCostInput({ onClose }: { onClose?: () => void }) {
+export default function Electric_CostInput({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
   const closePath = PATHS.REPAIRS_COST.LIST; 
 
@@ -129,7 +129,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
         maThietBi: equipment?.code || "N/A",
         donGia: equipment?.donGia || 0,
         soLuong: "",
-        k1: "", k2: "", k3: "", k4: "", k5: "", k6: "", k7: "",
+        k1: "", k2: "", k3: "", 
       };
     });
     setEquipmentRows(newRows);
@@ -180,10 +180,10 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
 
       <div className="layout-input-header">
         <div className="header01">
-          Thống kê vận hành / Chi phí thực hiện / Chi phí SCTX thực hiện
+          Thống kê vận hành / Chi phí thực hiện / Chi phí điện năng thực hiện
         </div>
         <div className="line"></div>
-        <div className="header02">Tạo mới Chi phí SCTX thực hiện</div>
+        <div className="header02">Tạo mới Chi phí điện năng thực hiện</div>
       </div>
 
       {/* BODY CUỘN DỌC */}
@@ -285,7 +285,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`maThietBi-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
+                  style={{ textAlign: "center", height: "30px" }}
                 >
                   Mã thiết bị
                 </label>
@@ -306,7 +306,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`donGia-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
+                  style={{ textAlign: "center", height: "30px" }}
                 >
                   Đơn giá
                 </label>
@@ -327,7 +327,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
               <div className="input-row" style={{ width: "80px" }}>
                 <label
                   htmlFor={`soLuong-${index}`}
-                  style={{ textAlign: "center", height: "30px" , marginBottom: '-5px'}}
+                  style={{ textAlign: "center", height: "30px" }}
                 >
                   Số lượng
                 </label>
@@ -350,7 +350,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
               <div className="input-row" style={{ width: "80px" }}>
                 <label
                   htmlFor={`k1-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
+                  style={{ textAlign: "center", height: "30px" }}
                 >
                   K1
                 </label>
@@ -370,7 +370,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
               <div className="input-row" style={{ width: "80px" }}>
                 <label
                   htmlFor={`k2-${index}`}
-                  style={{ textAlign: "center", height: "30px" , marginBottom: '-5px'}}
+                  style={{ textAlign: "center", height: "30px" }}
                 >
                   K2
                 </label>
@@ -390,7 +390,7 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
               <div className="input-row" style={{ width: "80px" }}>
                 <label
                   htmlFor={`k3-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
+                  style={{ textAlign: "center", height: "30px" }}
                 >
                   K3
                 </label>
@@ -405,93 +405,12 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
                   <span className="tooltip-text">{row.k3 || "Chưa chọn"}</span>
                 </div>
               </div>
-
-              {/* Field 7: K4 (Dropdown) */}
-              <div className="input-row" style={{ width: "80px" }}>
-                <label
-                  htmlFor={`k4-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
-                >
-                  K4
-                </label>
-                <div className="tooltip-wrapper">
-                  <DropdownMenuSearchable
-                    options={MOCK_K_OPTIONS}
-                    value={row.k4}
-                    onChange={(val) => handleEquipmentRowChange(index, "k4", val)}
-                    placeholder="-"
-                    width="100%"
-                  />
-                  <span className="tooltip-text">{row.k4 || "Chưa chọn"}</span>
-                </div>
-              </div>
-
-              {/* Field 8: K5 (Dropdown) */}
-              <div className="input-row" style={{ width: "80px" }}>
-                <label
-                  htmlFor={`k5-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
-                >
-                  K5
-                </label>
-                <div className="tooltip-wrapper">
-                  <DropdownMenuSearchable
-                    options={MOCK_K_OPTIONS}
-                    value={row.k5}
-                    onChange={(val) => handleEquipmentRowChange(index, "k5", val)}
-                    placeholder="-"
-                    width="100%"
-                  />
-                  <span className="tooltip-text">{row.k5 || "Chưa chọn"}</span>
-                </div>
-              </div>
               
-              {/* Field 9: K6 (Dropdown) */}
-              <div className="input-row" style={{ width: "80px" }}>
-                <label
-                  htmlFor={`k6-${index}`}
-                  style={{ textAlign: "center", height: "30px" , marginBottom: '-5px'}}
-                >
-                  K6
-                </label>
-                <div className="tooltip-wrapper">
-                  <DropdownMenuSearchable
-                    options={MOCK_K_OPTIONS}
-                    value={row.k6}
-                    onChange={(val) => handleEquipmentRowChange(index, "k6", val)}
-                    placeholder="-"
-                    width="100%"
-                  />
-                  <span className="tooltip-text">{row.k6 || "Chưa chọn"}</span>
-                </div>
-              </div>
-
-              {/* Field 10: K7 (Dropdown) */}
-              <div className="input-row" style={{ width: "80px" }}>
-                <label
-                  htmlFor={`k7-${index}`}
-                  style={{ textAlign: "center", height: "30px", marginBottom: '-5px' }}
-                >
-                  K7
-                </label>
-                <div className="tooltip-wrapper">
-                  <DropdownMenuSearchable
-                    options={MOCK_K_OPTIONS}
-                    value={row.k7}
-                    onChange={(val) => handleEquipmentRowChange(index, "k7", val)}
-                    placeholder="-"
-                    width="100%"
-                  />
-                  <span className="tooltip-text">{row.k7 || "Chưa chọn"}</span>
-                </div>
-              </div>
-
               {/* Field 11: Nút Xóa */}
               <button
                 type="button"
                 className="row-remove-button" // Class này có margin-top: 42px từ transactionselector.css
                 title="Xóa hàng này"
-                style={{marginTop: "32px"}}
                 onClick={() => handleRemoveEquipmentRow(index)}
               >
                 <X size={16} />
@@ -499,6 +418,13 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
             </div>
           ))}
           {/* === KẾT THÚC Bố cục hàng thiết bị MỚI === */}
+
+
+          {equipmentRows.length === 0 && (
+            <div style={{ textAlign: "center", padding: "20px", color: "#888" }}>
+              (Vui lòng chọn Mã thiết bị)
+            </div>
+          )}
         </div>
         {/* === 🔼 KẾT THÚC NỘI DUNG CUỘN 🔼 === */}
 

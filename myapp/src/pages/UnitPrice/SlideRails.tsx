@@ -36,8 +36,8 @@ const SlideRails: React.FC = () => {
   // === 5. Cập nhật độ rộng cột ===
   const columnWidths = [
     6,  // STT
-    72.5, // Mã thiết bị (giảm bớt)
-    14.5, // Tổng tiền (cột mới)
+    77, // Mã thiết bị (giảm bớt)
+    10, // Tổng tiền (cột mới)
     3,  // Xem
     4   // Sửa
   ];

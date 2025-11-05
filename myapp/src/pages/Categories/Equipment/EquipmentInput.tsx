@@ -160,7 +160,7 @@ const EquipmentInput: React.FC<EquipmentInputProps> = ({ onClose, onSuccess }) =
         handleCostRowChange(index, 'endDate', date?.toISOString() || ""),
     },
     {
-      label: "Đơn giá", // Sửa: "Đơn giá điện năng" thành "Đơn giá"
+      label: "Đơn giá điện năng", // Sửa: "Đơn giá điện năng" thành "Đơn giá"
       placeholder: "Nhập đơn giá điện năng", // Sửa: "Nhập đơn giá điện năng"
       type: "number" as const,
       value: row.amount,

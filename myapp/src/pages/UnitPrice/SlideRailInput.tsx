@@ -8,8 +8,7 @@ import "../../layout/layout_input.css";
 import "../../components/transactionselector.css"; // Import CSS (NƠI BẠN VỪA THÊM CSS TOOLTIP VÀ NÚT XÓA)
 
 // === Định nghĩa interface cho dữ liệu ===
-
-// ... (Các interface Equipment, Part, PartRowData, CostItem, PostPayload giữ nguyên) ...
+// ... (Interfaces của bạn giữ nguyên) ...
 interface Equipment {
   id: string;
   code: string;
@@ -49,7 +48,6 @@ interface CostItem {
 interface PostPayload {
   costs: CostItem[];
 }
-// === KẾT THÚC THAY ĐỔI ===
 
 export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
@@ -57,9 +55,9 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
 
   // === Gọi API ===
   const { data: equipmentData = [] } = useApi<Equipment>(
-    "/api/catalog/equipment"
+    "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
-  const { data: allPartsData = [] } = useApi<Part>("/api/catalog/part");
+  const { data: allPartsData = [] } = useApi<Part>("/api/catalog/part?pageIndex=1&pageSize=10000");
 
   const { postData, loading: isSubmitting } = useApi<PostPayload>(
     "/api/pricing/maintainunitpriceequipment"
@@ -78,7 +76,6 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
   }, [equipmentData]);
 
   // === Xử lý sự kiện ===
-  // ... (handleClose, handleSelectChange, handleRowChange giữ nguyên) ...
   const handleClose = () => {
     onClose?.();
     if (!onClose && closePath) navigate(closePath);
@@ -120,13 +117,13 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
     const sanLuongMetLo = parseFloat(updatedRow.sanLuongMetLo) || 0;
     let dinhMucVatTu = 0;
     if (sanLuongMetLo !== 0)
-      dinhMucVatTu = (dinhMucThoiGian * soLuongVatTu) / sanLuongMetLo;
+      dinhMucVatTu = (soLuongVatTu) / (dinhMucThoiGian) / sanLuongMetLo;
     const chiPhiVatTu = dinhMucVatTu * donGia;
     updatedRow.dinhMucVatTuSCTX = dinhMucVatTu.toLocaleString("vi-VN", {
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 4,
     });
     updatedRow.chiPhiVatTuSCTX = chiPhiVatTu.toLocaleString("vi-VN", {
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 4,
     });
     newRows[index] = updatedRow;
     setPartRows(newRows);
@@ -153,16 +150,11 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  // === THÊM MỚI: HÀM XÓA HÀNG ===
   const handleRemoveRow = (indexToRemove: number) => {
-    // Lọc ra mảng mới, loại bỏ hàng có 'indexToRemove'
     const newRows = partRows.filter((_, index) => index !== indexToRemove);
-    // Cập nhật lại state
     setPartRows(newRows);
   };
-  // === KẾT THÚC THÊM MỚI ===
 
-  // ... (selectedOptions giữ nguyên) ...
   const selectedOptions = equipmentOptions.filter((opt) =>
     selectedEquipmentIds.includes(opt.value)
   );
@@ -170,9 +162,8 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
   return (
     <div
       className="layout-input-container"
-      style={{ position: "relative", zIndex: 10000, height: "auto" }}
+      style={{ position: "relative", zIndex: 10000, height: "auto" }} // zIndex ở đây không cần thiết lắm
     >
-      {/* ... (Phần header và dropdown Select giữ nguyên) ... */}
       <button className="close-btn" onClick={handleClose} title="Đóng">
         <X size={16} />
       </button>
@@ -186,6 +177,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
       </div>
 
       <div className="layout-input-body">
+        {/* Container này vẫn giữ position: fixed */}
         <div className="input-row" style={{ position: "fixed" }}>
           <label>Mã thiết bị</label>
           <Select
@@ -196,9 +188,19 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
             className="transaction-select-wrapper"
             classNamePrefix="transaction-select"
             placeholder="Chọn Mã thiết bị"
+            
+            // === 🔽 BẮT ĐẦU SỬA LỖI 🔽 ===
+            
+            // 1. Chỉ thị cho menu "dịch chuyển" (portal) ra document.body
+            // Đây là chìa khóa để thoát khỏi container 'position: fixed'
+            menuPortalTarget={document.body}
+            
+            // 2. Khi dùng portal, bạn phải gán z-index cho 'menuPortal'
             styles={{
-              menu: (provided) => ({ ...provided, zIndex: 9999 }),
+              menuPortal: (provided) => ({ ...provided, zIndex: 999999 }),
             }}
+            
+            // === 🔼 KẾT THÚC SỬA LỖI 🔼 ===
           />
         </div>
 
@@ -208,6 +210,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
             width: "100%",
             maxHeight: "400px",
             overflowY: "auto",
+            // overflowX: "hidden", // Bạn có thể thêm này để tránh scroll ngang nếu 'width: 135%' gây ra
           }}
         >
           {partRows.map((row, index) => (
@@ -216,15 +219,18 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
               style={{
                 display: "flex",
                 gap: "16px",
-                width: "135%", // Giữ nguyên layout của bạn
+                width: "135%",
                 flexWrap: "wrap",
                 marginBottom: "20px",
                 paddingBottom: "20px",
                 borderBottom: "1px dashed #ccc",
               }}
             >
-              {/* ... (Toàn bộ 8 div 'input-row' chứa input và tooltip) ... */}
-              {/* (Giữ nguyên không thay đổi) */}
+              {/* TÙY CHỌN:
+                Bạn có thể gỡ bỏ tất cả 'zIndex: 99' khỏi các input-row bên dưới.
+                Chúng không còn cần thiết nữa.
+              */}
+
               {[
                 { label: "Tên phụ tùng", name: "tenPhuTung" },
                 { label: "Đơn giá vật tư", name: "donGiaVatTu" },
@@ -232,7 +238,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                 <div
                   key={item.name}
                   className="input-row"
-                  style={{ width: "100px", marginBottom: "21px" }}
+                  style={{ width: "100px", marginBottom: "21px" }} // Bỏ zIndex: 99
                 >
                   <label
                     htmlFor={`${item.name}-${index}`}
@@ -255,7 +261,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                       
                       value={(row as any)[item.name]}
                       readOnly
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }} // Bỏ zIndex: 99
                     />
                     <span className="tooltip-text">
                       {(row as any)[item.name]}
@@ -269,7 +275,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                 <div
                   key={item.name}
                   className="input-row"
-                  style={{ width: "80px", marginBottom: "21px" }}
+                  style={{ width: "80px", marginBottom: "21px" }} // Bỏ zIndex: 99
                 >
                   <label
                     htmlFor={`${item.name}-${index}`}
@@ -291,7 +297,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                       className="input-text"
                       value={(row as any)[item.name]}
                       readOnly
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }} // Bỏ zIndex: 99
                     />
                     <span className="tooltip-text">
                       {(row as any)[item.name]}
@@ -302,9 +308,9 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`dinhMucThoiGian-${index}`}
-                  style={{ textAlign: "center", height: "30px" }}
+                  style={{ textAlign: "center", height: "30px" }} // Bỏ zIndex: 99
                 >
-                  Định mức thời gian thay thế tháng
+                  Định mức thời gian thay thế (tháng)
                 </label>
                 <div className="tooltip-wrapper">
                   <input
@@ -325,9 +331,9 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`soLuongVatTu-${index}`}
-                  style={{ textAlign: "center", height: "30px" }}
+                  style={{ textAlign: "center", height: "30px" }} // Bỏ zIndex: 99
                 >
-                  Số lượng vật tư thay thế
+                  Số lượng vật tư 1 lần thay thế
                 </label>
                 <div className="tooltip-wrapper">
                   <input
@@ -348,9 +354,9 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`sanLuongMetLo-${index}`}
-                  style={{ textAlign: "center", height: "30px" }}
+                  style={{ textAlign: "center", height: "30px" }} // Bỏ zIndex: 99
                 >
-                  Sản lượng mét lò đào bình quân
+                  Sản lượng lò đào bình quân (m)
                 </label>
                 <div className="tooltip-wrapper">
                   <input
@@ -374,7 +380,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
               >
                 <label
                   htmlFor={`dinhMucVatTuSCTX-${index}`}
-                  style={{ textAlign: "center", height: "30px" }}
+                  style={{ textAlign: "center", height: "30px" }} // Bỏ zIndex: 99
                 >
                   Định mức vật tư SCTX
                 </label>
@@ -397,7 +403,7 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
               >
                 <label
                   htmlFor={`chiPhiVatTuSCTX-${index}`}
-                  style={{ textAlign: "center", height: "30px" }}
+                  style={{ textAlign: "center", height: "30px" }} // Bỏ zIndex: 99
                 >
                   Chi phí vật tư SCTX
                 </label>
@@ -409,22 +415,20 @@ export default function SlideRailsInput({ onClose }: { onClose?: () => void }) {
                     className="input-text"
                     value={row.chiPhiVatTuSCTX}
                     readOnly
-                    style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    style={{ width: "100%", backgroundColor: "#f1f2f5" }} // Bỏ zIndex: 99
                   />
                   <span className="tooltip-text">{row.chiPhiVatTuSCTX}</span>
                 </div>
               </div>
               
-              {/* === THÊM MỚI: NÚT XÓA HÀNG === */}
               <button
                 type="button"
-                className="row-remove-button" // Sử dụng class CSS mới
+                className="row-remove-button"
                 title="Xóa hàng này"
-                onClick={() => handleRemoveRow(index)} // Gọi hàm xóa
+                onClick={() => handleRemoveRow(index)}
               >
                 <X size={16} />
               </button>
-              {/* === KẾT THÚC THÊM MỚI === */}
 
             </div>
           ))}

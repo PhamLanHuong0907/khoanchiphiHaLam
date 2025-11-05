@@ -5,19 +5,18 @@ import './layout_price.css'; // File CSS chính của bạn
 const generalInfoData = [
   { label: 'Mã sản phẩm', value: 'KLC' },
   { label: 'Tên sản phẩm', value: 'Khẩu lò chợ II-5-6' },
-  { label: 'Chi phí SCTX thực hiện', value: '90.470' },
 ];
 
 // 2. Định nghĩa cho Bảng 1 (Công đoạn)
 const phaseHeaders: ColumnDefinition[] = [
   { key: 'code', label: 'Mã công đoạn', width: '25%' },
-  { key: 'name', label: 'Tên công đoạn', width: '48%' },
-  { key: 'unit', label: 'ĐVT', width: '12%', textAlign: 'left' },
-  { key: 'quantity', label: 'Sản lượng', width: '15%', textAlign: 'left' },
+  { key: 'unit', label: 'ĐVT', width: '5%', textAlign: 'left' },
+  { key: 'quantity', label: 'Sản lượng', width: '55%', textAlign: 'left' },
+  { key: 'cost', label: 'Chi phí thực hiện', width: '15%'}
 ];
 
 const phaseData = [
-  { code: 'DL', name: 'Đào lò', unit: 'mét', quantity: 6 },
+  { code: 'DL', unit: 'mét', quantity: 6 , cost: 100},
   // Thêm các hàng khác nếu có
 ];
 
@@ -34,7 +33,7 @@ const equipmentHeaders: ColumnDefinition[] = [
   { key: 'k6', label: 'K6', width: '5%' },
   { key: 'k7', label: 'K7', width: '5%' },
   { key: 'price', label: 'Đơn giá', width: '12%' },
-  { key: 'cost', label: 'Chi phí thực hiện', width: '15%' },
+  { key: 'cost', label: 'Thành tiền', width: '15%' },
 ];
 
 const equipmentData = [

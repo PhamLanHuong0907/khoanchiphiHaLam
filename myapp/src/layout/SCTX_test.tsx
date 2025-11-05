@@ -138,7 +138,7 @@ const SlideRailExample: React.FC<{ id: string }> = ({ id }) => {
 
   // Render component SCTX với dữ liệu từ API
   return (
-    <div style={{ paddingLeft: '9%', paddingRight: '9%', paddingTop: '0px' }}>
+    <div style={{ paddingLeft: '31px', paddingRight: '4%', paddingTop: '0px' }}>
       <SlideRailGroupTable data={tableData} />
     </div>
   );

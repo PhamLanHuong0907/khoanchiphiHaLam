@@ -22,12 +22,13 @@
 .info-label {
   font-weight: 600;
   color: #333;
-  width: 220px; /* Điều chỉnh độ rộng của nhãn */
+  width: 15%; /* Điều chỉnh độ rộng của nhãn */
   flex-shrink: 0;
 }
 
 .info-value {
   color: #555;
+  padding-left: 10px;
 }
 
 /* 2. Kiểu cho các Bảng */

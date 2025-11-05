@@ -9,14 +9,15 @@ const generalInfoData = [
 
 // 2. Định nghĩa cho Bảng 1 (Công đoạn)
 const phaseHeaders: ColumnDefinition[] = [
-  { key: 'code', label: 'Mã công đoạn', width: '15%' },
-  { key: 'name', label: 'Tên công đoạn', width: '56%' },
-  { key: 'unit', label: 'ĐVT', width: '15%', textAlign: 'left' },
-  { key: 'quantity', label: 'Sản lượng', width: '15%', textAlign: 'left' },
+  { key: 'code', label: 'Mã nhóm công đoạn', width: '15%' },
+  { key: 'name', label: '', width: '43%' },
+  { key: 'unit', label: 'ĐVT', width: '5%', textAlign: 'left' },
+  { key: 'quantity', label: 'Sản lượng', width: '23%', textAlign: 'left' },
+  { key: 'quantity', label: 'Chi phí thực hiện', width: '15%', textAlign: 'left' },
 ];
 
 const phaseData = [
-  { code: 'DL', name: 'Đào lò', unit: 'mét', quantity: 6 },
+  { code: 'DL', name: '', unit: 'mét', quantity: 6 },
   // Thêm các hàng khác nếu có
 ];
 
@@ -28,7 +29,7 @@ const equipmentHeaders: ColumnDefinition[] = [
   { key: 'Unit', label: 'ĐVT', width: '5%' },
   { key: 'quantity', label: 'Số lượng', width: '8%' },
   { key: 'price', label: 'Đơn giá bình quân', width: '15%' },
-  { key: 'total', label: 'Chi phí thực hiện', width: '15%' },
+  { key: 'total', label: 'Thành tiền', width: '15%' },
 ];
 
 const equipmentData = [

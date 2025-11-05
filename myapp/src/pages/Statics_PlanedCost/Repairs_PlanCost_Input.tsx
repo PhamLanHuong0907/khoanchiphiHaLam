@@ -76,7 +76,7 @@ const DEFAULT_EMPTY_PRODUCT: ProductData = {
 };
 
 // === COMPONENT ===
-export default function RepairsCostInput({ onClose }: { onClose?: () => void }) {
+export default function Repairs_PlanCostInput({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
   const closePath = PATHS.REPAIRS_COST.LIST; 
 
@@ -180,10 +180,10 @@ export default function RepairsCostInput({ onClose }: { onClose?: () => void }) 
 
       <div className="layout-input-header">
         <div className="header01">
-          Thống kê vận hành / Chi phí thực hiện / Chi phí SCTX thực hiện
+          Thống kê vận hành / Chi phí kế hoạch / Chi phí SCTX kế hoạch
         </div>
         <div className="line"></div>
-        <div className="header02">Tạo mới Chi phí SCTX thực hiện</div>
+        <div className="header02">Tạo mới Chi phí SCTX kế hoạch</div>
       </div>
 
       {/* BODY CUỘN DỌC */}

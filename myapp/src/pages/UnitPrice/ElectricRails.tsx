@@ -30,14 +30,14 @@ const ElectricRails: React.FC = () => {
     "Mã thiết bị",
     "Tên thiết bị",
     "ĐVT",
-    "Đơn giá điện năng",
-    "Điện năng tiêu thụ cho 1 thiết bị / tháng",
-    "Sản lượng mét đào lò bình quân tháng",
-    "Điện năng tiêu thụ cho 1 thiết bị / 1 mét lò đào",
-    "Chi phí điện năng cho 1 thiết bị / 1 mét lò đào (đ/m)",
+    "Đơn giá điện năng (đ/kwh)",
+    "Điện năng tiêu thụ cho 1 thiết bị / tháng (Kwh/tháng)",
+    "Sản lượng đào lò bình quân tháng (m)",
+    "Điện năng tiêu thụ cho 1 thiết bị/1 mét lò đào (kwh/m)",
+    "Chi phí điện năng cho 1 thiết bị/1 mét lò đào (đ/m)",
     "Sửa",
   ];
-  const columnWidths = [6, 8, 18, 4, 8, 14, 13, 14, 13, 4];
+  const columnWidths = [6, 8, 15, 4, 8, 14, 13, 15, 15, 4];
 
   // 7. (Khai báo API đã xong ở trên)
 

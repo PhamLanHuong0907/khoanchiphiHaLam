@@ -202,7 +202,7 @@ const EquipmentEdit: React.FC<EquipmentEditProps> = ({ id, onClose, onSuccess })
         handleCostRowChange(index, 'endDate', date?.toISOString() || ""),
     },
     {
-      label: "Đơn giá",
+      label: "Đơn giá điện năng",
       placeholder: "Nhập đơn giá điện năng",
       type: "number" as const,
       value: row.amount,

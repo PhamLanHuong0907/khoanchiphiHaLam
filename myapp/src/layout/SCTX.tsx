@@ -30,24 +30,24 @@ const SlideRailGroupTable: React.FC<SlideRailGroupTableProps> = ({ data }) => {
           <tr style={{width: "100%", height: "10px", border:"none", backgroundColor: "white"}}></tr>
           <tr style={{fontSize: "14px"}}>
             <th style={{width: "7%", textAlign: "center", border: "rgba(241, 242, 245, 1)", backgroundColor: "rgba(241, 242, 245, 1)"}}>STT</th>
-            <th style={{width: "16%", textAlign: "left", border: "none", backgroundColor: "rgba(241, 242, 245, 1)"}}>Tên phụ tùng</th>
+            <th style={{width: "16%", textAlign: "left", border: "none", backgroundColor: "rgba(241, 242, 245, 1)"}}>Mã phụ tùng</th>
             <th style={{ width: "5%", textAlign: "left", border: "none",backgroundColor: "rgba(241, 242, 245, 1)"}}>ĐVT</th>
             {/* THÊM CỘT NÀY (cho item.price) */}
             <th style={{width: "8%", textAlign: "left", border: "none",backgroundColor: "rgba(241, 242, 245, 1)"}}>Đơn giá</th> 
             <th style={{  width: "10%" , textAlign: "left", border: "none", backgroundColor: "rgba(241, 242, 245, 1)"}}>
-              ĐM thời gian <br /> thay thế (tháng)
+              Định mức thời gian thay thế <br/> (tháng)
             </th>
             <th style={{  width: "10%" , textAlign: "left", border: "none",backgroundColor: "rgba(241, 242, 245, 1)" }}>
-              SL vật tư 1 lần <br />thay thế (tháng)
+              Sản lượng vật tư 1 lần thay thế <br/> (tháng)
             </th>
-            <th style={{   width: "13%", textAlign: "left", border: "none",backgroundColor: "rgba(241, 242, 245, 1)" }}>
-              SL mét đào lò <br />bình quân tháng (m)
+            <th style={{   width: "12%", textAlign: "left", border: "none",backgroundColor: "rgba(241, 242, 245, 1)" }}>
+              Sản lượng đào lò <br/> bình quân tháng <br/> (m)
             </th>
-            <th style={{  width: "14%", textAlign: "left", border: "none" ,backgroundColor: "rgba(241, 242, 245, 1)"}}>
-              ĐM vật tư SCTX cho <br />1 thiết bị / 1 mét lò đào
+            <th style={{  width: "15%", textAlign: "left", border: "none" ,backgroundColor: "rgba(241, 242, 245, 1)"}}>
+              Định mức vật tư SCTX cho <br />1 thiết bị / 1 mét lò đào 
             </th>
             <th style={{  width: "20%", border: "none", textAlign:"left", backgroundColor: "rgba(241, 242, 245, 1)" }}>
-              Chi phí đầu tư SCTX cho <br />1 thiết bị / 1 mét lò đào (đ/m)
+              Chi phí đầu tư SCTX cho <br />1 thiết bị / 1 mét lò đào <br/>(đ/m)
             </th>
           </tr>
         </thead>

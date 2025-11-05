@@ -226,7 +226,7 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
         handleCostRowChange(index, 'endDate', date?.toISOString() || ""),
     },
     {
-      label: "Đơn giá", // Changed label
+      label: "Đơn giá phụ tùng", // Changed label
       placeholder: "Nhập đơn giá phụ tùng", // Changed placeholder
       type: "number" as const,
       value: row.amount,

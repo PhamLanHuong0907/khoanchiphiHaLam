@@ -115,9 +115,9 @@ export default function SlideRailsEdit({
   // === Gọi API ===
   // 1. API GET (danh mục)
   const { data: equipmentData = [] } = useApi<Equipment>(
-    "/api/catalog/equipment"
+    "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
-  const { data: allPartsData = [] } = useApi<Part>("/api/catalog/part");
+  const { data: allPartsData = [] } = useApi<Part>("/api/catalog/part?pageIndex=1&pageSize=10000");
 
   // 2. API (CRUD)
   const {

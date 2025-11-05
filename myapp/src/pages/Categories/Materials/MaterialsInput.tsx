@@ -26,8 +26,8 @@ interface CostRow {
 const MaterialsInput: React.FC<MaterialsInputProps> = ({ onClose, onSuccess }) => {
   // ====== API setup ======
   const materialPath = "/api/catalog/material";
-  const assignmentCodePath = "/api/catalog/assignmentcode";
-  const unitPath = "/api/catalog/unitofmeasure";
+  const assignmentCodePath = "/api/catalog/assignmentcode?pageIndex=1&pageSize=10000";
+  const unitPath = "/api/catalog/unitofmeasure?pageIndex=1&pageSize=10000";
 
   const { fetchData: fetchAssignmentCodes, data: assignmentCodes, loading: loadingAssignment } = // Bổ sung error
     useApi<{ id: string; code: string }>(assignmentCodePath);

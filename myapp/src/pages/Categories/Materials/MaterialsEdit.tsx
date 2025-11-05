@@ -40,8 +40,8 @@ interface CostRow {
 const MaterialsEdit: React.FC<MaterialsEditProps> = ({ id, onClose, onSuccess }) => {
   // ====== API setup ======
   const materialPath = "/api/catalog/material";
-  const assignmentCodePath = "/api/catalog/assignmentcode";
-  const unitPath = "/api/catalog/unitofmeasure";
+  const assignmentCodePath = "/api/catalog/assignmentcode?pageIndex=1&pageSize=10000";
+  const unitPath = "/api/catalog/unitofmeasure?pageIndex=1&pageSize=10000";
 
   // SỬA ĐỔI: useApi<Material> dùng interface 'phức tạp' ở trên
   const { fetchById, putData } =

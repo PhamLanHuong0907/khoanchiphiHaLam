@@ -39,10 +39,6 @@ interface InsertItem {
   id: string;
   value: string;
 }
-interface SupportStep {
-  id: string;
-  value: string;
-}
 interface AssignmentCode {
   id: string;
   code: string;
@@ -78,39 +74,32 @@ export default function RepairsInput({
     fetchData: fetchProcesses,
     data: processes,
     loading: ld2,
-  } = useApi<Process>("/api/process/processgroup");
+  } = useApi<Process>("/api/process/processgroup?pageIndex=1&pageSize=10000");
   const {
     fetchData: fetchPassports,
     data: passports,
     loading: ld3,
-  } = useApi<Passport>("/api/product/passport?pageIndex=1&pageSize=1000");
+  } = useApi<Passport>("/api/product/passport?pageIndex=1&pageSize=10000");
   const {
     fetchData: fetchHardness,
     data: hardness,
     loading: ld4,
-  } = useApi<Hardness>("/api/product/hardness?pageIndex=1&pageSize=1000");
-  const {
-    fetchData: fetchSupportSteps,
-    data: supportSteps,
-    loading: ld6,
-  } = useApi<SupportStep>("/api/product/supportstep?pageIndex=1&pageSize=1000");
-
+  } = useApi<Hardness>("/api/product/hardness?pageIndex=1&pageSize=10000");
   const {
     fetchData: fetchAssignmentCodes,
     data: assignmentData,
     loading: ld7,
-  } = useApi<any>("/api/catalog/assignmentcode?pageIndex=1&pageSize=1000");
+  } = useApi<any>("/api/catalog/assignmentcode?pageIndex=1&pageSize=10000");
   const {
     fetchData: fetchMaterials,
     data: materialsData,
     loading: ld8,
-  } = useApi<any>("/api/catalog/material?pageIndex=1&pageSize=1000");
+  } = useApi<any>("/api/catalog/material?pageIndex=1&pageSize=10000");
 
   // 6. ====== State ======
   const [selectedProcess, setSelectedProcess] = useState<string>("");
   const [selectedPassport, setSelectedPassport] = useState<string>("");
   const [selectedHardness, setSelectedHardness] = useState<string>("");
-  const [selectedSupportStep, setSelectedSupportStep] = useState<string>("");
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   const [rows, setRows] = useState<LocalTransactionRow[]>([]);
 
@@ -157,7 +146,6 @@ export default function RepairsInput({
   fetchProcesses,
   fetchPassports,
   fetchHardness,
-  fetchSupportSteps,
   fetchAssignmentCodes,
   fetchMaterials,
 ]);
@@ -187,8 +175,6 @@ export default function RepairsInput({
     passports?.map((p) => ({ value: p.id, label: p.name })) || [];
   const hardnessOptions: DropdownOption[] =
     hardness?.map((h) => ({ value: h.id, label: h.value })) || [];
-  const supportStepOptions: DropdownOption[] =
-    supportSteps?.map((s) => ({ value: s.id, label: s.value })) || [];
 
   // THAY ĐỔI 2: Sửa logic trích xuất assignmentCodeOptions (Đây là nơi gây lỗi)
   const assignmentCodeOptions: DropdownOption[] = useMemo(() => {
@@ -315,7 +301,6 @@ export default function RepairsInput({
       return alert("⚠️ Vui lòng chọn Nhóm công đoạn sản xuất!");
     if (!selectedPassport) return alert("⚠️ Vui lòng chọn Hộ chiếu!");
     if (!selectedHardness) return alert("⚠️ Vui lòng chọn Độ kiên cố!");
-    if (!selectedSupportStep) return alert("⚠️ Vui lòng chọn Bước chống!");
     if (rows.length === 0)
       return alert("⚠️ Vui lòng chọn ít nhất một Mã giao khoán!");
 
@@ -335,7 +320,6 @@ export default function RepairsInput({
       processGroupId: selectedProcess,
       passportId: selectedPassport,
       hardnessId: selectedHardness,
-      supportStepId: selectedSupportStep,
       costs: rows.map((row) => ({
         assignmentCodeId: row.assignmentCodeId,
         materialId: row.materialId,
@@ -362,12 +346,10 @@ export default function RepairsInput({
     { type: "custom2" as const },
     { type: "custom3" as const },
     { type: "custom4" as const },
-    { type: "custom5" as const },
-    { type: "custom6" as const },
     { label: "", type: "customTransactionSelector" as const },
   ];
 
-  const isLoading = ld2 || ld3 || ld4 || ld6 || ld7 || ld8 || saving;
+  const isLoading = ld2 || ld3 || ld4  || ld7 || ld8 || saving;
   const anyError = saveError;
 
   return (
@@ -416,17 +398,6 @@ export default function RepairsInput({
           isDisabled={ld4}
         />
       </div>
-      <div className="custom6" key="c6">
-        <DropdownMenuSearchable
-          label="Bước chống"
-          options={supportStepOptions}
-          value={selectedSupportStep}
-          onChange={setSelectedSupportStep}
-          placeholder="Chọn bước chống"
-          isDisabled={ld6}
-        />
-      </div>
-
       {/* 13. Render TransactionSelector */}
       <TransactionSelector
         label="Mã giao khoán"

@@ -6,6 +6,7 @@ import EyeToggle from "../../components/eye";
 import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
 import Materials_Ingredient_Input from "../UnitPrice/Materials_Ingredient_Input";
 import Electric_Price from "../../layout/CPDN_TH";
+import Electric_CostInput from "./Electricity_Cost_Input";
 const Electricity_Cost: React.FC = () => {
   const columns = [
     "STT",
@@ -55,7 +56,7 @@ const Electricity_Cost: React.FC = () => {
           columns={columns}
           columnWidths={columnWidths}
           data={data}
-          createElement={<Materials_Ingredient_Input/>}
+          createElement={<Electric_CostInput/>}
           navbarMiniItems={items}
           columnLefts={['undefined','undefined','undefined','undefined']}
         />

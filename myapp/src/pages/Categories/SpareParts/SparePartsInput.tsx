@@ -192,7 +192,7 @@ useEffect(() => {
         handleCostRowChange(index, 'endDate', date?.toISOString() || ""),
     },
     {
-      label: "Đơn giá", // Changed label from "Đơn giá vật tư"
+      label: "Đơn giá phụ tùng", // Changed label from "Đơn giá vật tư"
       placeholder: "Nhập đơn giá phụ tùng", // Changed placeholder
       type: "number" as const,
       value: row.amount,
@@ -228,7 +228,7 @@ useEffect(() => {
         {/* Custom slot for Equipment dropdown */}
         <div className="custom1" key={1}>
           <DropdownMenuSearchable
-            label="Thiết bị"
+            label="Mã thiết bị"
             options={equipmentOptions}
             value={selectedEquipmentId}
             onChange={setSelectedEquipmentId}
