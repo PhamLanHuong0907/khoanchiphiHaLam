@@ -138,7 +138,7 @@ border-color: #999 !important;
 
 /* "Viên thuốc" chứa giá trị đã chọn */
 .transaction-select__multi-value {
-background-color: rgba(101, 146, 183, 1) !important;
+background-color: rgba(0, 123, 255, 1) !important;
 border-radius: 6px !important;
 }
 
@@ -155,8 +155,11 @@ color: #ffffff !important;
 }
 
 .transaction-select__multi-value__remove:hover {
-background-color: #3b82f6 !important;
+background-color: rgba(157, 157, 157, 1) !important;
 color: #ffffff !important;
+}
+.transaction-select__option--is-focused {
+  background-color: rgba(241, 242, 245, 1) !important;; /* <-- MÀU BẠN MUỐN CHỈNH (Ví dụ: màu xanh nhạt) */ /* Màu chữ khi hover, nếu cần */
 }
 /* =====================================
 CSS cho Tooltip (Popup khi Hover)

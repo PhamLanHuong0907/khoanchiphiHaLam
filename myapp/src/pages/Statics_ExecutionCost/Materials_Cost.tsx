@@ -4,8 +4,8 @@ import AdvancedTable from "../../components/bodytable";
 import PencilButton from "../../components/PencilButtons";
 import EyeToggle from "../../components/eye";
 import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
-import Materials_Ingredient_Input from "../UnitPrice/Materials_Ingredient_Input";
 import Material_Price from "../../layout/CPVL_TH";
+import MaterialsCostInput from "./Materials_Cost_Input";
 const Materials_Cost: React.FC = () => {
   const columns = [
     "STT",
@@ -55,7 +55,7 @@ const Materials_Cost: React.FC = () => {
           columns={columns}
           columnWidths={columnWidths}
           data={data}
-          createElement={<Materials_Ingredient_Input/>}
+          createElement={<MaterialsCostInput/>}
           navbarMiniItems={items}
           columnLefts={['undefined','undefined','undefined','undefined']}
         />

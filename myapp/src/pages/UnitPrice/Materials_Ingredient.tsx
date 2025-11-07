@@ -111,7 +111,7 @@ const Materials_Ingredient: React.FC = () => {
     "Sửa",
   ];
 
-  const columnWidths = [6.3, 18.6, 62, 9, 4, 4];
+  const columnWidths = [6.3, 18.6, 61.5, 10, 3.5, 4];
 
   // 6. Map dữ liệu từ API (Bọc trong useMemo)
   const tableData = useMemo(() => {
@@ -176,7 +176,7 @@ const Materials_Ingredient: React.FC = () => {
             createElement={<Materials_Ingredient_Input onSuccess={refresh} />}
             basePath={basePath} // basePath gốc (để Xóa)
             onDeleted={refresh}
-            columnLefts={['undefined','undefined','undefined','undefined','undefined']}
+            columnLefts={['undefined','undefined','undefined','undefined','undefined', 'undefined']}
             
             // --- TRUYỀN PROPS XUỐNG BẢNG ---
             totalItems={totalCount}
