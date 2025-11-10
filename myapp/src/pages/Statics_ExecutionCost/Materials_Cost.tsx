@@ -1,22 +1,15 @@
 import React from "react";
-import Layout from "../../layout/layout_filter";
 import AdvancedTable from "../../components/bodytable";
-import PencilButton from "../../components/PencilButtons";
 import EyeToggle from "../../components/eye";
-import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
+import PencilButton from "../../components/PencilButtons";
 import Material_Price from "../../layout/CPVL_TH";
+import Layout from "../../layout/layout_filter";
+import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
 import MaterialsCostInput from "./Materials_Cost_Input";
 const Materials_Cost: React.FC = () => {
-  const columns = [
-    "STT",
-    "Mã chi phí vật tư thực hiện",
-    "Xem",
-    "Sửa",
-  ];
+  const columns = ["STT", "Mã chi phí vật tư thực hiện", "Xem", "Sửa"];
 
-  const columnWidths = [
-    6, 93,3,4
-  ];
+  const columnWidths = [6, 93, 3, 4];
   const items = [
     { label: "Chi phí vật liệu thực hiện", path: "/MaterialsCost" },
     { label: "Chi phí SCTX thực hiện", path: "/RepairsCost" },
@@ -43,8 +36,8 @@ const Materials_Cost: React.FC = () => {
   const data = dataRows.map((row) => [
     row.id,
     row.ma,
-    <EyeToggle detailComponent={<Material_Price/>}/>,
-    <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit/>}/>,
+    <EyeToggle detailComponent={<Material_Price />} />,
+    <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit />} />,
   ]);
   return (
     <Layout>
@@ -55,9 +48,9 @@ const Materials_Cost: React.FC = () => {
           columns={columns}
           columnWidths={columnWidths}
           data={data}
-          createElement={<MaterialsCostInput/>}
-          navbarMiniItems={items}
-          columnLefts={['undefined','undefined','undefined','undefined']}
+          createElement={<MaterialsCostInput />}
+          // navbarMiniItems={items}
+          columnLefts={["undefined", "undefined", "undefined", "undefined"]}
         />
       </div>
     </Layout>

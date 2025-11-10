@@ -1,0 +1,129 @@
+/* CSS bổ sung cho Unified Cost Table */
+
+/* Căn trái cho cột mã vật tư */
+.advanced-table th:nth-child(2),
+.advanced-table td:nth-child(2) {
+  text-align: left !important;
+  padding-left: 16px;
+}
+
+/* Style cho expandable cell */
+.expandable-cell-wrapper {
+  width: 100%;
+}
+
+/* Style cho sub-rows */
+.sub-row-container {
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sub-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sub-row-item:hover {
+  background-color: #f3f4f6;
+}
+
+.sub-row-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 400;
+  color: #374151;
+}
+
+.sub-row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.icon-action {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icon-action:hover {
+  opacity: 0.7;
+  transform: scale(1.1);
+}
+
+/* Style cho nút tạo mới trong sub-row */
+.sub-row-create-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  background-color: rgba(255, 165, 72, 1);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.sub-row-create-btn:hover {
+  background-color: rgba(230, 140, 50, 1);
+  box-shadow: 0 2px 8px rgba(255, 165, 72, 0.3);
+}
+
+.sub-row-create-btn:active {
+  transform: scale(0.96);
+}
+
+/* Style cho detail section khi mở - dropdown style */
+.sub-row-detail {
+  width: 100%;
+  border-top: 1px solid #ddd;
+  background-color: white;
+  overflow: hidden;
+}
+
+.sub-row-detail > div {
+  padding: 16px;
+  background-color: white;
+}
+
+/* Style cho chevron icon */
+.expandable-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+  user-select: none;
+}
+
+/* Đảm bảo STT không bị gộp xuống */
+.advanced-table tbody tr td:first-child {
+  vertical-align: top;
+  padding-top: 12px;
+}
+
+/* Style cho expanded row */
+.expanded-row-container {
+  background-color: #f9fafb;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+  .sub-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .sub-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

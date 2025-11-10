@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import React, { useState } from "react";
 
 interface EyeToggleProps {
   onToggle?: (visible: boolean) => void;
@@ -21,7 +21,7 @@ const EyeToggle: React.FC<EyeToggleProps> = ({ onToggle }) => {
       style={{
         display: "flex",
         alignItems: "center",
-        
+
         justifyContent: "center",
         cursor: "pointer",
         width: "100%",

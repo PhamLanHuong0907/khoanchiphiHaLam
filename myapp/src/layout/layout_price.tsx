@@ -1,5 +1,5 @@
-import React from 'react';
-import './layout_price.css';
+import React from "react";
+import "./layout_price.css";
 
 // Định nghĩa cho một mục thông tin chung (key-value)
 interface InfoItem {
@@ -12,7 +12,7 @@ export interface ColumnDefinition {
   key: string; // Key để truy cập dữ liệu trong data
   label: string; // Tên hiển thị trên tiêu đề
   width?: string; // Kích thước cột (ví dụ: '20%', '100px')
-  textAlign?: 'left' | 'right' | 'center'; // Căn lề
+  textAlign?: "left" | "right" | "center"; // Căn lề
 }
 
 // Định nghĩa cho một khu vực bảng
@@ -28,7 +28,10 @@ interface CustomDataDisplayProps {
   sections: TableSection[];
 }
 
-const CustomDataDisplay: React.FC<CustomDataDisplayProps> = ({ generalInfo, sections }) => {
+const CustomDataDisplay: React.FC<CustomDataDisplayProps> = ({
+  generalInfo,
+  sections,
+}) => {
   return (
     <div className="data-display-container">
       {/* 1. Khu vực Thông tin chung */}
@@ -48,16 +51,21 @@ const CustomDataDisplay: React.FC<CustomDataDisplayProps> = ({ generalInfo, sect
         <div className="table-section" key={sectionIndex}>
           <table className="dynamic-table">
             <thead>
-              <tr style={{ backgroundColor: section.headerBackgroundColor || 'transparent' }}>
+              <tr
+                style={{
+                  backgroundColor:
+                    section.headerBackgroundColor || "transparent",
+                }}
+              >
                 {section.headers.map((header) => (
                   <th
                     key={header.key}
                     style={{
-                      width: header.width || 'auto',
-                      textAlign: header.textAlign || 'left',
-                      paddingLeft: '16px',
-                      paddingTop: '10px',
-                      paddingBottom: '10px',
+                      width: header.width || "auto",
+                      textAlign: header.textAlign || "left",
+                      paddingLeft: "16px",
+                      paddingTop: "10px",
+                      paddingBottom: "10px",
                     }}
                   >
                     {header.label}
@@ -71,7 +79,12 @@ const CustomDataDisplay: React.FC<CustomDataDisplayProps> = ({ generalInfo, sect
                   {section.headers.map((header) => (
                     <td
                       key={`${header.key}-${rowIndex}`}
-                      style={{ textAlign: header.textAlign || 'left' , paddingLeft: '16px', paddingTop: '10px', paddingBottom: '10px' }}
+                      style={{
+                        textAlign: header.textAlign || "left",
+                        paddingLeft: "16px",
+                        paddingTop: "10px",
+                        paddingBottom: "10px",
+                      }}
                     >
                       {row[header.key]}
                     </td>

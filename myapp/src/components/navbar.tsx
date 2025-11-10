@@ -1,17 +1,17 @@
 import {
-  Bell,
-  Settings,
-  User,
-  FileBarChart2,
-  ClipboardList,
   BadgeRussianRuble,
+  Bell,
   Boxes,
   ChevronDown,
+  ClipboardList,
+  FileBarChart2,
+  Settings,
+  User,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import "./navbar.css";
-import DropdownMenu from "./dropdown";
 import logo from "../../assets/logo.png";
+import DropdownMenu from "./dropdown";
+import "./navbar.css";
 const Navbar = () => {
   return (
     <header className="navbar-container">
@@ -28,7 +28,10 @@ const Navbar = () => {
         {/* Dashboard */}
         <div className="Menu-item-dashboard">
           <div className="Frame1">
-            <FileBarChart2 className="menu-icon icon-dashboard" strokeWidth={1}/>
+            <FileBarChart2
+              className="menu-icon icon-dashboard"
+              strokeWidth={1}
+            />
           </div>
           <div className="Text">
             <Link to="/" className="menu-dashboard">
@@ -42,7 +45,10 @@ const Navbar = () => {
           className="Menu-item-danhmuc"
           icon={
             <div className="Frame2">
-              <ClipboardList className="menu-icon icon-danhmuc" strokeWidth={1}/>
+              <ClipboardList
+                className="menu-icon icon-danhmuc"
+                strokeWidth={1}
+              />
             </div>
           }
           label={
@@ -68,7 +74,10 @@ const Navbar = () => {
           className="Menu-item-dongia"
           icon={
             <div className="Frame3">
-              <BadgeRussianRuble className="menu-icon icon-dongia" strokeWidth={1}/>
+              <BadgeRussianRuble
+                className="menu-icon icon-dongia"
+                strokeWidth={1}
+              />
             </div>
           }
           label={
@@ -77,7 +86,10 @@ const Navbar = () => {
             </div>
           }
           items={[
-            { label: "Đơn giá và định mức vật liệu", path: "/MaterialsIngredient" },
+            {
+              label: "Đơn giá và định mức vật liệu",
+              path: "/MaterialsIngredient",
+            },
             { label: "Đơn giá và định mức máng trượt", path: "/Repairs" },
             { label: "Đơn giá và định mức SCTX", path: "/SlideRails" },
             { label: "Đơn giá và định mức điện năng", path: "/ElectricRails" },
@@ -87,7 +99,7 @@ const Navbar = () => {
           className="Menu-item-thongke"
           icon={
             <div className="Frame3">
-              <Boxes className="menu-icon icon-thongke" strokeWidth={1}/>
+              <Boxes className="menu-icon icon-thongke" strokeWidth={1} />
             </div>
           }
           label={
@@ -96,6 +108,7 @@ const Navbar = () => {
             </div>
           }
           items={[
+            { label: "Kế hoạch sản xuất", path: "/UnifiedCost" },
             { label: "Chi phí thực tế", path: "/MaterialsCost" },
             { label: "Chi phí kế hoạch", path: "/MaterialsPlanCost" },
           ]}
@@ -107,12 +120,12 @@ const Navbar = () => {
       <div className="navbar-user">
         <div className="Frame5">
           <div className="settings">
-            <Settings className="menu-icon" strokeWidth={1}/>
+            <Settings className="menu-icon" strokeWidth={1} />
           </div>
         </div>
         <div className="Noti">
           <div className="bell">
-            <Bell className="menu-icon" strokeWidth={1}/>
+            <Bell className="menu-icon" strokeWidth={1} />
           </div>
           <div className="Example">
             <div className="Textnoti">9+</div>

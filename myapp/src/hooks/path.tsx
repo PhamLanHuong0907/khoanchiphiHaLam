@@ -123,40 +123,45 @@ export const PATHS = {
     INPUT: "/ElectricRails/Input",
     EDIT: (id: string | number) => `/ElectricRails/Edit/${id}`,
   },
-  MARKET_RAILS:{
+  MARKET_RAILS: {
     LIST: "/MarketRails",
     INPUT: "/MarketRails/Input",
     EDIT: (id: string | number) => `/MarketRails/Edit/${id}`,
   },
-  MATERIALS_COST:{
+  MATERIALS_COST: {
     LIST: "/MaterialsCost",
     INPUT: "/MaterialsCost/Input",
     EDIT: (id: string | number) => `/MaterialsCost/Edit/${id}`,
   },
-  REPAIRS_COST:{
+  UNIFIED_COST: {
+    LIST: "/UnifiedCost",
+    INPUT: "/UnifiedCost/Input",
+    EDIT: (id: string | number) => `/UnifiedCost/Edit/${id}`,
+  },
+  REPAIRS_COST: {
     LIST: "/RepairsCost",
     INPUT: "/RepairsCost/Input",
     EDIT: (id: string | number) => `/RepairsCost/Edit/${id}`,
   },
-  ELECTRICITY_COST:{
+  ELECTRICITY_COST: {
     LIST: "/ElectricityCost",
     INPUT: "/ElectricityCost/Input",
     EDIT: (id: string | number) => `/ElectricityCost/Edit/${id}`,
   },
-  MATERIALS_PLANCOST:{
+  MATERIALS_PLANCOST: {
     LIST: "/MaterialsPlanCost",
     INPUT: "/MaterialsPlanCost/Input",
-    EDIT: (id: string | number) => `/MaterialsPlanCost/Edit/${id}`
+    EDIT: (id: string | number) => `/MaterialsPlanCost/Edit/${id}`,
   },
-  REPAIRS_PLANCOST:{
+  REPAIRS_PLANCOST: {
     LIST: "/RepairsPlanCost",
     INPUT: "/RepairsPlanCost/Input",
-    EDIT: (id: string | number) => `/RepairsPlanCost/Edit/${id}`
+    EDIT: (id: string | number) => `/RepairsPlanCost/Edit/${id}`,
   },
-  ELECTRICITY_PLANCOST:{
+  ELECTRICITY_PLANCOST: {
     LIST: "/ElectricityPlanCost",
     INPUT: "/ElectricityPlanCost/Input",
-    EDIT: (id: string | number) => `/ElectricityPlanCost/Edit/${id}`
+    EDIT: (id: string | number) => `/ElectricityPlanCost/Edit/${id}`,
   },
 };
 

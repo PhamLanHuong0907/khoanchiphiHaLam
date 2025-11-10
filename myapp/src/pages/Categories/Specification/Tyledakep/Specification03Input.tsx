@@ -1,7 +1,6 @@
-import React from "react"; // 1. Thêm React
 import PATHS from "../../../../hooks/path";
-import LayoutInput from "../../../../layout/layout_input";
 import { useApi } from "../../../../hooks/useFetchData"; // 2. Import useApi
+import LayoutInput from "../../../../layout/layout_input";
 
 // 3. Cập nhật props
 interface Specification03InputProps {
@@ -9,10 +8,13 @@ interface Specification03InputProps {
   onSuccess?: () => void;
 }
 
-export default function Specification03Input({ onClose, onSuccess }: Specification03InputProps) {
+export default function Specification03Input({
+  onClose,
+  onSuccess,
+}: Specification03InputProps) {
   // 4. Khai báo API
   // (BasePath được suy ra từ file Specification03.tsx)
-  const basePath = `/api/product/stoneclampratio`; 
+  const basePath = `/api/product/stoneclampratio`;
   // (Mẫu JSON post được suy ra từ file Specification02Input.tsx, vì cấu trúc API giống hệt)
   const { postData, loading: saving, error: saveError } = useApi(basePath);
 
@@ -41,21 +43,32 @@ export default function Specification03Input({ onClose, onSuccess }: Specificati
 
   // Fields (giữ nguyên)
   const fields = [
-    { label: "Tỷ lệ đá kẹp (Ckep)", type: "text" as const, placeholder: "Nhập tỷ lệ đá kẹp: 2<=Ckep<=3", enableCompare: true },
+    {
+      label: "Tỷ lệ đá kẹp (Ckep)",
+      type: "text" as const,
+      placeholder: "Nhập tỷ lệ đá kẹp: 2<=Ckep<=3",
+      enableCompare: true,
+    },
+    {
+      label: "Hệ số điều chỉnh định mức",
+      type: "text" as const,
+      placeholder: "Nhập hệ số điều chỉnh định mức",
+      // enableCompare: true,
+    },
   ];
 
   return (
-      <LayoutInput
-        title01="Danh mục / Thông số / Tỷ lệ đá kẹp"
-        title="Tạo mới Tỷ lệ đá kẹp"
-        fields={fields}
-        onSubmit={handleSubmit}
-        closePath={PATHS.SPECIFICATION_03.LIST}
-        onClose={onClose}
-        // 7. Thêm initialData
-        initialData={{
-          "Tỷ lệ đá kẹp (Ckep)": "",
-        }}
-      />
+    <LayoutInput
+      title01="Danh mục / Thông số / Tỷ lệ đá kẹp"
+      title="Tạo mới Tỷ lệ đá kẹp"
+      fields={fields}
+      onSubmit={handleSubmit}
+      closePath={PATHS.SPECIFICATION_03.LIST}
+      onClose={onClose}
+      // 7. Thêm initialData
+      initialData={{
+        "Tỷ lệ đá kẹp (Ckep)": "",
+      }}
+    />
   );
 }
