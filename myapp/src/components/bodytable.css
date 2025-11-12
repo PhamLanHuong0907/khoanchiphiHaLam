@@ -329,6 +329,11 @@
   align-items: center;
   justify-content: center;
 }
+
+.overlay-create,
+.overlay-edit {
+  overflow: visible !important;
+}
 .advanced-table thead th {
   text-align: center;
   vertical-align: middle;

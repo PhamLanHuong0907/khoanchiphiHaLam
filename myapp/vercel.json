@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://kcpwebapi2-chc2athyb9ambchz.southeastasia-01.azurewebsites.net/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

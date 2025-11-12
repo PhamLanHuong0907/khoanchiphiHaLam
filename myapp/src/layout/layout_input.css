@@ -20,6 +20,7 @@
   overflow: hidden; /* ✅ Ẩn cuộn ở container, vì ta sẽ cuộn ở body */
   padding-top: 30px;
   padding-bottom: 30px;
+  overflow: visible !important;
 }
 
 /* ===========================

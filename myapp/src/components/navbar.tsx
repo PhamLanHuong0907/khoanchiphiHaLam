@@ -108,8 +108,8 @@ const Navbar = () => {
             </div>
           }
           items={[
-            { label: "Kế hoạch sản xuất", path: "/UnifiedCost" },
-            { label: "Chi phí thực tế", path: "/MaterialsCost" },
+            { label: "Chi phí kế hoạch ban đầu", path: "/UnifiedCost" },
+            { label: "Chi phí thưc hiện", path: "/MaterialsCost" },
             { label: "Chi phí kế hoạch", path: "/MaterialsPlanCost" },
           ]}
         />

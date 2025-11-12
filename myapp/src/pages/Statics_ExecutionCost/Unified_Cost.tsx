@@ -1,123 +1,265 @@
-import React from "react";
+import React, { useState } from "react";
 import AdvancedTable from "../../components/bodytable";
 import "../../components/bodytable.css";
 import PencilButton from "../../components/PencilButtons";
 import Material_Unified_Cost from "../../layout/KHSX_VL";
 import Layout from "../../layout/layout_filter";
-import Materials_Ingredient_Edit from "../UnitPrice/Materials_Ingredient_Input";
+import InitialMaterialPlanInput from "./Initial_Material_Plan_Input";
 import MaterialsCostInput from "./Materials_Cost_Input";
+import ProductCostInput from "./Product_Cost_Input";
 
 const Unified_Cost: React.FC = () => {
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const columns = [
     "STT",
     "Mã sản phẩm",
+    "Tên sản phẩm",
     "Mã nhóm công đoạn",
     "Sản lượng kế hoạch",
-    "Thời gian hiệu lực",
-    "Chi phí kế hoạch",
+    "Chi phí",
+    "Thời gian",
     "Sửa",
   ];
-  const columnWidths = [6, 10, 26, 40, 20, 25, 5];
+  const columnWidths = [6, 11, 60, 10, 11, 15, 15, 5];
 
   const dataRows = [
     {
       id: 1,
       ma: "TN01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       macd: "DL",
       sanluong: 1000,
       thoigian: "1/1/2025-30/1/2025",
       chiphi: 500000000,
+      subRows: [
+        // SubRows riêng cho sản phẩm TN01
+        {
+          label: "Chi phí vật liệu kế hoạch",
+          validityPeriod: "1/1/2025-30/1/2025",
+          sanluong: 500,
+          chiphi: 100000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <InitialMaterialPlanInput selectedId={1} />,
+          createComponent: <InitialMaterialPlanInput selectedId={1} />,
+        },
+        {
+          label: "Chi phí SCTX kế hoạch",
+          validityPeriod: "1/1/2025-30/1/2025",
+          sanluong: 500,
+          chiphi: 100000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+        {
+          label: "Chi phí điện năng kế hoạch",
+          validityPeriod: "1/1/2025-30/1/2025",
+          sanluong: 500,
+          chiphi: 100000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+        {
+          label: "Chi phí vật liệu kế hoạch",
+          validityPeriod: "30/1/2025-28/2/2025",
+          sanluong: 500,
+          chiphi: 50000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <InitialMaterialPlanInput selectedId={1} />,
+          createComponent: <InitialMaterialPlanInput selectedId={1} />,
+        },
+        {
+          label: "Chi phí SCTX kế hoạch",
+          validityPeriod: "30/1/2025-28/2/2025",
+          sanluong: 500,
+          chiphi: 50000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+        {
+          label: "Chi phí điện năng kế hoạch",
+          validityPeriod: "30/1/2025-28/2/2025",
+          sanluong: 500,
+          chiphi: 100000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+      ],
     },
     {
       id: 2,
       ma: "KD01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       macd: "L1",
       sanluong: 2000,
       thoigian: "1/2/2025-28/2/2025",
       chiphi: 800000000,
+      subRows: [
+        // SubRows riêng cho sản phẩm KD01
+        {
+          label: "Chi phí vật liệu kế hoạch",
+          validityPeriod: "1/2/2025-28/2/2025",
+          sanluong: 1600,
+          chiphi: 300000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <InitialMaterialPlanInput selectedId={2} />,
+          createComponent: <InitialMaterialPlanInput selectedId={2} />,
+        },
+        {
+          label: "Chi phí SCTX kế hoạch",
+          validityPeriod: "1/2/2025-28/2/2025",
+          sanluong: 1700,
+          chiphi: 350000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+        {
+          label: "Chi phí điện năng kế hoạch",
+          validityPeriod: "1/2/2025-28/2/2025",
+          sanluong: 1800,
+          chiphi: 150000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+      ],
     },
     {
       id: 3,
       ma: "EBH52",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       macd: "L2",
       sanluong: 1500,
       thoigian: "1/3/2025-31/3/2025",
       chiphi: 600000000,
+      subRows: [
+        // SubRows riêng cho sản phẩm EBH52
+        {
+          label: "Chi phí vật liệu kế hoạch",
+          validityPeriod: "1/3/2025-31/3/2025",
+          sanluong: 1200,
+          chiphi: 250000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <InitialMaterialPlanInput selectedId={3} />,
+          createComponent: <InitialMaterialPlanInput selectedId={3} />,
+        },
+        {
+          label: "Chi phí SCTX kế hoạch",
+          validityPeriod: "1/3/2025-31/3/2025",
+          sanluong: 1300,
+          chiphi: 200000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+        {
+          label: "Chi phí điện năng kế hoạch",
+          validityPeriod: "1/3/2025-31/3/2025",
+          sanluong: 1400,
+          chiphi: 150000000,
+          detailComponent: <Material_Unified_Cost />,
+          editComponent: <MaterialsCostInput onClose={() => {}} />,
+          createComponent: <MaterialsCostInput onClose={() => {}} />,
+        },
+      ],
     },
   ];
 
   const data = dataRows.map((row) => [
     row.id,
     row.ma,
+    row.tensp,
     row.macd,
     row.sanluong,
-    row.thoigian,
     row.chiphi.toLocaleString(),
-    <PencilButton id={row.id} editElement={<Materials_Ingredient_Edit />} />,
+    row.thoigian,
+    <PencilButton
+      id={row.id}
+      editElement={<ProductCostInput id={row.id.toString()} />}
+    />,
+    row.subRows,
   ]);
 
-  const subRows = [
-    {
-      label: "Kế hoạch vật liệu ban đầu",
-      validityPeriod: "1/1/2025-30/1/2025",
-      detailComponent: <Material_Unified_Cost />,
-      editComponent: <Materials_Ingredient_Edit onClose={() => {}} />,
-      createComponent: <MaterialsCostInput onClose={() => {}} />,
-    },
-    {
-      label: "Kế hoạch SCTX ban đầu",
-      validityPeriod: "1/1/2025-30/1/2025",
-      detailComponent: <Material_Unified_Cost />,
-      editComponent: <Materials_Ingredient_Edit onClose={() => {}} />,
-      createComponent: <MaterialsCostInput onClose={() => {}} />,
-    },
-    {
-      label: "Kế hoạch điện năng ban đầu",
-      validityPeriod: "1/1/2025-30/1/2025",
-      detailComponent: <Material_Unified_Cost />,
-      editComponent: <Materials_Ingredient_Edit onClose={() => {}} />,
-      createComponent: <MaterialsCostInput onClose={() => {}} />,
-    },
-    {
-      label: "Kế hoạch vật liệu ban đầu",
-      validityPeriod: "1/2/2025-28/2/2025",
-      detailComponent: <Material_Unified_Cost />,
-      editComponent: <Materials_Ingredient_Edit onClose={() => {}} />,
-      createComponent: <MaterialsCostInput onClose={() => {}} />,
-    },
-    {
-      label: "Kế hoạch SCTX ban đầu",
-      validityPeriod: "1/2/2025-28/2/2025",
-      detailComponent: <Material_Unified_Cost />,
-      editComponent: <Materials_Ingredient_Edit onClose={() => {}} />,
-      createComponent: <MaterialsCostInput onClose={() => {}} />,
-    },
-    {
-      label: "Kế hoạch điện năng ban đầu",
-      validityPeriod: "1/2/2025-28/2/2025",
-      detailComponent: <Material_Unified_Cost />,
-      editComponent: <Materials_Ingredient_Edit onClose={() => {}} />,
-      createComponent: <MaterialsCostInput onClose={() => {}} />,
-    },
-  ];
+  // const subRows = [
+  //   {
+  //     label: "Chi phí vật liệu kế hoạch",
+  //     validityPeriod: "1/1/2025-30/1/2025",
+  //     sanluong: 800,
+  //     chiphi: 100000000,
+  //     detailComponent: <Material_Unified_Cost />,
+  //     editComponent: <InitialMaterialPlanInput selectedId={1} />,
+  //     createComponent: <InitialMaterialPlanInput selectedId={1} />,
+  //   },
+  //   {
+  //     label: "Chi phí SCTX kế hoạch",
+  //     validityPeriod: "1/1/2025-30/1/2025",
+  //     sanluong: 850,
+  //     chiphi: 100000000,
+  //     detailComponent: <Material_Unified_Cost />,
+  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
+  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
+  //   },
+  //   {
+  //     label: "Chi phí điện năng kế hoạch",
+  //     validityPeriod: "1/1/2025-30/1/2025",
+  //     sanluong: 900,
+  //     chiphi: 100000000,
+  //     detailComponent: <Material_Unified_Cost />,
+  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
+  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
+  //   },
+  //   {
+  //     label: "Chi phí vật liệu kế hoạch",
+  //     validityPeriod: "1/2/2025-28/2/2025",
+  //     sanluong: 1600,
+  //     chiphi: 50000000,
+  //     detailComponent: <Material_Unified_Cost />,
+  //     editComponent: <InitialMaterialPlanInput selectedId={1} />,
+  //     createComponent: <InitialMaterialPlanInput selectedId={1} />,
+  //   },
+  //   {
+  //     label: "Chi phí SCTX kế hoạch",
+  //     validityPeriod: "1/2/2025-28/2/2025",
+  //     sanluong: 1700,
+  //     chiphi: 50000000,
+  //     detailComponent: <Material_Unified_Cost />,
+  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
+  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
+  //   },
+  //   {
+  //     label: "Chi phí điện năng kế hoạch",
+  //     validityPeriod: "1/2/2025-28/2/2025",
+  //     sanluong: 1800,
+  //     chiphi: 100000000,
+  //     detailComponent: <Material_Unified_Cost />,
+  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
+  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
+  //   },
+  // ];
 
   return (
     <Layout>
       <div className="p-6">
         <AdvancedTable
-          title01="Thống kê vận hành  /  Kế hoạch sản xuất ban đầu"
-          title="Kế hoạch sản xuất ban đầu"
+          title01="Thống kê vận hành / Chi phí kế hoạch ban đầu"
+          title="chi phí kế hoạch ban đầu"
           columns={columns}
           columnWidths={columnWidths}
           data={data}
-          createElement={<MaterialsCostInput />}
+          createElement={<ProductCostInput />}
           columnLefts={["undefined", "undefined", "undefined", "undefined"]}
           variant="cost"
-          subRows={subRows}
+          // Bỏ prop subRows ở đây vì giờ subRows nằm trong từng row
         />
       </div>
     </Layout>
   );
 };
-
 export default Unified_Cost;

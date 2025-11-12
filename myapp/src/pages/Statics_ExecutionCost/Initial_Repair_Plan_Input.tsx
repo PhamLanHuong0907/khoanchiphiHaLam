@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Calendar, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select"; // Dùng cho CHỌN NHIỀU (Thiết bị)
@@ -6,11 +6,12 @@ import DropdownMenuSearchable from "../../components/dropdown_menu_searchable"; 
 import "../../components/dropdown_menu_searchable.css"; //
 import "../../components/transactionselector.css"; //
 import PATHS from "../../hooks/path";
-import "../../layout/layout_input.css"; //
+import "../../layout/layout_input.css";
 
 // ==================
 // === DỮ LIỆU MẪU ===
 // ==================
+// In production, fetch MOCK_PRODUCTS, MOCK_DVT_OPTIONS, MOCK_EQUIPMENT from API
 const MOCK_PRODUCTS = [
   {
     id: "sp1",
@@ -121,6 +122,11 @@ export default function MaterialsCostInput({
   );
   const [equipmentRows, setEquipmentRows] = useState<EquipmentRow[]>([]);
 
+  const [startDate, setStartDate] = useState<Date | null>(
+    new Date("2025-11-01")
+  );
+  const [endDate, setEndDate] = useState<Date | null>(new Date("2025-11-30"));
+
   // === THAY ĐỔI 1: Thêm hàm helper định dạng số ===
 
   /**
@@ -224,6 +230,7 @@ export default function MaterialsCostInput({
     // 3. Cập nhật state
     setEquipmentRows(newRows);
   };
+
   const handleRemoveEquipmentRow = (indexToRemove: number) => {
     const newRows = equipmentRows.filter((_, index) => index !== indexToRemove);
     setEquipmentRows(newRows);
@@ -238,6 +245,8 @@ export default function MaterialsCostInput({
       // 'equipments' chứa 'soLuong' ở dạng gốc (ví dụ: "1000"),
       // là định dạng đúng để gửi lên server.
       equipments: equipmentRows,
+      startDate,
+      endDate,
     });
     setTimeout(() => {
       setIsSubmitting(false);
@@ -261,14 +270,109 @@ export default function MaterialsCostInput({
 
       <div className="layout-input-header">
         <div className="header01">
-          Thống kê vận hành / Chi phí thực hiện / Chi phí SCTX thực hiện
+          Thống kê vận hành / Chi phí kế hoạch ban đầu
         </div>
         <div className="line"></div>
-        <div className="header02">Tạo mới Chi phí SCTX thực hiện</div>
+        <div className="header02">Tạo mới chi phí kế hoạch ban đầu</div>
       </div>
 
       {/* BODY CUỘN DỌC */}
       <div className="layout-input-body">
+        {/* Dòng đầu tiên: Thời gian bắt đầu và Thời gian kết thúc */}
+        <div style={{ display: "flex", gap: "20px", maxWidth: "95%" }}>
+          {/* Thời gian bắt đầu */}
+          <div style={{ width: "50%" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontSize: "14px",
+                color: "#4b5563",
+                fontWeight: "500",
+              }}
+            >
+              Thời gian bắt đầu
+            </label>
+            <div className="input-row" style={{ position: "relative" }}>
+              <input
+                type="text"
+                value="01/11/2025"
+                readOnly
+                disabled
+                style={{
+                  height: "40px",
+                  paddingLeft: "10px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  color: "#111827",
+                  outline: "none",
+                  backgroundColor: "rgb(241, 242, 245)",
+                }}
+                placeholder="dd/mm/yyyy"
+              />
+              <Calendar
+                size={18}
+                strokeWidth={2}
+                color="#9ca3af"
+                style={{
+                  position: "absolute",
+                  right: "15px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Thời gian kết thúc */}
+          <div style={{ width: "50%" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontSize: "14px",
+                color: "#4b5563",
+                fontWeight: "500",
+              }}
+            >
+              Thời gian kết thúc
+            </label>
+            <div className="input-row" style={{ position: "relative" }}>
+              <input
+                type="text"
+                value="30/11/2025"
+                readOnly
+                disabled
+                style={{
+                  height: "40px",
+                  paddingLeft: "10px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  backgroundColor: "rgb(241, 242, 245)",
+                  fontSize: "14px",
+                  color: "#111827",
+                  outline: "none",
+                }}
+                placeholder="dd/mm/yyyy"
+              />
+              <Calendar
+                size={18}
+                strokeWidth={2}
+                color="#9ca3af"
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* === DIV "SIÊU STICKY" BỌC CẢ 3 HÀNG === */}
         <div
           className="sticky-header-group"
@@ -332,7 +436,6 @@ export default function MaterialsCostInput({
                 style={{ backgroundColor: "#f1f2f5" }}
               />
             </div>
-
             {/* 'Sản lượng' là readOnly - Giữ nguyên */}
             <div
               className="input-row"
@@ -347,7 +450,6 @@ export default function MaterialsCostInput({
                 style={{ backgroundColor: "#f1f2f5" }}
               />
             </div>
-
             {/* 'ĐVT' là Dropdown - Giữ nguyên */}
             <div
               className="input-row"
