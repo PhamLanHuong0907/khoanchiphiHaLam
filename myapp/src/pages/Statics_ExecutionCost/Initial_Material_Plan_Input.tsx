@@ -114,12 +114,14 @@ const DEFAULT_EMPTY_PRODUCT: ProductData = {
 interface Props {
   onClose?: () => void;
   selectedId?: number;
+  isEditMode?: boolean;
 }
 
 // === COMPONENT ===
 export default function InitialMaterialPlanInput({
   onClose,
   selectedId,
+  isEditMode = false,
 }: Props) {
   const navigate = useNavigate();
   const closePath = PATHS.REPAIRS_COST.LIST;
@@ -136,9 +138,6 @@ export default function InitialMaterialPlanInput({
 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-
-  // Xác định chế độ (Tạo mới hoặc Chỉnh sửa)
-  const isEditMode = !!selectedId;
 
   // === TỰ ĐỘNG FILL DỮ LIỆU KHI CÓ selectedId ===
   useEffect(() => {

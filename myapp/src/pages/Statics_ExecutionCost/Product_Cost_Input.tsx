@@ -353,7 +353,7 @@ const ProductCostInput: React.FC<{
           />
         </div>
         <div style={{ width: "200px" }}>
-          <label>Đơn vị tính</label>
+          <label>ĐVT</label>
           <DropdownMenuSearchable
             options={DVT_OPTIONS}
             value={selectedDVT}

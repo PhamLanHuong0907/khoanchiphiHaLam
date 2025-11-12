@@ -5,6 +5,7 @@ import PencilButton from "../../components/PencilButtons";
 import Material_Unified_Cost from "../../layout/KHSX_VL";
 import Layout from "../../layout/layout_filter";
 import InitialMaterialPlanInput from "./Initial_Material_Plan_Input";
+import InitialRepairPlanInput from "./Initial_Repair_Plan_Input";
 import MaterialsCostInput from "./Materials_Cost_Input";
 import ProductCostInput from "./Product_Cost_Input";
 
@@ -40,7 +41,9 @@ const Unified_Cost: React.FC = () => {
           sanluong: 500,
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <InitialMaterialPlanInput selectedId={1} />,
+          editComponent: (
+            <InitialMaterialPlanInput selectedId={1} isEditMode={true} />
+          ),
           createComponent: <InitialMaterialPlanInput selectedId={1} />,
         },
         {
@@ -49,8 +52,12 @@ const Unified_Cost: React.FC = () => {
           sanluong: 500,
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: (
+            <InitialRepairPlanInput selectedId={1} isEditMode={true} />
+          ),
+          createComponent: (
+            <InitialRepairPlanInput selectedId={1} onClose={() => {}} />
+          ),
         },
         {
           label: "Chi phí điện năng kế hoạch",
@@ -76,8 +83,12 @@ const Unified_Cost: React.FC = () => {
           sanluong: 500,
           chiphi: 50000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: (
+            <InitialRepairPlanInput selectedId={1} isEditMode={true} />
+          ),
+          createComponent: (
+            <InitialRepairPlanInput selectedId={1} isEditMode={true} />
+          ),
         },
         {
           label: "Chi phí điện năng kế hoạch",
@@ -116,8 +127,12 @@ const Unified_Cost: React.FC = () => {
           sanluong: 1700,
           chiphi: 350000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: (
+            <InitialRepairPlanInput selectedId={2} isEditMode={true} />
+          ),
+          createComponent: (
+            <InitialRepairPlanInput selectedId={2} isEditMode={true} />
+          ),
         },
         {
           label: "Chi phí điện năng kế hoạch",
@@ -156,8 +171,12 @@ const Unified_Cost: React.FC = () => {
           sanluong: 1300,
           chiphi: 200000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: (
+            <InitialRepairPlanInput selectedId={3} isEditMode={true} />
+          ),
+          createComponent: (
+            <InitialRepairPlanInput selectedId={3} isEditMode={true} />
+          ),
         },
         {
           label: "Chi phí điện năng kế hoạch",
