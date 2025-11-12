@@ -79,6 +79,18 @@ const MOCK_DATA = {
     { id: "dg4", code: "KT1" },
     { id: "dg5", code: "KT2" },
   ],
+  materialDetails: {
+    "vl-1-202501": {
+      tyLeDaKep: "10% ≤ Ckep ≤ 20%",
+      mangTruot: "MTD",
+      unitPriceId: "dg1",
+    },
+    "vl-1-202502": {
+      tyLeDaKep: "Ckep ≥ 20%",
+      mangTruot: "MTINOX",
+      unitPriceId: "dg2",
+    },
+  },
 };
 
 const TY_LE_DA_KEP_OPTIONS = [
@@ -114,6 +126,7 @@ const DEFAULT_EMPTY_PRODUCT: ProductData = {
 interface Props {
   onClose?: () => void;
   selectedId?: number;
+  subRowId?: string;
   isEditMode?: boolean;
 }
 
@@ -121,6 +134,7 @@ interface Props {
 export default function InitialMaterialPlanInput({
   onClose,
   selectedId,
+  subRowId,
   isEditMode = false,
 }: Props) {
   const navigate = useNavigate();
@@ -166,10 +180,12 @@ export default function InitialMaterialPlanInput({
           setEndDate(new Date(endParts[2], endParts[1] - 1, endParts[0]));
         }
 
-        // Fill các trường khác
-        setTyLeDaKep(row.tyLeDaKep || "");
-        setSuDungMangTruot(row.mangTruot || "");
-        setSelectedUnitPriceId(row.unitPriceId || "");
+        const saved = MOCK_DATA.materialDetails?.[subRowId];
+        if (saved) {
+          setTyLeDaKep(saved.tyLeDaKep);
+          setSuDungMangTruot(saved.mangTruot);
+          setSelectedUnitPriceId(saved.unitPriceId);
+        }
       }
     }
   }, [selectedId]);

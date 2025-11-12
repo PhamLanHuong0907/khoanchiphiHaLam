@@ -5,7 +5,7 @@ import Select from "react-select";
 import "../../components/dropdown_menu_searchable.css";
 import "../../components/transactionselector.css";
 import PATHS from "../../hooks/path";
-import { useApi } from "../../hooks/useFetchData"; // Import hook API
+import { useApi } from "../../hooks/useFetchData";
 import "../../layout/layout_input.css";
 
 // ==================
@@ -19,10 +19,6 @@ const MOCK_DATA = {
       maNhom: "DL",
       sanluong: 1000,
       thoigian: "1/1/2025-30/1/2025",
-      chiphi: 500000000,
-      tyLeDaKep: "10% ≤ Ckep ≤ 20%",
-      mangTruot: "MTD",
-      unitPriceId: "dg1",
     },
     {
       id: 2,
@@ -30,10 +26,6 @@ const MOCK_DATA = {
       maNhom: "L1",
       sanluong: 2000,
       thoigian: "1/2/2025-28/2/2025",
-      chiphi: 800000000,
-      tyLeDaKep: "Ckep ≥ 20%",
-      mangTruot: "MTINOX",
-      unitPriceId: "dg2",
     },
     {
       id: 3,
@@ -41,10 +33,6 @@ const MOCK_DATA = {
       maNhom: "L2",
       sanluong: 1500,
       thoigian: "1/3/2025-31/3/2025",
-      chiphi: 600000000,
-      tyLeDaKep: "10% ≤ Ckep ≤ 20%",
-      mangTruot: "",
-      unitPriceId: "dg3",
     },
   ],
   products: {
@@ -54,7 +42,6 @@ const MOCK_DATA = {
       maNhom: "NCD-01",
       tenNhom: "Nhóm công đoạn Đào lò",
       donViTinh: "mét",
-      sanLuong: 120,
     },
     KD01: {
       id: "sp2",
@@ -62,7 +49,6 @@ const MOCK_DATA = {
       maNhom: "NCD-02",
       tenNhom: "Nhóm công đoạn Khai thác",
       donViTinh: "tấn",
-      sanLuong: 500,
     },
     EBH52: {
       id: "sp3",
@@ -70,17 +56,77 @@ const MOCK_DATA = {
       maNhom: "NCD-03",
       tenNhom: "Nhóm công đoạn Khai thác than",
       donViTinh: "tấn",
-      sanLuong: 800,
     },
   },
-  unitPrices: [
-    { id: "dg1", code: "DL1" },
-    { id: "dg2", code: "DL2" },
-    { id: "dg3", code: "DL3" },
-    { id: "dg4", code: "KT1" },
-    { id: "dg5", code: "KT2" },
-  ],
+
+  editDetails: {
+    "sctx-2025-01": {
+      equipmentIds: [
+        "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
+        "3285293b-b158-408b-a27e-4c01b636c04d",
+        "0278a259-ff3f-4122-883f-fcf26b029072",
+      ], // thiết bị đã chọn
+      costs: [
+        {
+          partId: "1da363de-ebd1-44cf-b481-950bf067e552",
+          equipmentId: "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
+          soLuongVatTu: 5,
+          k1: 0.5,
+          k2: 1,
+          k3: 0.6,
+          k4: 1,
+          k5: 0.9,
+          k6: 1,
+          k7: 0.5,
+        },
+        {
+          partId: "1fb6dd38-6eb0-46e2-a48c-7e6eb0157522",
+          equipmentId: "3285293b-b158-408b-a27e-4c01b636c04d",
+          soLuongVatTu: 3,
+          k1: 0.5,
+          k2: 1,
+          k3: 0.6,
+          k4: 1,
+          k5: 0.9,
+          k6: 1,
+          k7: 0.5,
+        },
+        {
+          partId: "2aa7bf03-234b-474d-b7be-29bb1b0038ea",
+          equipmentId: "0278a259-ff3f-4122-883f-fcf26b029072",
+          soLuongVatTu: 10,
+          k1: 0.5,
+          k2: 1,
+          k3: 0.6,
+          k4: 1,
+          k5: 0.9,
+          k6: 1,
+          k7: 0.5,
+        },
+      ],
+    },
+    "sctx-2025-02": {
+      equipmentIds: ["2760bfd2-83b6-460b-a49b-21d9ae2c6a1b"],
+      costs: [
+        {
+          partId: "1da363de-ebd1-44cf-b481-950bf067e552",
+          equipmentId: "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
+          soLuongVatTu: 5,
+          k1: 0.5,
+          k2: 1,
+          k3: 0.6,
+          k4: 1,
+          k5: 0.9,
+          k6: 1,
+          k7: 0.5,
+        },
+      ],
+    },
+  },
 };
+
+// Mock coefficients for K1..K7 (float list)
+const MOCK_K_OPTIONS = [0.9, 0.6, 0.5, 1];
 
 // ==================
 // === INTERFACES ===
@@ -104,33 +150,34 @@ const DEFAULT_EMPTY_PRODUCT: ProductData = {
 interface Equipment {
   id: string;
   code: string;
-  name: string;
-  unitOfMeasureId: string;
-  unitOfMeasureName: string;
 }
 
 interface Part {
   id: string;
-  code: string;
   name: string;
-  unitOfMeasureId: string;
-  unitOfMeasureName: string;
   equipmentId: string;
-  equipmentCode: string;
-  costAmmount: number;
+  unitOfMeasureName?: string;
+  costAmmount?: number;
 }
 
 interface PartRowData {
   partId: string;
   equipmentId: string;
   tenPhuTung: string;
-  donGiaVatTu: number; // Sẽ lưu SỐ THÔ (number)
+  donGiaVatTu: number;
   donViTinh: string;
-  dinhMucThoiGian: string; // Sẽ lưu chuỗi (vd: "123,4")
-  soLuongVatTu: string; // Sẽ lưu chuỗi (vd: "123,4")
-  sanLuongMetLo: string; // Sẽ lưu chuỗi (vd: "123,4")
-  dinhMucVatTuSCTX: string; // Sẽ lưu chuỗi định dạng (vd: "123,45")
-  chiPhiVatTuSCTX: string; // Sẽ lưu chuỗi định dạng (vd: "100.000")
+  dinhMucThoiGian: string;
+  soLuongVatTu: number;
+  sanLuongMetLo: string;
+  k1: number | null;
+  k2: number | null;
+  k3: number | null;
+  k4: number | null;
+  k5: number | null;
+  k6: number | null;
+  k7: number | null;
+  unitPriceInput: number | null;
+  chiPhiSCTXKeHoach: number | null;
 }
 
 interface CostItem {
@@ -140,97 +187,68 @@ interface CostItem {
   replacementTimeStandard: number;
   averageMonthlyTunnelProduction: number;
 }
-
 interface PostPayload {
   costs: CostItem[];
 }
-
 interface Props {
   onClose?: () => void;
   selectedId?: number;
+  subRowId?: string;
   isEditMode?: boolean;
   onSuccess?: () => void;
 }
 
-// === COMPONENT ===
 export default function InitialRepairPlanInput({
   onClose,
   selectedId,
+  subRowId,
   isEditMode = false,
   onSuccess,
 }: Props) {
   const navigate = useNavigate();
   const closePath = PATHS.SLIDE_RAILS.LIST;
 
-  /**
-   * (ĐỊNH MỨC - INPUTS) Chuyển đổi chuỗi (VD: "123,4") sang số (123.4)
-   */
-  const parseLocalFloat = (str: string | undefined | null): number => {
-    if (!str) return 0;
-    // 1. Xóa tất cả dấu chấm (ngăn cách hàng nghìn)
-    // 2. Thay dấu phẩy (thập phân) bằng dấu chấm
-    const cleanStr = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(cleanStr || "0");
-  };
-
-  /**
-   * (CHI PHÍ - OUTPUT) Chuyển đổi số (VD: 100000) thành chuỗi ("100.000")
-   */
-  const formatNumberForDisplay = (value: number | undefined | null): string => {
-    if (value === null || value === undefined) return "0";
-    // Dùng 'de-DE' để có dấu chấm (.) ngăn cách hàng nghìn
-    // Làm tròn về 0 số thập phân cho chi phí
-    return new Intl.NumberFormat("de-DE", {
-      maximumFractionDigits: 0,
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  /**
-   * (ĐỊNH MỨC - OUTPUT) Chuyển đổi số (VD: 123.456) thành chuỗi ("123,456")
-   */
-  const formatLocalFloat = (value: number | undefined | null): string => {
-    if (value === null || value === undefined) return "0";
-    // Dùng 'vi-VN' để có dấu phẩy (,) ngăn cách thập phân
+  // Hàm format số kiểu Việt Nam: 1.234.567
+  const formatVND = (value: number | undefined | null): string => {
+    if (value === null || value === undefined || isNaN(value)) return "0";
     return new Intl.NumberFormat("vi-VN", {
-      maximumFractionDigits: 4, // Giữ nguyên logic cũ
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
-  // === Gọi API ===
+  const parseLocalFloat = (str: string | undefined | null): number => {
+    if (str === undefined || str === null) return 0;
+    const cleanStr = String(str).replace(/\./g, "").replace(",", ".");
+    return parseFloat(cleanStr || "0") || 0;
+  };
+
+  // API hooks
   const { data: equipmentData = [] } = useApi<Equipment>(
     "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
   const { data: allPartsData = [] } = useApi<Part>(
     "/api/catalog/part?pageIndex=1&pageSize=10000"
   );
-
   const { postData, loading: isSubmitting } = useApi<PostPayload>(
     "/api/pricing/maintainunitpriceequipment"
   );
 
-  // === State ===
+  // state
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>(
     []
   );
   const [partRows, setPartRows] = useState<PartRowData[]>([]);
-
   const [productData, setProductData] = useState<ProductData>(
     DEFAULT_EMPTY_PRODUCT
   );
-
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-  // === Memoized Options cho Dropdown ===
-  const equipmentOptions = useMemo(() => {
-    return equipmentData.map((eq) => ({
-      value: eq.id,
-      label: eq.code,
-    }));
-  }, [equipmentData]);
+  const equipmentOptions = useMemo(
+    () => equipmentData.map((eq) => ({ value: eq.id, label: eq.code })),
+    [equipmentData]
+  );
 
-  // === TỰ ĐỘNG FILL DỮ LIỆU KHI CÓ selectedId ===
   useEffect(() => {
     if (selectedId) {
       const row = MOCK_DATA.plans.find((r) => r.id === selectedId);
@@ -245,8 +263,6 @@ export default function InitialRepairPlanInput({
             sanLuong: row.sanluong.toString(),
           });
         }
-
-        // Parse thoigian
         const [startStr, endStr] = row.thoigian.split("-");
         if (startStr && endStr) {
           const startParts = startStr.split("/").map(Number);
@@ -260,36 +276,102 @@ export default function InitialRepairPlanInput({
     }
   }, [selectedId]);
 
+  // CHỈNH SỬA: Load dữ liệu chi tiết khi isEditMode
   useEffect(() => {
-    // Không cần fetchAllData phức tạp ở đây
-    // Các hook useApi ở trên đã tự động fetch
-  }, []); // useEffect rỗng để chạy 1 lần (mặc dù các hook useApi đã tự chạy)
+    if (
+      isEditMode &&
+      subRowId &&
+      selectedId &&
+      MOCK_DATA.editDetails[subRowId]
+    ) {
+      const editData = MOCK_DATA.editDetails[subRowId];
 
-  // === XỬ LÝ SỰ KIỆN ===
+      setSelectedEquipmentIds(editData.equipmentIds);
+
+      const savedCosts = editData.costs;
+
+      const loadedRows: PartRowData[] = savedCosts.map((saved) => {
+        const partInfo = allPartsData.find((p) => p.id === saved.partId);
+        if (!partInfo) {
+          return {
+            partId: saved.partId,
+            equipmentId: saved.equipmentId,
+            tenPhuTung: "Không tìm thấy phụ tùng",
+            donGiaVatTu: 0,
+            donViTinh: "",
+            dinhMucThoiGian: "",
+            soLuongVatTu: saved.soLuongVatTu,
+            sanLuongMetLo: "",
+            k1: saved.k1 ?? null,
+            k2: saved.k2 ?? null,
+            k3: saved.k3 ?? null,
+            k4: saved.k4 ?? null,
+            k5: saved.k5 ?? null,
+            k6: saved.k6 ?? null,
+            k7: saved.k7 ?? null,
+            unitPriceInput: 0,
+            chiPhiSCTXKeHoach: null,
+          };
+        }
+
+        const row: PartRowData = {
+          partId: partInfo.id,
+          equipmentId: partInfo.equipmentId,
+          tenPhuTung: partInfo.name,
+          donGiaVatTu: partInfo.costAmmount || 0,
+          donViTinh: partInfo.unitOfMeasureName || "",
+          dinhMucThoiGian: "",
+          soLuongVatTu: saved.soLuongVatTu,
+          sanLuongMetLo: "",
+          k1: saved.k1 ?? null,
+          k2: saved.k2 ?? null,
+          k3: saved.k3 ?? null,
+          k4: saved.k4 ?? null,
+          k5: saved.k5 ?? null,
+          k6: saved.k6 ?? null,
+          k7: saved.k7 ?? null,
+          unitPriceInput: partInfo.costAmmount || null,
+          chiPhiSCTXKeHoach: null,
+        };
+
+        row.chiPhiSCTXKeHoach = computeRowCost(row);
+        return row;
+      });
+
+      setPartRows(loadedRows);
+    }
+  }, [isEditMode, subRowId, selectedId, allPartsData]);
+
   const handleClose = () => {
     onClose?.();
     if (!onClose && closePath) navigate(closePath);
+  };
+
+  const computeRowCost = (r: PartRowData): number | null => {
+    if (!r.soLuongVatTu || r.soLuongVatTu <= 0) return null;
+    const ks = [r.k1, r.k2, r.k3, r.k4, r.k5, r.k6, r.k7];
+    if (ks.some((v) => v === null || v === undefined)) return null;
+    if (!r.unitPriceInput || r.unitPriceInput <= 0) return null;
+
+    const productK = ks.reduce((acc: number, cur) => acc * (cur as number), 1);
+    if (productK === null) return null;
+    const rawCost = r.soLuongVatTu * productK * (r.unitPriceInput as number);
+    console.log("Computed cost for row:", r.partId, "=", rawCost);
+    return Math.round(rawCost); // Làm tròn lên thành số nguyên
   };
 
   const handleSubmit = async () => {
     const costItems: CostItem[] = partRows.map((row) => ({
       equipmentId: row.equipmentId,
       partId: row.partId,
-      // Dùng hàm parse mới để chuyển "123,4" (string) -> 123.4 (number)
-      quantity: parseLocalFloat(row.soLuongVatTu),
+      quantity: row.soLuongVatTu,
       replacementTimeStandard: parseLocalFloat(row.dinhMucThoiGian),
       averageMonthlyTunnelProduction: parseLocalFloat(row.sanLuongMetLo),
     }));
 
-    // (Validation có thể thêm ở đây nếu muốn)
-
-    const payload: PostPayload = {
-      costs: costItems,
-    };
-
+    const payload: PostPayload = { costs: costItems };
     try {
       await postData(payload, () => {
-        console.log("📤 Đã gửi thành công:", payload);
         onSuccess?.();
         handleClose();
       });
@@ -299,88 +381,116 @@ export default function InitialRepairPlanInput({
   };
 
   const handleSelectChange = (selected: any) => {
-    const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
+    const newSelectedIds: string[] = selected
+      ? selected.map((s: any) => s.value)
+      : [];
+
+    // 1. Tìm các equipment MỚI (có trong newSelectedIds nhưng không có trong selectedEquipmentIds cũ)
+    const previousSelectedIds = selectedEquipmentIds;
+    const newlyAddedEquipmentIds = newSelectedIds.filter(
+      (id) => !previousSelectedIds.includes(id)
+    );
+
+    // Cập nhật state thiết bị
     setSelectedEquipmentIds(newSelectedIds);
-    const newRows = allPartsData
-      .filter((part) => newSelectedIds.includes(part.equipmentId))
-      .map(
-        (part): PartRowData => ({
+
+    // Nếu không có equipment mới → chỉ giữ lại các dòng hiện có (và xóa nếu bỏ chọn)
+    if (newlyAddedEquipmentIds.length === 0) {
+      // Chỉ giữ lại các dòng thuộc thiết bị vẫn còn được chọn
+      const preservedRows = partRows.filter((row) =>
+        newSelectedIds.includes(row.equipmentId)
+      );
+      setPartRows(preservedRows);
+      return;
+    }
+
+    // 2. Chỉ lấy phụ tùng của các equipment MỚI thêm vào
+    const existingPartIds = new Set(partRows.map((r) => r.partId));
+
+    const newRowsFromSelection = allPartsData
+      .filter((part) => {
+        return (
+          newlyAddedEquipmentIds.includes(part.equipmentId) && // CHỈ equipment mới
+          !existingPartIds.has(part.id) // chưa từng có
+        );
+      })
+      .map((part): PartRowData => {
+        // Ưu tiên lấy dữ liệu cũ nếu có (trong edit mode)
+        let savedCost = null;
+        if (isEditMode && selectedId && MOCK_DATA.editDetails[selectedId]) {
+          savedCost = MOCK_DATA.editDetails[selectedId].costs.find(
+            (c) => c.partId === part.id
+          );
+        }
+
+        const row: PartRowData = {
           partId: part.id,
           equipmentId: part.equipmentId,
           tenPhuTung: part.name,
-          donGiaVatTu: part.costAmmount || 0, // <-- Lưu SỐ THÔ (number)
+          donGiaVatTu: part.costAmmount || 0,
           donViTinh: part.unitOfMeasureName || "Cái",
-          dinhMucThoiGian: "", // <-- Lưu CHUỖI
-          soLuongVatTu: "", // <-- Lưu CHUỖI
-          sanLuongMetLo: "", // <-- Lưu CHUỖI
-          dinhMucVatTuSCTX: "0", // <-- Lưu CHUỖI (đã định dạng)
-          chiPhiVatTuSCTX: "0", // <-- Lưu CHUỖI (đã định dạng)
-        })
-      );
-    setPartRows(newRows);
+          dinhMucThoiGian: "",
+          soLuongVatTu: savedCost?.soLuongVatTu || 0,
+          sanLuongMetLo: "",
+          k1: savedCost?.k1 ?? null,
+          k2: savedCost?.k2 ?? null,
+          k3: savedCost?.k3 ?? null,
+          k4: savedCost?.k4 ?? null,
+          k5: savedCost?.k5 ?? null,
+          k6: savedCost?.k6 ?? null,
+          k7: savedCost?.k7 ?? null,
+          unitPriceInput: part.costAmmount || null,
+          chiPhiSCTXKeHoach: null,
+        };
+
+        row.chiPhiSCTXKeHoach = computeRowCost(row);
+        return row;
+      });
+
+    // 3. Giữ lại tất cả dòng cũ + thêm dòng mới từ equipment mới
+    const preservedRows = partRows.filter((row) =>
+      newSelectedIds.includes(row.equipmentId)
+    );
+
+    setPartRows([...preservedRows, ...newRowsFromSelection]);
   };
 
-  const handleRowChange = (
+  const handleRemoveRow = (indexToRemove: number) =>
+    setPartRows((prev) => prev.filter((_, i) => i !== indexToRemove));
+
+  const handleRowNumberChange = (
+    index: number,
+    field: keyof PartRowData,
+    value: number | null
+  ) => {
+    setPartRows((prev) => {
+      const newRows = [...prev];
+      const row = { ...newRows[index] };
+      (row as any)[field] = value;
+      row.chiPhiSCTXKeHoach = computeRowCost(row);
+      newRows[index] = row;
+      return newRows;
+    });
+  };
+
+  const handleRowStringChange = (
     index: number,
     field: keyof PartRowData,
     value: string
   ) => {
-    const newRows = [...partRows];
-    let cleanValue = value;
-
-    // 1. Áp dụng logic dấu phẩy (,) cho 3 trường nhập liệu
-    if (
-      field === "dinhMucThoiGian" ||
-      field === "soLuongVatTu" ||
-      field === "sanLuongMetLo"
-    ) {
-      // 1a. CHẶN DẤU CHẤM: Xóa tất cả dấu chấm ('.')
-      cleanValue = value.replace(/\./g, "");
-
-      // 1b. KIỂM TRA HỢP LỆ: Chỉ cho phép số và 1 dấu phẩy
-      if (!/^[0-9]*(,[0-9]*)?$/.test(cleanValue)) {
-        return; // Không cập nhật nếu nhập không hợp lệ (vd: "12,3,4")
-      }
-    }
-
-    // 2. Cập nhật giá trị "sạch" (cleanValue) vào state
-    const updatedRow = { ...newRows[index], [field]: cleanValue };
-
-    // 3. Tính toán lại
-    const donGia = updatedRow.donGiaVatTu || 0; // Đọc SỐ THÔ (number)
-    // Dùng parseLocalFloat để đọc giá trị từ state (chuỗi có dấu phẩy)
-    const dinhMucThoiGian = parseLocalFloat(updatedRow.dinhMucThoiGian);
-    const soLuongVatTu = parseLocalFloat(updatedRow.soLuongVatTu);
-    const sanLuongMetLo = parseLocalFloat(updatedRow.sanLuongMetLo);
-
-    let dinhMucVatTu = 0;
-    // Thêm kiểm tra chia cho 0
-    if (sanLuongMetLo !== 0 && dinhMucThoiGian !== 0) {
-      dinhMucVatTu = soLuongVatTu / dinhMucThoiGian / sanLuongMetLo;
-    }
-
-    const chiPhiVatTu = dinhMucVatTu * donGia;
-
-    // 4. Định dạng kết quả đầu ra
-    // Yêu cầu: "Định mức" dùng dấu phẩy (,)
-    updatedRow.dinhMucVatTuSCTX = formatLocalFloat(dinhMucVatTu);
-    // Yêu cầu: "Chi phí" dùng dấu chấm (.)
-    updatedRow.chiPhiVatTuSCTX = formatNumberForDisplay(chiPhiVatTu);
-
-    newRows[index] = updatedRow;
-    setPartRows(newRows);
-  };
-
-  const handleRemoveRow = (indexToRemove: number) => {
-    const newRows = partRows.filter((_, index) => index !== indexToRemove);
-    setPartRows(newRows);
+    setPartRows((prev) => {
+      const newRows = [...prev];
+      const row = { ...newRows[index], [field]: value };
+      row.chiPhiSCTXKeHoach = computeRowCost(row);
+      newRows[index] = row;
+      return newRows;
+    });
   };
 
   const selectedOptions = equipmentOptions.filter((opt) =>
     selectedEquipmentIds.includes(opt.value)
   );
 
-  // === RENDER ===
   return (
     <div
       className="layout-input-container"
@@ -398,9 +508,7 @@ export default function InitialRepairPlanInput({
         </div>
       </div>
 
-      {/* BODY CUỘN DỌC */}
       <div className="layout-input-body">
-        {/* Dòng đầu tiên: Thời gian bắt đầu và Thời gian kết thúc */}
         <div
           style={{
             display: "flex",
@@ -459,19 +567,17 @@ export default function InitialRepairPlanInput({
           </div>
         </div>
 
-        {/* === DIV "SIÊU STICKY" BỌC CẢ 3 HÀNG === */}
         <div
-          className="sticky-header-group"
+          className="sticky-headerGroup"
           style={{
             position: "sticky",
-            left: "0",
+            left: 0,
             zIndex: 1002,
             background: "#f1f2f5",
-            paddingTop: "5px",
+            paddingTop: 5,
           }}
         >
-          {/* 1. Hàng Mã sản phẩm */}
-          <div className="input-row" style={{ marginBottom: "20px" }}>
+          <div className="input-row" style={{ marginBottom: 20 }}>
             <label>Mã sản phẩm</label>
             <input
               type="text"
@@ -493,22 +599,18 @@ export default function InitialRepairPlanInput({
             />
           </div>
 
-          {/* 2. Hàng ngang thông tin sản phẩm */}
           <div
             style={{
               display: "flex",
-              gap: "16px",
+              gap: 16,
               flexWrap: "nowrap",
               alignItems: "flex-end",
               overflowX: "auto",
-              minWidth: "700px",
-              marginBottom: "20px",
+              minWidth: 700,
+              marginBottom: 20,
             }}
           >
-            <div
-              className="input-row"
-              style={{ width: "150px", marginBottom: 0, top: "0px" }}
-            >
+            <div className="input-row" style={{ width: 150 }}>
               <label>Mã nhóm CĐSX</label>
               <input
                 type="text"
@@ -518,10 +620,7 @@ export default function InitialRepairPlanInput({
                 style={{ backgroundColor: "#f1f2f5" }}
               />
             </div>
-            <div
-              className="input-row"
-              style={{ width: "220px", marginBottom: 0, top: "0px" }}
-            >
+            <div className="input-row" style={{ width: 220 }}>
               <label>Nhóm CĐSX</label>
               <input
                 type="text"
@@ -531,10 +630,7 @@ export default function InitialRepairPlanInput({
                 style={{ backgroundColor: "#f1f2f5" }}
               />
             </div>
-            <div
-              className="input-row"
-              style={{ width: "150px", marginBottom: 0, top: "0px" }}
-            >
+            <div className="input-row" style={{ width: 150 }}>
               <label>Sản lượng</label>
               <input
                 type="text"
@@ -544,10 +640,7 @@ export default function InitialRepairPlanInput({
                 style={{ backgroundColor: "#f1f2f5" }}
               />
             </div>
-            <div
-              className="input-row"
-              style={{ width: "150px", marginBottom: 0, top: "0px" }}
-            >
+            <div className="input-row" style={{ width: 150 }}>
               <label>ĐVT</label>
               <input
                 type="text"
@@ -559,274 +652,202 @@ export default function InitialRepairPlanInput({
               />
             </div>
           </div>
-          <div
-            className="input-row"
-            style={{ zIndex: 9999, marginBottom: "20px" }}
-          >
+
+          <div className="input-row" style={{ zIndex: 9999, marginBottom: 20 }}>
             <label>Mã thiết bị</label>
             <Select
               isMulti
               options={equipmentOptions}
-              value={selectedOptions}
+              value={selectedEquipmentIds
+                .map((id) => equipmentOptions.find((o) => o.value === id))
+                .filter(Boolean)}
               onChange={handleSelectChange}
               className="transaction-select-wrapper"
               classNamePrefix="transaction-select"
               placeholder="Chọn Mã thiết bị"
               menuPortalTarget={document.body}
-              styles={{
-                menuPortal: (provided) => ({ ...provided, zIndex: 999999 }),
-              }}
+              styles={{ menuPortal: (p) => ({ ...p, zIndex: 999999 }) }}
             />
           </div>
 
-          {/* THAY ĐỔI: Bọc danh sách hàng trong div cuộn */}
-          <div
-            style={{
-              width: "97%",
-              maxHeight: "400px",
-              overflowY: "auto",
-            }}
-          >
-            {/* THAY ĐỔI: Map qua marketRows thay vì form tĩnh */}
+          <div style={{ width: "97%", maxHeight: 400, overflowY: "auto" }}>
             {partRows.map((row, index) => (
               <div
-                key={row.partId} // Dùng partId duy nhất làm key
+                key={row.partId}
                 style={{
                   display: "flex",
-                  gap: "16px",
-                  width: "142%", // Giống file mẫu
+                  gap: 16,
+                  width: "max-content",
                   flexWrap: "wrap",
-                  marginBottom: "20px",
-                  paddingBottom: "20px",
+                  marginBottom: 20,
                   borderBottom: "1px dashed #ccc",
+                  paddingBottom: 12,
                 }}
               >
-                {[{ label: "Tên phụ tùng", name: "tenPhuTung" }].map((item) => (
-                  <div
-                    key={item.name}
-                    className="input-row"
-                    style={{ width: "100px", marginBottom: "21px" }}
-                  >
-                    <label
-                      htmlFor={`${item.name}-${index}`}
-                      style={{
-                        display: "flex",
-                        textAlign: "center",
-                        height: "30px",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {item.label}
-                    </label>
-                    <div className="tooltip-wrapper">
-                      <input
-                        type="text"
-                        id={`${item.name}-${index}`}
-                        name={item.name}
-                        className="input-text"
-                        value={(row as any)[item.name]}
-                        readOnly
-                        style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                      />
-                      <span className="tooltip-text">
-                        {(row as any)[item.name]}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-
-                <div
-                  className="input-row"
-                  style={{ width: "100px", marginBottom: "21px" }}
-                >
+                <div className="input-row" style={{ width: 100, margin: 0 }}>
                   <label
-                    htmlFor={`donGiaVatTu-${index}`}
                     style={{
                       display: "flex",
                       textAlign: "center",
-                      height: "30px",
+                      height: 30,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    Đơn giá vật tư
+                    Tên phụ tùng
                   </label>
                   <div className="tooltip-wrapper">
                     <input
                       type="text"
-                      id={`donGiaVatTu-${index}`}
-                      name="donGiaVatTu"
                       className="input-text"
-                      value={formatNumberForDisplay(row.donGiaVatTu)}
+                      value={row.tenPhuTung}
                       readOnly
                       style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
+                    <span className="tooltip-text">{row.tenPhuTung}</span>
+                  </div>
+                </div>
+
+                <div className="input-row" style={{ width: 80, margin: 0 }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      textAlign: "center",
+                      height: 30,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ĐVT
+                  </label>
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      className="input-text"
+                      value={row.donViTinh}
+                      readOnly
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    <span className="tooltip-text">{row.donViTinh}</span>
+                  </div>
+                </div>
+
+                {/* Số lượng - cho phép bỏ số 0 đầu */}
+                <div className="input-row" style={{ width: 120, margin: 0 }}>
+                  <label
+                    htmlFor={`soluong-${index}`}
+                    style={{ textAlign: "center", height: 30 }}
+                  >
+                    Số lượng
+                  </label>
+                  <div className="tooltip-wrapper">
+                    <input
+                      id={`soluong-${index}`}
+                      type="number"
+                      placeholder="Nhập số lượng"
+                      className="input-text"
+                      value={row.soLuongVatTu || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const num = val === "" ? 0 : parseFloat(val);
+                        handleRowNumberChange(
+                          index,
+                          "soLuongVatTu",
+                          isNaN(num) ? 0 : num
+                        );
+                      }}
+                      step="any"
+                      min="0"
+                    />
                     <span className="tooltip-text">
-                      {formatNumberForDisplay(row.donGiaVatTu)}
+                      {row.soLuongVatTu || 0}
                     </span>
                   </div>
                 </div>
 
-                {[{ label: "ĐVT", name: "donViTinh" }].map((item) => (
+                {/* K1..K7 selects */}
+                {["k1", "k2", "k3", "k4", "k5", "k6", "k7"].map((kKey, i) => (
                   <div
-                    key={item.name}
+                    key={kKey}
                     className="input-row"
-                    style={{ width: "80px", marginBottom: "21px" }}
+                    style={{ width: 70, margin: 0 }}
                   >
                     <label
-                      htmlFor={`${item.name}-${index}`}
+                      htmlFor={`${kKey}-${index}`}
                       style={{
                         display: "flex",
                         textAlign: "center",
-                        height: "30px",
+                        height: 30,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      {item.label}
+                      {kKey.toUpperCase()}
                     </label>
                     <div className="tooltip-wrapper">
-                      <input
-                        type="text"
-                        id={`${item.name}-${index}`}
-                        name={item.name}
+                      <select
+                        id={`${kKey}-${index}`}
                         className="input-text"
-                        value={(row as any)[item.name]}
-                        readOnly
-                        style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                      />
+                        value={(row as any)[kKey] ?? ""}
+                        onChange={(e) =>
+                          handleRowNumberChange(
+                            index,
+                            kKey as keyof PartRowData,
+                            e.target.value === ""
+                              ? null
+                              : parseFloat(e.target.value)
+                          )
+                        }
+                      >
+                        <option value="">Chọn hệ số</option>
+                        {MOCK_K_OPTIONS.map((k) => (
+                          <option key={k} value={k}>
+                            {k}
+                          </option>
+                        ))}
+                      </select>
                       <span className="tooltip-text">
-                        {(row as any)[item.name]}
+                        {(row as any)[kKey] ?? "Chưa chọn"}
                       </span>
                     </div>
                   </div>
                 ))}
 
-                <div className="input-row" style={{ width: "120px" }}>
-                  <label
-                    htmlFor={`dinhMucThoiGian-${index}`}
-                    style={{ textAlign: "center", height: "30px" }}
-                  >
-                    Định mức thời gian thay thế (tháng)
+                {/* Đơn giá (disabled) - format VND */}
+                <div className="input-row" style={{ width: 120, margin: 0 }}>
+                  <label style={{ textAlign: "center", height: 30 }}>
+                    Đơn giá
                   </label>
                   <div className="tooltip-wrapper">
                     <input
                       type="text"
-                      id={`dinhMucThoiGian-${index}`}
-                      name="dinhMucThoiGian"
-                      placeholder="Nhập định mức"
                       className="input-text"
-                      value={row.dinhMucThoiGian}
-                      onChange={(e) =>
-                        handleRowChange(
-                          index,
-                          "dinhMucThoiGian",
-                          e.target.value
-                        )
-                      }
-                      autoComplete="off"
+                      value={formatVND(row.unitPriceInput)}
+                      disabled
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
                     <span className="tooltip-text">
-                      {row.dinhMucThoiGian || "Chưa nhập"}
-                    </span>
-                  </div>
-                </div>
-                <div className="input-row" style={{ width: "120px" }}>
-                  <label
-                    htmlFor={`soLuongVatTu-${index}`}
-                    style={{ textAlign: "center", height: "30px" }}
-                  >
-                    Số lượng vật tư 1 lần thay thế
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      id={`soLuongVatTu-${index}`}
-                      name="soLuongVatTu"
-                      placeholder="Nhập số lượng"
-                      className="input-text"
-                      value={row.soLuongVatTu}
-                      onChange={(e) =>
-                        handleRowChange(index, "soLuongVatTu", e.target.value)
-                      }
-                      autoComplete="off"
-                    />
-                    <span className="tooltip-text">
-                      {row.soLuongVatTu || "Chưa nhập"}
-                    </span>
-                  </div>
-                </div>
-                <div className="input-row" style={{ width: "120px" }}>
-                  <label
-                    htmlFor={`sanLuongMetLo-${index}`}
-                    style={{ textAlign: "center", height: "30px" }}
-                  >
-                    Sản lượng lò đào bình quân (m)
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      id={`sanLuongMetLo-${index}`}
-                      name="sanLuongMetLo"
-                      placeholder="Nhập sản lượng"
-                      className="input-text"
-                      value={row.sanLuongMetLo}
-                      onChange={(e) =>
-                        handleRowChange(index, "sanLuongMetLo", e.target.value)
-                      }
-                      autoComplete="off"
-                    />
-                    <span className="tooltip-text">
-                      {row.sanLuongMetLo || "Chưa nhập"}
+                      {formatVND(row.unitPriceInput)}
                     </span>
                   </div>
                 </div>
 
-                <div
-                  className="input-row"
-                  style={{ width: "100px", marginBottom: "21px" }}
-                >
-                  <label
-                    htmlFor={`dinhMucVatTuSCTX-${index}`}
-                    style={{ textAlign: "center", height: "30px" }}
-                  >
-                    Định mức vật tư SCTX
+                {/* Chi phí SCTX kế hoạch - làm tròn lên + format VND */}
+                <div className="input-row" style={{ width: 140, margin: 0 }}>
+                  <label style={{ textAlign: "center", height: 30 }}>
+                    Chi phí SCTX kế hoạch
                   </label>
                   <div className="tooltip-wrapper">
                     <input
                       type="text"
-                      id={`dinhMucVatTuSCTX-${index}`}
-                      name="dinhMucVatTuSCTX"
                       className="input-text"
-                      value={row.dinhMucVatTuSCTX}
-                      readOnly
+                      value={formatVND(row.chiPhiSCTXKeHoach)}
+                      disabled
                       style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
-                    <span className="tooltip-text">{row.dinhMucVatTuSCTX}</span>
-                  </div>
-                </div>
-                <div
-                  className="input-row"
-                  style={{ width: "100px", marginBottom: "21px" }}
-                >
-                  <label
-                    htmlFor={`chiPhiVatTuSCTX-${index}`}
-                    style={{ textAlign: "center", height: "30px" }}
-                  >
-                    Chi phí vật tư SCTX
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      id={`chiPhiVatTuSCTX-${index}`}
-                      name="chiPhiVatTuSCTX"
-                      className="input-text"
-                      value={row.chiPhiVatTuSCTX}
-                      readOnly
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                    />
-                    <span className="tooltip-text">{row.chiPhiVatTuSCTX}</span>
+                    <span className="tooltip-text">
+                      {formatVND(row.chiPhiSCTXKeHoach)}
+                    </span>
                   </div>
                 </div>
 
@@ -842,11 +863,8 @@ export default function InitialRepairPlanInput({
             ))}
           </div>
         </div>
-        {/* === KẾT THÚC DIV "SIÊU STICKY" === */}
       </div>
-      {/* Kết thúc layout-input-body */}
 
-      {/* Footer */}
       <div className="layout-input-footer">
         <button className="btn-cancel" onClick={handleClose}>
           Hủy

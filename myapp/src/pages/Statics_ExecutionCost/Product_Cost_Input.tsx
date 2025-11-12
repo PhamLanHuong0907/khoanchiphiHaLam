@@ -343,7 +343,7 @@ const ProductCostInput: React.FC<{
     >
       {/* Dòng 1: Mã sản phẩm + Đơn vị tính */}
       <div className="custom1" style={{ display: "flex", gap: "16px" }}>
-        <div style={{ flex: 1 }}>
+        <div className="input-row" style={{ flex: 1, margin: 0 }}>
           <label>Mã sản phẩm</label>
           <DropdownMenuSearchable
             options={productOptions}
@@ -352,7 +352,7 @@ const ProductCostInput: React.FC<{
             placeholder="Chọn mã sản phẩm"
           />
         </div>
-        <div style={{ width: "200px" }}>
+        <div className="input-row" style={{ width: "200px", margin: 0 }}>
           <label>ĐVT</label>
           <DropdownMenuSearchable
             options={DVT_OPTIONS}
@@ -364,7 +364,7 @@ const ProductCostInput: React.FC<{
       </div>
 
       <div className="custom2" style={{ display: "flex" }}>
-        <div style={{ flex: 1 }}>
+        <div className="input-row" style={{ flex: 1, margin: 0 }}>
           <label>Tên sản phẩm</label>
           <input
             type="text"
@@ -377,7 +377,7 @@ const ProductCostInput: React.FC<{
       </div>
 
       <div className="custom3" style={{ display: "flex", gap: "16px" }}>
-        <div style={{ flex: 1 }}>
+        <div className="input-row" style={{ flex: 1, margin: 0 }}>
           <label>Tên nhóm CĐSX</label>
           <input
             type="text"
@@ -387,7 +387,7 @@ const ProductCostInput: React.FC<{
             style={{ backgroundColor: "#f1f2f5" }}
           />
         </div>
-        <div style={{ width: "200px" }}>
+        <div className="input-row" style={{ width: "200px", margin: 0 }}>
           <label>Mã nhóm CĐSX</label>
           <input
             type="text"

@@ -42,9 +42,15 @@ const Unified_Cost: React.FC = () => {
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
           editComponent: (
-            <InitialMaterialPlanInput selectedId={1} isEditMode={true} />
+            <InitialMaterialPlanInput
+              selectedId={1}
+              isEditMode={true}
+              subRowId="vl-1-202501"
+            />
           ),
-          createComponent: <InitialMaterialPlanInput selectedId={1} />,
+          createComponent: (
+            <InitialMaterialPlanInput selectedId={1} subRowId="vl-1-202501" />
+          ),
         },
         {
           label: "Chi phí SCTX kế hoạch",
@@ -53,10 +59,14 @@ const Unified_Cost: React.FC = () => {
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
           editComponent: (
-            <InitialRepairPlanInput selectedId={1} isEditMode={true} />
+            <InitialRepairPlanInput
+              selectedId={1}
+              isEditMode={true}
+              subRowId="sctx-2025-01"
+            />
           ),
           createComponent: (
-            <InitialRepairPlanInput selectedId={1} onClose={() => {}} />
+            <InitialRepairPlanInput selectedId={1} subRowId="sctx-2025-01" />
           ),
         },
         {
@@ -74,8 +84,16 @@ const Unified_Cost: React.FC = () => {
           sanluong: 500,
           chiphi: 50000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <InitialMaterialPlanInput selectedId={1} />,
-          createComponent: <InitialMaterialPlanInput selectedId={1} />,
+          editComponent: (
+            <InitialMaterialPlanInput
+              selectedId={1}
+              subRowId="vl-1-202502"
+              isEditMode={true}
+            />
+          ),
+          createComponent: (
+            <InitialMaterialPlanInput selectedId={1} subRowId="vl-1-202502" />
+          ),
         },
         {
           label: "Chi phí SCTX kế hoạch",
@@ -84,10 +102,18 @@ const Unified_Cost: React.FC = () => {
           chiphi: 50000000,
           detailComponent: <Material_Unified_Cost />,
           editComponent: (
-            <InitialRepairPlanInput selectedId={1} isEditMode={true} />
+            <InitialRepairPlanInput
+              selectedId={1}
+              isEditMode={true}
+              subRowId="sctx-2025-02"
+            />
           ),
           createComponent: (
-            <InitialRepairPlanInput selectedId={1} isEditMode={true} />
+            <InitialRepairPlanInput
+              selectedId={1}
+              isEditMode={true}
+              subRowId="sctx-2025-02"
+            />
           ),
         },
         {
