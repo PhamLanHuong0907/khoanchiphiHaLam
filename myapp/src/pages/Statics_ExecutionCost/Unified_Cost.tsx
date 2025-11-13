@@ -4,9 +4,9 @@ import "../../components/bodytable.css";
 import PencilButton from "../../components/PencilButtons";
 import Material_Unified_Cost from "../../layout/KHSX_VL";
 import Layout from "../../layout/layout_filter";
+import InitialElectricityPlanInput from "./Initial_Electricity_Plan_Input";
 import InitialMaterialPlanInput from "./Initial_Material_Plan_Input";
 import InitialRepairPlanInput from "./Initial_Repair_Plan_Input";
-import MaterialsCostInput from "./Materials_Cost_Input";
 import ProductCostInput from "./Product_Cost_Input";
 
 const Unified_Cost: React.FC = () => {
@@ -75,8 +75,8 @@ const Unified_Cost: React.FC = () => {
           sanluong: 500,
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: <InitialElectricityPlanInput selectedId={1} />,
+          createComponent: <InitialElectricityPlanInput selectedId={1} />,
         },
         {
           label: "Chi phí vật liệu kế hoạch",
@@ -109,11 +109,7 @@ const Unified_Cost: React.FC = () => {
             />
           ),
           createComponent: (
-            <InitialRepairPlanInput
-              selectedId={1}
-              isEditMode={true}
-              subRowId="sctx-2025-02"
-            />
+            <InitialRepairPlanInput selectedId={1} subRowId="sctx-2025-02" />
           ),
         },
         {
@@ -122,8 +118,8 @@ const Unified_Cost: React.FC = () => {
           sanluong: 500,
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: <InitialElectricityPlanInput selectedId={1} />,
+          createComponent: <InitialElectricityPlanInput selectedId={1} />,
         },
       ],
     },
@@ -156,9 +152,7 @@ const Unified_Cost: React.FC = () => {
           editComponent: (
             <InitialRepairPlanInput selectedId={2} isEditMode={true} />
           ),
-          createComponent: (
-            <InitialRepairPlanInput selectedId={2} isEditMode={true} />
-          ),
+          createComponent: <InitialRepairPlanInput selectedId={2} />,
         },
         {
           label: "Chi phí điện năng kế hoạch",
@@ -166,8 +160,8 @@ const Unified_Cost: React.FC = () => {
           sanluong: 1800,
           chiphi: 150000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: <InitialElectricityPlanInput selectedId={2} />,
+          createComponent: <InitialElectricityPlanInput selectedId={2} />,
         },
       ],
     },
@@ -210,8 +204,8 @@ const Unified_Cost: React.FC = () => {
           sanluong: 1400,
           chiphi: 150000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <MaterialsCostInput onClose={() => {}} />,
-          createComponent: <MaterialsCostInput onClose={() => {}} />,
+          editComponent: <InitialElectricityPlanInput selectedId={3} />,
+          createComponent: <InitialElectricityPlanInput selectedId={3} />,
         },
       ],
     },
@@ -232,69 +226,12 @@ const Unified_Cost: React.FC = () => {
     row.subRows,
   ]);
 
-  // const subRows = [
-  //   {
-  //     label: "Chi phí vật liệu kế hoạch",
-  //     validityPeriod: "1/1/2025-30/1/2025",
-  //     sanluong: 800,
-  //     chiphi: 100000000,
-  //     detailComponent: <Material_Unified_Cost />,
-  //     editComponent: <InitialMaterialPlanInput selectedId={1} />,
-  //     createComponent: <InitialMaterialPlanInput selectedId={1} />,
-  //   },
-  //   {
-  //     label: "Chi phí SCTX kế hoạch",
-  //     validityPeriod: "1/1/2025-30/1/2025",
-  //     sanluong: 850,
-  //     chiphi: 100000000,
-  //     detailComponent: <Material_Unified_Cost />,
-  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
-  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
-  //   },
-  //   {
-  //     label: "Chi phí điện năng kế hoạch",
-  //     validityPeriod: "1/1/2025-30/1/2025",
-  //     sanluong: 900,
-  //     chiphi: 100000000,
-  //     detailComponent: <Material_Unified_Cost />,
-  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
-  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
-  //   },
-  //   {
-  //     label: "Chi phí vật liệu kế hoạch",
-  //     validityPeriod: "1/2/2025-28/2/2025",
-  //     sanluong: 1600,
-  //     chiphi: 50000000,
-  //     detailComponent: <Material_Unified_Cost />,
-  //     editComponent: <InitialMaterialPlanInput selectedId={1} />,
-  //     createComponent: <InitialMaterialPlanInput selectedId={1} />,
-  //   },
-  //   {
-  //     label: "Chi phí SCTX kế hoạch",
-  //     validityPeriod: "1/2/2025-28/2/2025",
-  //     sanluong: 1700,
-  //     chiphi: 50000000,
-  //     detailComponent: <Material_Unified_Cost />,
-  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
-  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
-  //   },
-  //   {
-  //     label: "Chi phí điện năng kế hoạch",
-  //     validityPeriod: "1/2/2025-28/2/2025",
-  //     sanluong: 1800,
-  //     chiphi: 100000000,
-  //     detailComponent: <Material_Unified_Cost />,
-  //     editComponent: <MaterialsCostInput onClose={() => {}} />,
-  //     createComponent: <MaterialsCostInput onClose={() => {}} />,
-  //   },
-  // ];
-
   return (
     <Layout>
       <div className="p-6">
         <AdvancedTable
           title01="Thống kê vận hành / Chi phí kế hoạch ban đầu"
-          title="chi phí kế hoạch ban đầu"
+          title="Chi phí kế hoạch ban đầu"
           columns={columns}
           columnWidths={columnWidths}
           data={data}

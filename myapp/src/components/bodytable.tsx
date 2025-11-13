@@ -808,6 +808,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                                                         gridTemplateColumns: `${subRowGridCol[0]}% ${subRowGridCol[1]}% ${subRowGridCol[2]}% ${subRowGridCol[3]}%`,
                                                         alignItems: "center",
                                                         gap: "10px",
+                                                        borderRadius: "4px",
                                                       }}
                                                     >
                                                       <span

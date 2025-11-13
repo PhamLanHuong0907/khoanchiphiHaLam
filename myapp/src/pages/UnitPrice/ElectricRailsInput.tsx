@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from "react";
 import { X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select"; // Import react-select
-import { useApi } from "../../hooks/useFetchData"; // Import hook API
-import PATHS from "../../hooks/path"; // Import PATHS
-import "../../layout/layout_input.css";
 import "../../components/transactionselector.css"; // Import CSS (NƠI CHỨA TOOLTIP VÀ NÚT XÓA)
+import PATHS from "../../hooks/path"; // Import PATHS
+import { useApi } from "../../hooks/useFetchData"; // Import hook API
+import "../../layout/layout_input.css";
 
 // === Định nghĩa interface cho dữ liệu ===
 
@@ -53,7 +53,11 @@ interface PostPayload {
 }
 // === KẾT THÚC THAY ĐỔI ===
 
-export default function ElectricRailsInput({ onClose }: { onClose?: () => void }) {
+export default function ElectricRailsInput({
+  onClose,
+}: {
+  onClose?: () => void;
+}) {
   const navigate = useNavigate();
   const closePath = PATHS.ELECTRIC_RAILS.LIST;
 
@@ -73,7 +77,9 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
     useApi<EquipmentDetail>("/api/catalog/equipment"); // Base path
 
   // === State ===
-  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
+  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>(
+    []
+  );
   const [equipmentRows, setEquipmentRows] = useState<EquipmentRowData[]>([]);
 
   // === Memoized Options cho Dropdown ===
@@ -92,9 +98,8 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
   };
 
   // KHI NGƯỜI DÙNG THAY ĐỔI LỰA CHỌN TRONG DROPDOWN
-  
+
   const handleSelectChange = async (selected: any) => {
-    
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
     setSelectedEquipmentIds(newSelectedIds);
 
@@ -104,8 +109,8 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
     }
 
     try {
-      const detailPromises = newSelectedIds.map((id: string) =>
-        getEquipmentDetail(id) // Gọi hàm từ hook
+      const detailPromises = newSelectedIds.map(
+        (id: string) => getEquipmentDetail(id) // Gọi hàm từ hook
       );
 
       const detailedEquipments = await Promise.all(detailPromises);
@@ -115,25 +120,23 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
       );
 
       // Chuyển đổi dữ liệu chi tiết thành dữ liệu hàng
-      const newRows = validEquipments.map(
-        (eq): EquipmentRowData => {
-          const electricCostObj = eq.costs
-            ? eq.costs.find((c) => c.costType === 2)
-            : null;
-          const donGia = electricCostObj ? electricCostObj.amount : 0;
+      const newRows = validEquipments.map((eq): EquipmentRowData => {
+        const electricCostObj = eq.costs
+          ? eq.costs.find((c) => c.costType === 2)
+          : null;
+        const donGia = electricCostObj ? electricCostObj.amount : 0;
 
-          return {
-            equipmentId: eq.id,
-            tenThietbi: eq.name || "N/A",
-            donViTinh: eq.unitOfMeasureName || "N/A",
-            dongiadiennang: donGia,
-            monthlyElectricityCost: "",
-            averageMonthlyTunnelProduction: "",
-            dinhmucdiennang: "0",
-            chiphidiennang: "0",
-          };
-        }
-      );
+        return {
+          equipmentId: eq.id,
+          tenThietbi: eq.name || "N/A",
+          donViTinh: eq.unitOfMeasureName || "N/A",
+          dongiadiennang: donGia,
+          monthlyElectricityCost: "",
+          averageMonthlyTunnelProduction: "",
+          dinhmucdiennang: "0",
+          chiphidiennang: "0",
+        };
+      });
 
       setEquipmentRows(newRows);
     } catch (error) {
@@ -225,7 +228,10 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
 
       <div className="layout-input-body">
         {/* Field Mã thiết bị (REACT-SELECT) */}
-        <div className="input-row" style={{ position: "fixed" }}>
+        <div
+          className="input-row"
+          style={{ position: "fixed", zIndex: 9999999 }}
+        >
           <label>Mã thiết bị</label>
           <Select
             isMulti
@@ -460,9 +466,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                       style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
                     {/* Đây là nội dung popup */}
-                    <span className="tooltip-text">
-                      {row.dinhmucdiennang}
-                    </span>
+                    <span className="tooltip-text">{row.dinhmucdiennang}</span>
                   </div>
                 </div>
                 <div
@@ -487,9 +491,7 @@ export default function ElectricRailsInput({ onClose }: { onClose?: () => void }
                       style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                     />
                     {/* Đây là nội dung popup */}
-                    <span className="tooltip-text">
-                      {row.chiphidiennang}
-                    </span>
+                    <span className="tooltip-text">{row.chiphidiennang}</span>
                   </div>
                 </div>
 

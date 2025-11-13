@@ -1,21 +1,13 @@
 import { Eye, EyeOff } from "lucide-react";
-import React, { useState } from "react";
+import React from "react";
 
 interface EyeToggleProps {
   onToggle?: (visible: boolean) => void;
-  // Sửa: Nhận một hàm render, thay vì một ReactNode đã được tạo
+  isVisible?: boolean;
   renderDetailComponent: () => React.ReactNode;
 }
 
-const EyeToggle: React.FC<EyeToggleProps> = ({ onToggle }) => {
-  const [showDetail, setShowDetail] = useState(false);
-
-  const handleToggle = () => {
-    const next = !showDetail;
-    setShowDetail(next);
-    onToggle?.(next); // ✅ gọi callback để báo bảng biết
-  };
-
+const EyeToggle: React.FC<EyeToggleProps> = ({ onToggle, isVisible }) => {
   return (
     <div
       style={{
@@ -27,9 +19,9 @@ const EyeToggle: React.FC<EyeToggleProps> = ({ onToggle }) => {
         width: "100%",
         height: "fit-content",
       }}
-      onClick={handleToggle}
+      onClick={() => onToggle?.(!isVisible)}
     >
-      {showDetail ? (
+      {isVisible ? (
         <Eye size={16} className="hover:text-blue-600" />
       ) : (
         <EyeOff size={16} className="hover:text-blue-600" />
