@@ -31,12 +31,18 @@ type CellData = string | number | JSX.Element;
 
 type SubRowConfig = {
   label: string;
-  validityPeriod?: string; // Added validity period field
+  validityPeriod?: string;
   detailComponent?: React.ReactNode;
   editComponent?: React.ReactNode;
   createComponent?: React.ReactNode;
   sanluong?: number;
   chiphi?: number;
+};
+
+// Type cho level 1.5 của advance-cost variant
+type MiddleLevelConfig = {
+  label: string;
+  subRows: SubRowConfig[];
 };
 
 /**
@@ -78,7 +84,7 @@ interface AdvancedTableProps {
   onDeleted?: () => void;
   lefts?: (number | string)[];
   columnLefts?: (string | number)[];
-  variant?: "default" | "cost";
+  variant?: "default" | "cost" | "advance-cost";
 }
 
 const getHeaderText = (node: React.ReactNode): string => {
@@ -125,6 +131,9 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const [expandedRowLevel1, setExpandedRowLevel1] = useState<number | null>(
     null
   );
+  const [expandedRowLevel1_5, setExpandedRowLevel1_5] = useState<string | null>(
+    null
+  );
   const [expandedRowLevel2, setExpandedRowLevel2] = useState<string | null>(
     null
   );
@@ -154,10 +163,14 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const filterButtonRef = useRef<HTMLDivElement>(null);
 
   const isCostVariant = React.useMemo(() => {
+    if (variant === "advance-cost") return true;
+    if (variant === "cost") return true;
     if (!tableData || tableData.length === 0) return false;
     const lastCellOfFirstRow = tableData[0][tableData[0].length - 1];
     return Array.isArray(lastCellOfFirstRow);
-  }, [tableData]);
+  }, [tableData, variant]);
+
+  const isAdvanceCostVariant = variant === "advance-cost";
 
   useEffect(() => {
     setTableData(initialData);
@@ -351,15 +364,27 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const toggleRowLevel1 = (index: number) => {
     if (expandedRowLevel1 === index) {
       setExpandedRowLevel1(null);
-      setExpandedRowLevel2(null); // Close level 2 when closing level 1
+      setExpandedRowLevel1_5(null);
+      setExpandedRowLevel2(null);
     } else {
       setExpandedRowLevel1(index);
-      setExpandedRowLevel2(null); // Close any open level 2 when opening new level 1
+      setExpandedRowLevel1_5(null);
+      setExpandedRowLevel2(null);
+    }
+  };
+
+  const toggleRowLevel1_5 = (key: string) => {
+    if (expandedRowLevel1_5 === key) {
+      setExpandedRowLevel1_5(null);
+      setExpandedRowLevel2(null);
+    } else {
+      setExpandedRowLevel1_5(key);
+      setExpandedRowLevel2(null);
     }
   };
 
   const toggleRowLevel2 = (key: string) => {
-    setExpandedRowLevel2(expandedRowLevel2 === key ? null : key); // Close others when opening level 2
+    setExpandedRowLevel2(expandedRowLevel2 === key ? null : key);
   };
 
   const handleCreateClick = (label: string, component: React.ReactNode) => {
@@ -524,7 +549,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                 <input
                   type="checkbox"
                   onChange={(e) => {
-                    e.stopPropagation(); // Prevent row click when clicking checkbox
+                    e.stopPropagation();
                     toggleSelectAll(e.target.checked);
                   }}
                   checked={
@@ -571,7 +596,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                 const isExpanded = expandedRowLevel1 === globalIndex;
                 const rowSubRows = row[row.length - 1];
                 const subRows = Array.isArray(rowSubRows)
-                  ? (rowSubRows as SubRowConfig[])
+                  ? (rowSubRows as (SubRowConfig | MiddleLevelConfig)[])
                   : [];
                 const renderableCells = isCostVariant ? row.slice(0, -1) : row;
 
@@ -590,7 +615,9 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                       }}
                       style={{
                         cursor:
-                          isCostVariant && !hasEyeToggle && subRows.length > 0,
+                          isCostVariant && !hasEyeToggle && subRows.length > 0
+                            ? "pointer"
+                            : "default",
                       }}
                     >
                       <td className="checkbox-cell">
@@ -598,7 +625,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                           type="checkbox"
                           checked={isChecked}
                           onChange={(e) => {
-                            e.stopPropagation(); // Prevent row click when clicking checkbox
+                            e.stopPropagation();
                             toggleSelectRow(globalIndex);
                           }}
                         />
@@ -619,7 +646,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                                     } else {
                                       setExpandedRowLevel1(null);
                                     }
-                                    setExpandedRowLevel2(null); // Close level 2 when toggling level 1
+                                    setExpandedRowLevel1_5(null);
+                                    setExpandedRowLevel2(null);
                                   },
                                 }
                               )}
@@ -684,13 +712,407 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                       isCostVariant &&
                       isExpanded &&
                       (() => {
-                        const rowSubRows = row[row.length - 1];
-                        const subRows = Array.isArray(rowSubRows)
-                          ? (rowSubRows as SubRowConfig[])
-                          : [];
-
                         if (subRows.length === 0) return null;
 
+                        // Render for advance-cost variant (3 levels)
+                        if (isAdvanceCostVariant) {
+                          const middleLevels = subRows as MiddleLevelConfig[];
+
+                          return (
+                            <tr className="row-expanded">
+                              <td
+                                colSpan={columns.length + 1}
+                                style={{ padding: 0, textAlign: "initial" }}
+                              >
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  style={{
+                                    overflow: "hidden",
+                                    borderTop: "1px solid #ddd",
+                                    backgroundColor: "white",
+                                    padding: "16px",
+                                  }}
+                                >
+                                  {middleLevels.map((middleLevel, midIdx) => {
+                                    const midKey = `${globalIndex}-${middleLevel.label}`;
+                                    const isMidExpanded =
+                                      expandedRowLevel1_5 === midKey;
+
+                                    return (
+                                      <div
+                                        key={midIdx}
+                                        style={{ marginBottom: "16px" }}
+                                      >
+                                        <div
+                                          style={{
+                                            padding: "12px 16px",
+                                            backgroundColor: "#f3f4f6",
+                                            borderRadius: "4px",
+                                            marginBottom: "8px",
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            cursor: "pointer",
+                                            fontWeight: "600",
+                                            color: "#374151",
+                                          }}
+                                          onClick={() =>
+                                            toggleRowLevel1_5(midKey)
+                                          }
+                                        >
+                                          <span>{middleLevel.label}</span>
+                                        </div>
+
+                                        {isMidExpanded && (
+                                          <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{
+                                              opacity: 1,
+                                              height: "auto",
+                                            }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            style={{
+                                              overflow: "hidden",
+                                              paddingLeft: "16px",
+                                            }}
+                                          >
+                                            {(() => {
+                                              const levelSubRows =
+                                                middleLevel.subRows;
+                                              const grouped =
+                                                levelSubRows.reduce(
+                                                  (acc, subRow) => {
+                                                    const period =
+                                                      subRow.validityPeriod ||
+                                                      "default";
+                                                    if (!acc[period])
+                                                      acc[period] = [];
+                                                    acc[period].push(subRow);
+                                                    return acc;
+                                                  },
+                                                  {} as Record<
+                                                    string,
+                                                    SubRowConfig[]
+                                                  >
+                                                );
+
+                                              return Object.entries(
+                                                grouped
+                                              ).map(
+                                                ([period, periodSubRows]) => {
+                                                  const totalChiphi =
+                                                    periodSubRows.reduce(
+                                                      (sum, subRow) =>
+                                                        sum +
+                                                        (subRow.chiphi || 0),
+                                                      0
+                                                    );
+
+                                                  const totalSanluong =
+                                                    periodSubRows[0].sanluong ||
+                                                    0;
+
+                                                  const isReadOnlySection =
+                                                    middleLevel.label ===
+                                                    "Chi phí kế hoạch";
+
+                                                  return (
+                                                    <div
+                                                      key={period}
+                                                      style={{
+                                                        marginBottom: "16px",
+                                                      }}
+                                                    >
+                                                      {period !== "default" && (
+                                                        <div
+                                                          style={{
+                                                            padding: "8px 12px",
+                                                            backgroundColor:
+                                                              "#e5e7eb",
+                                                            borderRadius: "4px",
+                                                            marginBottom: "8px",
+                                                            display: "grid",
+                                                            gridTemplateColumns: `${subRowGridCol[0]}% ${subRowGridCol[1]}% ${subRowGridCol[2]}% ${subRowGridCol[3]}%`,
+                                                            alignItems:
+                                                              "center",
+                                                            gap: "8px",
+                                                          }}
+                                                        >
+                                                          <div
+                                                            style={{
+                                                              fontWeight: "600",
+                                                              color: "#374151",
+                                                            }}
+                                                          >
+                                                            {period}
+                                                          </div>
+                                                          <div
+                                                            style={{
+                                                              textAlign: "left",
+                                                              fontWeight: "600",
+                                                              color: "#374151",
+                                                            }}
+                                                          >
+                                                            {totalSanluong}
+                                                          </div>
+                                                          <div
+                                                            style={{
+                                                              textAlign: "left",
+                                                              fontWeight: "600",
+                                                              color: "#374151",
+                                                            }}
+                                                          >
+                                                            {totalChiphi.toLocaleString()}
+                                                          </div>
+                                                        </div>
+                                                      )}
+                                                      <div
+                                                        style={{
+                                                          display: "flex",
+                                                          flexDirection:
+                                                            "column",
+                                                          gap: "12px",
+                                                        }}
+                                                      >
+                                                        {periodSubRows.map(
+                                                          (subRow, idx) => {
+                                                            const subKey = `${midKey}-${period}-${subRow.label}`;
+                                                            const isSubExpanded =
+                                                              expandedRowLevel2 ===
+                                                              subKey;
+
+                                                            return (
+                                                              <div
+                                                                key={idx}
+                                                                style={{
+                                                                  display:
+                                                                    "flex",
+                                                                  flexDirection:
+                                                                    "column",
+                                                                  gap: "8px",
+                                                                }}
+                                                              >
+                                                                <div
+                                                                  style={{
+                                                                    padding:
+                                                                      "12px 16px",
+                                                                    border:
+                                                                      "1px solid #e5e7eb",
+                                                                    display:
+                                                                      "grid",
+                                                                    gridTemplateColumns: `${subRowGridCol[0]}% ${subRowGridCol[1]}% ${subRowGridCol[2]}% ${subRowGridCol[3]}%`,
+                                                                    alignItems:
+                                                                      "center",
+                                                                    gap: "10px",
+                                                                    borderRadius:
+                                                                      "4px",
+                                                                  }}
+                                                                >
+                                                                  <span
+                                                                    style={{
+                                                                      fontWeight: 500,
+                                                                      color:
+                                                                        "#374151",
+                                                                    }}
+                                                                  >
+                                                                    {
+                                                                      subRow.label
+                                                                    }
+                                                                  </span>
+                                                                  <div
+                                                                    style={{
+                                                                      textAlign:
+                                                                        "left",
+                                                                      color:
+                                                                        "#374151",
+                                                                    }}
+                                                                  >
+                                                                    {subRow.sanluong ||
+                                                                      ""}
+                                                                  </div>
+                                                                  <div
+                                                                    style={{
+                                                                      textAlign:
+                                                                        "left",
+                                                                      color:
+                                                                        "#374151",
+                                                                    }}
+                                                                  >
+                                                                    {subRow.chiphi
+                                                                      ? subRow.chiphi.toLocaleString()
+                                                                      : ""}
+                                                                  </div>
+                                                                  <div
+                                                                    style={{
+                                                                      display:
+                                                                        "flex",
+                                                                      gap: "8px",
+                                                                      justifyContent:
+                                                                        "end",
+                                                                    }}
+                                                                  >
+                                                                    {!isReadOnlySection &&
+                                                                      subRow.createComponent && (
+                                                                        <Plus
+                                                                          size={
+                                                                            20
+                                                                          }
+                                                                          style={{
+                                                                            padding:
+                                                                              "6px 10px",
+                                                                            fontSize:
+                                                                              "14px",
+                                                                            cursor:
+                                                                              "pointer",
+                                                                          }}
+                                                                          onClick={(
+                                                                            e
+                                                                          ) => {
+                                                                            e.stopPropagation();
+                                                                            setActiveCreate(
+                                                                              {
+                                                                                type: subRow.label,
+                                                                                element:
+                                                                                  subRow.createComponent as React.ReactElement,
+                                                                              }
+                                                                            );
+                                                                          }}
+                                                                        />
+                                                                      )}
+                                                                    {subRow.detailComponent &&
+                                                                      (isSubExpanded ? (
+                                                                        <Eye
+                                                                          size={
+                                                                            19
+                                                                          }
+                                                                          style={{
+                                                                            padding:
+                                                                              "6px 10px",
+                                                                            fontSize:
+                                                                              "14px",
+                                                                            cursor:
+                                                                              "pointer",
+                                                                          }}
+                                                                          onClick={(
+                                                                            e
+                                                                          ) => {
+                                                                            e.stopPropagation();
+                                                                            toggleRowLevel2(
+                                                                              subKey
+                                                                            );
+                                                                          }}
+                                                                        />
+                                                                      ) : (
+                                                                        <EyeOff
+                                                                          size={
+                                                                            19
+                                                                          }
+                                                                          style={{
+                                                                            padding:
+                                                                              "6px 10px",
+                                                                            fontSize:
+                                                                              "14px",
+                                                                            cursor:
+                                                                              "pointer",
+                                                                          }}
+                                                                          onClick={(
+                                                                            e
+                                                                          ) => {
+                                                                            e.stopPropagation();
+                                                                            toggleRowLevel2(
+                                                                              subKey
+                                                                            );
+                                                                          }}
+                                                                        />
+                                                                      ))}
+                                                                    {!isReadOnlySection &&
+                                                                      subRow.editComponent && (
+                                                                        <Pencil
+                                                                          size={
+                                                                            18
+                                                                          }
+                                                                          style={{
+                                                                            padding:
+                                                                              "6px 10px",
+                                                                            fontSize:
+                                                                              "14px",
+                                                                            cursor:
+                                                                              "pointer",
+                                                                          }}
+                                                                          onClick={(
+                                                                            e
+                                                                          ) => {
+                                                                            e.stopPropagation();
+                                                                            setActiveEdit(
+                                                                              {
+                                                                                id: subRow.label,
+                                                                                element:
+                                                                                  subRow.editComponent as React.ReactElement,
+                                                                              }
+                                                                            );
+                                                                          }}
+                                                                        />
+                                                                      )}
+                                                                  </div>
+                                                                </div>
+
+                                                                {isSubExpanded &&
+                                                                  subRow.detailComponent && (
+                                                                    <motion.div
+                                                                      initial={{
+                                                                        opacity: 0,
+                                                                        height: 0,
+                                                                      }}
+                                                                      animate={{
+                                                                        opacity: 1,
+                                                                        height:
+                                                                          "auto",
+                                                                      }}
+                                                                      exit={{
+                                                                        opacity: 0,
+                                                                        height: 0,
+                                                                      }}
+                                                                      style={{
+                                                                        overflow:
+                                                                          "hidden",
+                                                                        backgroundColor:
+                                                                          "white",
+                                                                        padding:
+                                                                          "16px",
+                                                                        borderRadius:
+                                                                          "4px",
+                                                                      }}
+                                                                    >
+                                                                      {
+                                                                        subRow.detailComponent
+                                                                      }
+                                                                    </motion.div>
+                                                                  )}
+                                                              </div>
+                                                            );
+                                                          }
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                }
+                                              );
+                                            })()}
+                                          </motion.div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </motion.div>
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        // Render for cost variant (2 levels) - original code
+                        const costSubRows = subRows as SubRowConfig[];
                         return (
                           <tr className="row-expanded">
                             <td
@@ -709,7 +1131,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                                 }}
                               >
                                 {(() => {
-                                  const grouped = subRows.reduce(
+                                  const grouped = costSubRows.reduce(
                                     (acc, subRow) => {
                                       const period =
                                         subRow.validityPeriod || "default";

@@ -86,6 +86,7 @@ import Electricity_Cost from "./pages/Statics_ExecutionCost/Electricity_Cost";
 import Materials_Cost from "./pages/Statics_ExecutionCost/Materials_Cost";
 import Repairs_Cost from "./pages/Statics_ExecutionCost/Repairs_Cost";
 import Unified_Cost from "./pages/Statics_ExecutionCost/Unified_Cost";
+import UnifiedOperationCost from "./pages/Statics_ExecutionCost/Unified_Operation_Cost";
 import Electricity_PlanCost from "./pages/Statics_PlanedCost/Electricity_PlanCost";
 import Materials_PlanCost from "./pages/Statics_PlanedCost/Materials_PlanCost";
 import Repairs_PlanCost from "./pages/Statics_PlanedCost/Repairs_PlanCost";
@@ -268,6 +269,10 @@ function App() {
 
       <Route path={PATHS.MATERIALS_COST.LIST} element={<Materials_Cost />} />
       <Route path={PATHS.UNIFIED_COST.LIST} element={<Unified_Cost />} />
+      <Route
+        path={PATHS.UNIFIED_OPERATION_COST.LIST}
+        element={<UnifiedOperationCost />}
+      />
       <Route path={PATHS.REPAIRS_COST.LIST} element={<Repairs_Cost />} />
       <Route
         path={PATHS.ELECTRICITY_COST.LIST}

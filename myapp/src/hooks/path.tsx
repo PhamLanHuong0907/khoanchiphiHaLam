@@ -138,6 +138,11 @@ export const PATHS = {
     INPUT: "/UnifiedCost/Input",
     EDIT: (id: string | number) => `/UnifiedCost/Edit/${id}`,
   },
+  UNIFIED_OPERATION_COST: {
+    LIST: "/UnifiedOperationCost",
+    INPUT: "/UnifiedOperationCost/Input",
+    EDIT: (id: string | number) => `/UnifiedOperationCost/Edit/${id}`,
+  },
   REPAIRS_COST: {
     LIST: "/RepairsCost",
     INPUT: "/RepairsCost/Input",
