@@ -153,6 +153,12 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   );
   const filterButtonRef = useRef<HTMLDivElement>(null);
 
+  const isCostVariant = React.useMemo(() => {
+    if (!tableData || tableData.length === 0) return false;
+    const lastCellOfFirstRow = tableData[0][tableData[0].length - 1];
+    return Array.isArray(lastCellOfFirstRow);
+  }, [tableData]);
+
   useEffect(() => {
     setTableData(initialData);
   }, [initialData]);
@@ -567,7 +573,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                 const subRows = Array.isArray(rowSubRows)
                   ? (rowSubRows as SubRowConfig[])
                   : [];
-                const renderableCells = row.slice(0, -1);
+                const renderableCells = isCostVariant ? row.slice(0, -1) : row;
 
                 return (
                   <React.Fragment key={i}>
@@ -575,9 +581,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                       className={i % 2 === 1 ? "row-alt" : ""}
                       onClick={() => {
                         if (
-                          variant === "cost" &&
+                          isCostVariant &&
                           !hasEyeToggle &&
-                          subRows &&
                           subRows.length > 0
                         ) {
                           toggleRowLevel1(globalIndex);
@@ -585,12 +590,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                       }}
                       style={{
                         cursor:
-                          variant === "cost" &&
-                          !hasEyeToggle &&
-                          subRows &&
-                          subRows.length > 0
-                            ? "pointer"
-                            : "default",
+                          isCostVariant && !hasEyeToggle && subRows.length > 0,
                       }}
                     >
                       <td className="checkbox-cell">
@@ -681,7 +681,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                     )}
 
                     {!hasEyeToggle &&
-                      variant === "cost" &&
+                      isCostVariant &&
                       isExpanded &&
                       (() => {
                         const rowSubRows = row[row.length - 1];
