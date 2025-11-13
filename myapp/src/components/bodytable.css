@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap');
 
 :root {
   --table-inner-left: 17.6px;
@@ -7,7 +7,7 @@
 /* Tổng thể */
 .advanced-table-container {
   width: 96%;
-  font-family: "Roboto", sans-serif;
+  font-family: 'Roboto', sans-serif;
   color: #111827;
   display: flex;
   justify-content: center;
@@ -123,6 +123,7 @@
   padding: 8px 12px;
   cursor: pointer;
   font-weight: 500;
+ 
 }
 .btn-delete:hover {
   background-color: rgba(170, 20, 40, 1);
@@ -184,6 +185,7 @@
   z-index: 2;
 }
 
+
 /* =============================
    BẢNG + PAGINATION
    ============================= */
@@ -218,10 +220,10 @@
   background: #f9fafb;
   font-weight: 500;
 }
-.advanced-table thead {
+.advanced-table thead{
   font-weight: 600;
   font-size: 17px;
-  background-color: rgba(241, 242, 245, 1);
+  background-color:rgba(241, 242, 245, 1) ;
 }
 .advanced-table tbody tr td {
   background-color: #ffffff;
@@ -266,7 +268,7 @@
   text-align: left;
 }
 .advanced-table tbody th:not(:first-child):not(:nth-child(2)):not(:last-child),
-.advanced-table tbody tr:not(:first-child):not(:nth-child(2)):not(:last-child) {
+.advanced-table tbody tr:not(:first-child):not(:nth-child(2)):not(:last-child){
   text-align: left;
 }
 /* Pagination */
@@ -329,11 +331,6 @@
   align-items: center;
   justify-content: center;
 }
-
-.overlay-create,
-.overlay-edit {
-  overflow: visible !important;
-}
 .advanced-table thead th {
   text-align: center;
   vertical-align: middle;
@@ -359,10 +356,10 @@
   .advanced-table {
     font-size: 14px;
   }
-  .advanced-table thead {
-    font-weight: 600;
-    font-size: 15px;
-  }
+  .advanced-table thead{
+  font-weight: 600;
+  font-size: 15px;
+}
 }
 
 /* Mobile (≤768px) */
@@ -372,15 +369,15 @@
     gap: 12px;
   }
   .toolbar-center {
-    width: 100%; /* Ô tìm kiếm 100% chiều rộng */
-    order: -1; /* Đẩy ô tìm kiếm lên đầu */
+    width: 100%;    /* Ô tìm kiếm 100% chiều rộng */
+    order: -1;      /* Đẩy ô tìm kiếm lên đầu */
     margin: 0;
     justify-content: flex-start;
   }
-  .advanced-table thead {
-    font-weight: 600;
-    font-size: 13px;
-  }
+  .advanced-table thead{
+  font-weight: 600;
+  font-size: 13px;
+}
   .search-box {
     width: 100%;
     flex-grow: 1;
@@ -388,20 +385,20 @@
   .search-box input {
     width: 100%;
     /* 🔥 Đây là phần padding bạn yêu cầu cho thanh tìm kiếm */
-    padding-right: 40px;
+    padding-right: 40px; 
   }
   .search-icon {
-    right: 10px; /* Đặt icon vào bên trong input */
+    right: 10px;    /* Đặt icon vào bên trong input */
     top: 50%;
     transform: translateY(-50%);
   }
   .toolbar-left,
   .toolbar-right {
     margin: 0;
-    flex-grow: 1;
+    flex-grow: 1; 
   }
   .toolbar-right {
-    justify-content: flex-end;
+    justify-content: flex-end; 
   }
 }
 
@@ -460,10 +457,10 @@
     font-size: 0;
     gap: 0;
   }
-  .search-box {
+  .search-box{
     width: 40%;
   }
-  .search-box input {
+  .search-box input{
     width: 75%;
   }
   .search-box
@@ -599,7 +596,6 @@
 .btn.btn-primary:hover {
   background-color: #0056b3;
 }
-.row-expended td,
-th {
-  text-align: "center";
+.row-expended td,th{
+  text-align: "center"
 }

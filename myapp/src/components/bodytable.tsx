@@ -1,43 +1,28 @@
-"use client";
-
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Eye,
-  EyeOff,
-  FileDown,
-  Filter,
-  Mail,
-  Pencil,
-  Plus,
-  Printer,
   Search,
+  Filter, // 👈 Giữ nguyên import
+  Download,
+  FileDown,
+  Printer,
   Trash2,
-} from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
-import type { JSX } from "react/jsx-dev-runtime";
+  Plus,
+  Mail,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react"; // 👈 Không thêm 'ChevronsUpDown'
+import { motion } from "framer-motion";
 import "./bodytable.css";
 import ConfirmDeleteModal from "./confirmdeletemodal";
 import "./confirmdeletemodal.css";
-import "./expandablecell.css";
+import type { JSX } from "react/jsx-dev-runtime";
 import NavbarMini, { type NavItem } from "./navbar_mini";
+import EyeToggle from "./eye"; // Giả sử EyeToggle chấp nhận 'onToggle'
 
 // ========== CÁC KIỂU (TYPE) TÙY CHỈNH ĐỂ THAY THẾ 'ANY' ==========
 
 /** Kiểu dữ liệu cơ bản cho một ô (cell) */
 type CellData = string | number | JSX.Element;
-
-type SubRowConfig = {
-  label: string;
-  validityPeriod?: string; // Added validity period field
-  detailComponent?: React.ReactNode;
-  editComponent?: React.ReactNode;
-  createComponent?: React.ReactNode;
-  sanluong?: number;
-  chiphi?: number;
-};
 
 /**
  * Props mong đợi cho các component được clone trong modal (Tạo mới / Chỉnh sửa).
@@ -51,7 +36,7 @@ type ModalCloneProps = {
  * Props mong đợi cho component "Pencil" (Chỉnh sửa) có thể được truyền vào bảng.
  */
 type EditButtonProps = {
-  id?: string | number;
+  id?: string | number; // ID của mục cần sửa
   onEdit?: (id: string, element: React.ReactElement) => void;
 };
 
@@ -69,7 +54,7 @@ interface AdvancedTableProps {
   title01?: string;
   title?: string;
   columns: (string | React.ReactNode)[];
-  data: CellData[][];
+  data: CellData[][]; // 👈 Sử dụng CellData
   itemsPerPage?: number;
   columnWidths?: number[];
   createElement?: React.ReactElement;
@@ -78,9 +63,9 @@ interface AdvancedTableProps {
   onDeleted?: () => void;
   lefts?: (number | string)[];
   columnLefts?: (string | number)[];
-  variant?: "default" | "cost";
 }
 
+// 🔽 HÀM HỖ TRỢ: Đọc văn bản từ một ReactNode (Đã bỏ 'any')
 const getHeaderText = (node: React.ReactNode): string => {
   if (typeof node === "string") return node;
   if (typeof node === "number") return String(node);
@@ -90,7 +75,9 @@ const getHeaderText = (node: React.ReactNode): string => {
     return node.map(getHeaderText).find((text) => text.length > 0) || "";
   }
 
+  // 🔽 Thay thế 'any'
   if (React.isValidElement(node)) {
+    // Ép kiểu an toàn để kiểm tra props.children
     const props = node.props as { children?: React.ReactNode };
     if (props.children) {
       return getHeaderText(props.children);
@@ -99,8 +86,6 @@ const getHeaderText = (node: React.ReactNode): string => {
 
   return "";
 };
-
-const subRowGridCol = [65.6, 8, 12, 12];
 
 const AdvancedTable: React.FC<AdvancedTableProps> = ({
   title01,
@@ -114,7 +99,6 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   basePath,
   onDeleted,
   columnLefts = [],
-  variant = "default",
 }) => {
   const [tableData, setTableData] = useState(initialData);
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,12 +106,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const [search, setSearch] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
   const [showCreate, setShowCreate] = useState(false);
-  const [expandedRowLevel1, setExpandedRowLevel1] = useState<number | null>(
-    null
-  );
-  const [expandedRowLevel2, setExpandedRowLevel2] = useState<string | null>(
-    null
-  );
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<() => Promise<void>>(
     () => async () => {}
@@ -136,11 +115,8 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     id: string;
     element: React.ReactElement | null;
   } | null>(null);
-  const [activeCreate, setActiveCreate] = useState<{
-    type: string;
-    element: React.ReactElement | null;
-  } | null>(null);
 
+  // 🔽 STATE MỚI CHO SẮP XẾP VÀ POPOVER
   const [sortConfig, setSortConfig] = useState<{
     key: number;
     direction: "asc" | "desc";
@@ -151,12 +127,13 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const [tempSortDirection, setTempSortDirection] = useState<"asc" | "desc">(
     "asc"
   );
-  const filterButtonRef = useRef<HTMLDivElement>(null);
+  const filterButtonRef = useRef<HTMLDivElement>(null); // Ref cho popover
 
   useEffect(() => {
     setTableData(initialData);
   }, [initialData]);
 
+  // 🔽 useEffect ĐỂ ĐÓNG POPOVER KHI CLICK RA NGOÀI
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -172,6 +149,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     };
   }, [filterButtonRef]);
 
+  // 🔽 TÌM CÁC CỘT CÓ THỂ SẮP XẾP
   const sortableColumnIndexes = React.useMemo(() => {
     if (!tableData || tableData.length === 0) {
       return columns
@@ -190,6 +168,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     return indexes;
   }, [tableData, columns]);
 
+  // 🔽 Cập nhật state mặc định cho dropdown
   useEffect(() => {
     const firstSortableIndex = sortableColumnIndexes[0] || 0;
     setTempSortColumn(String(firstSortableIndex));
@@ -200,6 +179,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
       ? columnWidths
       : Array(columns.length).fill(100 / columns.length)
   );
+
   const useFixedWidth = !!(
     columnWidths && columnWidths.length === columns.length
   );
@@ -207,8 +187,10 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const resizingCol = useRef<number | null>(null);
   const resizingStartX = useRef<number>(0);
 
+  // 🔽 LOGIC SẮP XẾP DỮ LIỆU BẰNG useMemo
   const sortedData = React.useMemo(() => {
-    const sortableData = [...tableData];
+    // eslint-disable-next-line prefer-const
+    let sortableData = [...tableData];
     if (sortConfig !== null) {
       sortableData.sort((a, b) => {
         const aValue = a[sortConfig.key];
@@ -222,13 +204,10 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
             ? aValue - bValue
             : bValue - aValue;
         }
-
-        const aString = React.isValidElement(aValue)
-          ? ""
-          : String(aValue).toLowerCase();
-        const bString = React.isValidElement(bValue)
-          ? ""
-          : String(bValue).toLowerCase();
+        
+        // Cẩn thận khi cell là JSX.Element, chỉ so sánh nếu là string/number
+        const aString = React.isValidElement(aValue) ? '' : String(aValue).toLowerCase();
+        const bString = React.isValidElement(bValue) ? '' : String(bValue).toLowerCase();
 
         if (aString < bString) return sortConfig.direction === "asc" ? -1 : 1;
         if (aString > bString) return sortConfig.direction === "asc" ? 1 : -1;
@@ -238,11 +217,12 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     return sortableData;
   }, [tableData, sortConfig]);
 
+  // 🔽 CẬP NHẬT filteredData ĐỂ DÙNG sortedData (thay vì tableData)
   const filteredData = sortedData.filter((row) =>
-    row.some(
-      (cell) =>
-        !React.isValidElement(cell) &&
-        cell?.toString().toLowerCase().includes(search.toLowerCase())
+    row.some((cell) =>
+      // Chỉ tìm kiếm nếu cell không phải là React Element
+      !React.isValidElement(cell) &&
+      cell?.toString().toLowerCase().includes(search.toLowerCase())
     )
   );
 
@@ -250,6 +230,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   const startIndex = (currentPage - 1) * rowsPerPage;
   const visibleData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
+  // ========== Resize cột (Giữ nguyên) ==========
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (resizingCol.current !== null && useFixedWidth) {
@@ -286,17 +267,20 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     );
   };
 
+  // 🔽 CẬP NHẬT LOGIC XÓA ĐỂ DÙNG `sortedData` (Đã bỏ 'any')
   const handleDelete = async () => {
     if (selectedRows.length === 0) return;
 
     setPendingDelete(() => async () => {
       try {
         if (basePath) {
+          // Lấy ID từ `sortedData`
           const idsToDelete = selectedRows
             .map((i) => {
               const row = sortedData[i];
               if (!row) return null;
 
+              // 🔽 Tìm cell là React Element và có prop 'id'
               const pencilButton = row.find(
                 (cell): cell is React.ReactElement<EditButtonProps> =>
                   React.isValidElement(cell) &&
@@ -305,6 +289,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
 
               return pencilButton ? pencilButton.props.id : null;
             })
+            // 🔽 Lọc ra các ID hợp lệ (string hoặc number)
             .filter(
               (id): id is string | number => id !== null && id !== undefined
             );
@@ -319,6 +304,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
 
           if (onDeleted) onDeleted();
         } else {
+          // Xử lý xóa local, cập nhật `tableData`
           const rowsInSortedData = selectedRows.map((i) => sortedData[i]);
           const updated = tableData.filter(
             (row) => !rowsInSortedData.includes(row)
@@ -342,38 +328,19 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     setShowDeleteModal(true);
   };
 
-  const toggleRowLevel1 = (index: number) => {
-    if (expandedRowLevel1 === index) {
-      setExpandedRowLevel1(null);
-      setExpandedRowLevel2(null); // Close level 2 when closing level 1
-    } else {
-      setExpandedRowLevel1(index);
-      setExpandedRowLevel2(null); // Close any open level 2 when opening new level 1
-    }
-  };
-
-  const toggleRowLevel2 = (key: string) => {
-    setExpandedRowLevel2(expandedRowLevel2 === key ? null : key); // Close others when opening level 2
-  };
-
-  const handleCreateClick = (label: string, component: React.ReactNode) => {
-    setActiveCreate({ type: label, element: component as React.ReactElement });
-  };
-
-  const handleEditClick = (label: string, component: React.ReactNode) => {
-    setActiveEdit({ id: label, element: component as React.ReactElement });
-  };
-
   return (
     <>
       <div className="advanced-table-container">
+        {/* ... (Header, NavbarMini) ... */}
         <div className="table-header-path">{title01}</div>
         <div className="table-header">{title}</div>
         {navbarMiniItems && navbarMiniItems.length > 0 && (
           <NavbarMini items={navbarMiniItems} />
         )}
 
+        {/* ==== Toolbar ==== */}
         <div className="table-toolbar">
+          {/* ... (Toolbar Left: Tạo mới, Xóa) ... */}
           <div className="toolbar-left">
             <button
               className="btn btn-create"
@@ -382,7 +349,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
               Tạo mới <Plus size={16} />
             </button>
             <button
-              onClick={handleDelete}
+              onClick={handleDelete} // 👈 Đã sửa hàm
               className={
                 selectedRows.length === 0
                   ? "btn btn-disabled disabled"
@@ -394,18 +361,21 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
           </div>
 
           <div className="toolbar-center">
+            {/* 🔽 BỌC NÚT LỌC VÀ THÊM POPOVER */}
             <div className="filter-sort-wrapper" ref={filterButtonRef}>
               <button
                 className="btn btn-light"
-                onClick={() => setShowSortPopover(!showSortPopover)}
+                onClick={() => setShowSortPopover(!showSortPopover)} // 👈 Cập nhật onClick
               >
                 <Filter size={16} /> Lọc
               </button>
 
+              {/* ========== POPOVER SẮP XẾP ========== */}
               {showSortPopover && (
                 <div className="sort-popover">
                   <div className="sort-popover-header">Sắp xếp dữ liệu</div>
 
+                  {/* 1. Chọn cột */}
                   <label htmlFor="sort-column-select">Cột</label>
                   <select
                     id="sort-column-select"
@@ -423,6 +393,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                     })}
                   </select>
 
+                  {/* 2. Chọn chiều */}
                   <label>Thứ tự</label>
                   <div className="sort-direction-group">
                     <label>
@@ -447,12 +418,13 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                     </label>
                   </div>
 
+                  {/* 3. Nút hành động */}
                   <div className="sort-popover-actions">
                     <button
                       className="btn btn-primary"
                       style={{ marginRight: "8px" }}
                       onClick={() => {
-                        const colIndex = Number.parseInt(tempSortColumn, 10);
+                        const colIndex = parseInt(tempSortColumn, 10);
                         if (!isNaN(colIndex)) {
                           setSortConfig({
                             key: colIndex,
@@ -481,6 +453,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                 </div>
               )}
             </div>
+            {/* 🔼 KẾT THÚC VÙNG LỌC/SORT */}
 
             <div className="search-box">
               <input
@@ -492,6 +465,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
               <Search size={16} className="search-icon" />
             </div>
 
+            {/* ... (Toolbar Right: Tải lên, Xuất file, ...) ... */}
             <div className="toolbar-right">
               <button className="btn btn-light">
                 <Download size={16} /> Tải lên
@@ -510,6 +484,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
         </div>
       </div>
 
+      {/* ==== Bảng dữ liệu (Giữ nguyên) ==== */}
       <div className="table-wrapper">
         <table className="advanced-table">
           <thead>
@@ -517,10 +492,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
               <th className="checkbox-cell">
                 <input
                   type="checkbox"
-                  onChange={(e) => {
-                    e.stopPropagation(); // Prevent row click when clicking checkbox
-                    toggleSelectAll(e.target.checked);
-                  }}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
                   checked={
                     visibleData.length > 0 &&
                     visibleData.every((_, i) =>
@@ -562,92 +534,77 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                 const globalIndex = startIndex + i;
                 const isChecked = selectedRows.includes(globalIndex);
                 const hasEyeToggle = columns.includes("Xem");
-                const isExpanded = expandedRowLevel1 === globalIndex;
-                const rowSubRows = row[row.length - 1];
-                const subRows = Array.isArray(rowSubRows)
-                  ? (rowSubRows as SubRowConfig[])
-                  : [];
-                const renderableCells = row.slice(0, -1);
 
                 return (
                   <React.Fragment key={i}>
-                    <tr
-                      className={i % 2 === 1 ? "row-alt" : ""}
-                      onClick={() => {
-                        if (
-                          variant === "cost" &&
-                          !hasEyeToggle &&
-                          subRows &&
-                          subRows.length > 0
-                        ) {
-                          toggleRowLevel1(globalIndex);
-                        }
-                      }}
-                      style={{
-                        cursor:
-                          variant === "cost" &&
-                          !hasEyeToggle &&
-                          subRows &&
-                          subRows.length > 0
-                            ? "pointer"
-                            : "default",
-                      }}
-                    >
+                    <tr className={i % 2 === 1 ? "row-alt" : ""}>
                       <td className="checkbox-cell">
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={(e) => {
-                            e.stopPropagation(); // Prevent row click when clicking checkbox
-                            toggleSelectRow(globalIndex);
-                          }}
+                          onChange={() => toggleSelectRow(globalIndex)}
                         />
                       </td>
 
-                      {renderableCells.map((cell, j) => {
+                      {row.map((cell, j) => {
                         const colName = columns[j];
 
+                        // 🔽 Xử lý cột "Xem" (Đã bỏ 'any')
                         if (colName === "Xem" && React.isValidElement(cell)) {
                           return (
-                            <td key={j} onClick={(e) => e.stopPropagation()}>
-                              {React.cloneElement(
-                                cell as React.ReactElement<EyeToggleProps>,
-                                {
-                                  onToggle: (visible: boolean) => {
-                                    if (visible) {
-                                      setExpandedRowLevel1(globalIndex);
-                                    } else {
-                                      setExpandedRowLevel1(null);
+                            <td key={j}>
+                              {React.isValidElement(cell)
+                                ? React.cloneElement(
+                                    // Ép kiểu cell sang kiểu có prop 'onToggle'
+                                    cell as React.ReactElement<EyeToggleProps>,
+                                    {
+                                      onToggle: (visible: boolean) => {
+                                        setExpandedRow(
+                                          visible ? globalIndex : null
+                                        );
+                                      },
                                     }
-                                    setExpandedRowLevel2(null); // Close level 2 when toggling level 1
-                                  },
-                                }
-                              )}
+                                  )
+                                : cell}
                             </td>
                           );
                         }
 
-                        if (React.isValidElement(cell)) {
-                          return (
-                            <td key={j} onClick={(e) => e.stopPropagation()}>
-                              {React.cloneElement(
-                                cell as React.ReactElement<EditButtonProps>,
-                                {
-                                  onEdit: (
-                                    id: string,
-                                    element: React.ReactElement
-                                  ) => setActiveEdit({ id, element }),
-                                }
-                              )}
-                            </td>
-                          );
-                        }
-
-                        return <td key={j}>{cell}</td>;
+                        // 🔽 Xử lý các cột khác (Đã bỏ 'any')
+                        return (
+                          <td
+                            key={j}
+                            style={
+                              columnLefts && columnLefts[j] !== "undefined"
+                                ? {
+                                    position: "relative",
+                                    paddingRight: `${columnLefts[j]}%`,
+                                    paddingLeft: "0px",
+                                    zIndex: 1,
+                                    textAlign: "center",
+                                  }
+                                : undefined
+                            }
+                          >
+                            {React.isValidElement(cell)
+                              ? React.cloneElement(
+                                  // Ép kiểu cell sang kiểu có prop 'onEdit'
+                                  cell as React.ReactElement<EditButtonProps>,
+                                  {
+                                    onEdit: (
+                                      id: string,
+                                      element: React.ReactElement
+                                    ) => setActiveEdit({ id, element }),
+                                  }
+                                )
+                              : cell}
+                          </td>
+                        );
                       })}
                     </tr>
 
-                    {hasEyeToggle && isExpanded && (
+                    {/* Hàng chi tiết mở rộng (Đã bỏ 'any') */}
+                    {hasEyeToggle && expandedRow === globalIndex && (
                       <tr className="row-expanded">
                         <td
                           colSpan={columns.length + 1}
@@ -666,12 +623,16 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                             }}
                           >
                             {(() => {
-                              const detailCell = renderableCells.find(
+                              // 🔽 Tìm cell "Xem" một cách an toàn
+                              const detailCell = row.find(
                                 (_, idx) => columns[idx] === "Xem"
                               );
+                              
+                              // 🔽 Kiểm tra và truy cập 'detailComponent'
                               if (React.isValidElement(detailCell)) {
-                                return (detailCell.props as EyeToggleProps)
-                                  .detailComponent;
+                                return (
+                                  detailCell.props as EyeToggleProps
+                                ).detailComponent;
                               }
                               return null;
                             })()}
@@ -679,292 +640,6 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                         </td>
                       </tr>
                     )}
-
-                    {!hasEyeToggle &&
-                      variant === "cost" &&
-                      isExpanded &&
-                      (() => {
-                        const rowSubRows = row[row.length - 1];
-                        const subRows = Array.isArray(rowSubRows)
-                          ? (rowSubRows as SubRowConfig[])
-                          : [];
-
-                        if (subRows.length === 0) return null;
-
-                        return (
-                          <tr className="row-expanded">
-                            <td
-                              colSpan={columns.length + 1}
-                              style={{ padding: 0, textAlign: "initial" }}
-                            >
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                style={{
-                                  overflow: "hidden",
-                                  borderTop: "1px solid #ddd",
-                                  backgroundColor: "white",
-                                  padding: "16px",
-                                }}
-                              >
-                                {(() => {
-                                  const grouped = subRows.reduce(
-                                    (acc, subRow) => {
-                                      const period =
-                                        subRow.validityPeriod || "default";
-                                      if (!acc[period]) acc[period] = [];
-                                      acc[period].push(subRow);
-                                      return acc;
-                                    },
-                                    {} as Record<string, SubRowConfig[]>
-                                  );
-
-                                  return Object.entries(grouped).map(
-                                    ([period, periodSubRows]) => {
-                                      const totalChiphi = periodSubRows.reduce(
-                                        (sum, subRow) =>
-                                          sum + (subRow.chiphi || 0),
-                                        0
-                                      );
-
-                                      const totalSanluong =
-                                        periodSubRows[0].sanluong || 0;
-
-                                      return (
-                                        <div
-                                          key={period}
-                                          style={{ marginBottom: "16px" }}
-                                        >
-                                          {period !== "default" && (
-                                            <div
-                                              style={{
-                                                padding: "8px 12px",
-                                                backgroundColor: "#e5e7eb",
-                                                borderRadius: "4px",
-                                                marginBottom: "8px",
-                                                display: "grid",
-                                                gridTemplateColumns: `${subRowGridCol[0]}% ${subRowGridCol[1]}% ${subRowGridCol[2]}% ${subRowGridCol[3]}%`,
-                                                alignItems: "center",
-                                                gap: "8px",
-                                              }}
-                                            >
-                                              <div
-                                                style={{
-                                                  fontWeight: "600",
-                                                  color: "#374151",
-                                                }}
-                                              >
-                                                {period}
-                                              </div>
-                                              <div
-                                                style={{
-                                                  textAlign: "left",
-                                                  fontWeight: "600",
-                                                  color: "#374151",
-                                                }}
-                                              >
-                                                {totalSanluong}
-                                              </div>
-                                              <div
-                                                style={{
-                                                  textAlign: "left",
-                                                  fontWeight: "600",
-                                                  color: "#374151",
-                                                }}
-                                              >
-                                                {totalChiphi.toLocaleString()}
-                                              </div>
-                                            </div>
-                                          )}
-                                          <div
-                                            style={{
-                                              display: "flex",
-                                              flexDirection: "column",
-                                              gap: "12px",
-                                            }}
-                                          >
-                                            {periodSubRows.map(
-                                              (subRow, idx) => {
-                                                const subKey = `${globalIndex}-${period}-${subRow.label}`;
-                                                const isSubExpanded =
-                                                  expandedRowLevel2 === subKey;
-
-                                                return (
-                                                  <div
-                                                    key={idx}
-                                                    style={{
-                                                      display: "flex",
-                                                      flexDirection: "column",
-                                                      gap: "8px",
-                                                    }}
-                                                  >
-                                                    <div
-                                                      style={{
-                                                        padding: "12px 16px",
-                                                        border:
-                                                          "1px solid #e5e7eb",
-                                                        display: "grid",
-                                                        gridTemplateColumns: `${subRowGridCol[0]}% ${subRowGridCol[1]}% ${subRowGridCol[2]}% ${subRowGridCol[3]}%`,
-                                                        alignItems: "center",
-                                                        gap: "10px",
-                                                      }}
-                                                    >
-                                                      <span
-                                                        style={{
-                                                          fontWeight: 500,
-                                                          color: "#374151",
-                                                        }}
-                                                      >
-                                                        {subRow.label}
-                                                      </span>
-                                                      <div
-                                                        style={{
-                                                          textAlign: "left",
-                                                          color: "#374151",
-                                                        }}
-                                                      >
-                                                        {subRow.sanluong || ""}
-                                                      </div>
-                                                      <div
-                                                        style={{
-                                                          textAlign: "left",
-                                                          color: "#374151",
-                                                        }}
-                                                      >
-                                                        {subRow.chiphi
-                                                          ? subRow.chiphi.toLocaleString()
-                                                          : ""}
-                                                      </div>
-                                                      <div
-                                                        style={{
-                                                          display: "flex",
-                                                          gap: "8px",
-                                                          justifyContent: "end",
-                                                        }}
-                                                      >
-                                                        {subRow.createComponent && (
-                                                          <Plus
-                                                            size={20}
-                                                            style={{
-                                                              padding:
-                                                                "6px 10px",
-                                                              fontSize: "14px",
-                                                              cursor: "pointer",
-                                                            }}
-                                                            onClick={(e) => {
-                                                              e.stopPropagation();
-                                                              setActiveCreate({
-                                                                type: subRow.label,
-                                                                element:
-                                                                  subRow.createComponent as React.ReactElement,
-                                                              });
-                                                            }}
-                                                          />
-                                                        )}
-                                                        {subRow.detailComponent &&
-                                                          (isSubExpanded ? (
-                                                            <Eye
-                                                              size={19}
-                                                              style={{
-                                                                padding:
-                                                                  "6px 10px",
-                                                                fontSize:
-                                                                  "14px",
-                                                                cursor:
-                                                                  "pointer",
-                                                              }}
-                                                              onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleRowLevel2(
-                                                                  subKey
-                                                                );
-                                                              }}
-                                                            />
-                                                          ) : (
-                                                            <EyeOff
-                                                              size={19}
-                                                              style={{
-                                                                padding:
-                                                                  "6px 10px",
-                                                                fontSize:
-                                                                  "14px",
-                                                                cursor:
-                                                                  "pointer",
-                                                              }}
-                                                              onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleRowLevel2(
-                                                                  subKey
-                                                                );
-                                                              }}
-                                                            />
-                                                          ))}
-                                                        {subRow.editComponent && (
-                                                          <Pencil
-                                                            size={18}
-                                                            style={{
-                                                              padding:
-                                                                "6px 10px",
-                                                              fontSize: "14px",
-                                                              cursor: "pointer",
-                                                            }}
-                                                            onClick={(e) => {
-                                                              e.stopPropagation();
-                                                              setActiveEdit({
-                                                                id: subRow.label,
-                                                                element:
-                                                                  subRow.editComponent as React.ReactElement,
-                                                              });
-                                                            }}
-                                                          />
-                                                        )}
-                                                      </div>
-                                                    </div>
-
-                                                    {isSubExpanded &&
-                                                      subRow.detailComponent && (
-                                                        <motion.div
-                                                          initial={{
-                                                            opacity: 0,
-                                                            height: 0,
-                                                          }}
-                                                          animate={{
-                                                            opacity: 1,
-                                                            height: "auto",
-                                                          }}
-                                                          exit={{
-                                                            opacity: 0,
-                                                            height: 0,
-                                                          }}
-                                                          style={{
-                                                            overflow: "hidden",
-                                                            backgroundColor:
-                                                              "white",
-                                                            padding: "16px",
-                                                            borderRadius: "4px",
-                                                          }}
-                                                        >
-                                                          {
-                                                            subRow.detailComponent
-                                                          }
-                                                        </motion.div>
-                                                      )}
-                                                  </div>
-                                                );
-                                              }
-                                            )}
-                                          </div>
-                                        </div>
-                                      );
-                                    }
-                                  );
-                                })()}
-                              </motion.div>
-                            </td>
-                          </tr>
-                        );
-                      })()}
                   </React.Fragment>
                 );
               })
@@ -972,9 +647,10 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
           </tbody>
         </table>
 
+        {/* ==== Phân trang (Giữ nguyên) ==== */}
         <div className="pagination">
           <div className="info">
-            Hiển thị {startIndex + 1}-{" "}
+            Hiển thị {startIndex + 1}-
             {Math.min(startIndex + rowsPerPage, filteredData.length)} trên{" "}
             {filteredData.length} mục
           </div>
@@ -1012,6 +688,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
         </div>
       </div>
 
+      {/* ==== Modals (Đã bỏ 'any') ==== */}
       <ConfirmDeleteModal
         isOpen={showDeleteModal}
         message={`Bạn có chắc chắn muốn xóa ${selectedRows.length} mục không? Hành động này không thể hoàn tác.`}
@@ -1025,36 +702,26 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
         }}
       />
 
-      {showCreate && createElement && (
+      {showCreate && createElement && ( // Thêm kiểm tra createElement tồn tại
         <div className="overlay-create" onClick={() => setShowCreate(false)}>
           <div className="overlay-body" onClick={(e) => e.stopPropagation()}>
             {React.cloneElement(
+              // Ép kiểu component sang kiểu có prop 'onClose'
               createElement as React.ReactElement<ModalCloneProps>,
-              {
-                onClose: () => setShowCreate(false),
-              }
+              { onClose: () => setShowCreate(false) }
             )}
           </div>
         </div>
       )}
 
-      {activeCreate && activeCreate.element && (
-        <div className="overlay-create" onClick={() => setActiveCreate(null)}>
+      {activeEdit && activeEdit.element && ( // Thêm kiểm tra activeEdit.element tồn tại
+        <div
+          className="overlay-edit"
+          onClick={() => setActiveEdit(null)}
+        >
           <div className="overlay-body" onClick={(e) => e.stopPropagation()}>
             {React.cloneElement(
-              activeCreate.element as React.ReactElement<ModalCloneProps>,
-              {
-                onClose: () => setActiveCreate(null),
-              }
-            )}
-          </div>
-        </div>
-      )}
-
-      {activeEdit && activeEdit.element && (
-        <div className="overlay-edit" onClick={() => setActiveEdit(null)}>
-          <div className="overlay-body" onClick={(e) => e.stopPropagation()}>
-            {React.cloneElement(
+              // Ép kiểu component sang kiểu có prop 'id' và 'onClose'
               activeEdit.element as React.ReactElement<ModalCloneProps>,
               {
                 id: activeEdit.id,
