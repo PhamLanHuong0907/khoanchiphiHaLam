@@ -1,5 +1,5 @@
 import { Calendar, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "../../components/dropdown_menu_searchable.css";
@@ -9,7 +9,7 @@ import { useApi } from "../../hooks/useFetchData";
 import "../../layout/layout_input.css";
 
 // ==================
-// === NGUỒN MOCK ===
+// === NGUỒN MOCK (Chỉ cho plan info) ===
 // ==================
 const MOCK_DATA = {
   plans: [
@@ -39,6 +39,8 @@ const MOCK_DATA = {
     TN01: {
       id: "sp1",
       code: "TN01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-01",
       tenNhom: "Nhóm công đoạn Đào lò",
       donViTinh: "mét",
@@ -46,6 +48,8 @@ const MOCK_DATA = {
     KD01: {
       id: "sp2",
       code: "KD01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-02",
       tenNhom: "Nhóm công đoạn Khai thác",
       donViTinh: "tấn",
@@ -53,79 +57,71 @@ const MOCK_DATA = {
     EBH52: {
       id: "sp3",
       code: "EBH52",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-03",
       tenNhom: "Nhóm công đoạn Khai thác than",
       donViTinh: "tấn",
     },
   },
-
   editDetails: {
-    "sctx-2025-01": {
+    "dn-2025-01": {
       equipmentIds: [
         "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
         "3285293b-b158-408b-a27e-4c01b636c04d",
-        "0278a259-ff3f-4122-883f-fcf26b029072",
-      ], // thiết bị đã chọn
+      ],
       costs: [
         {
-          partId: "1da363de-ebd1-44cf-b481-950bf067e552",
           equipmentId: "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
           soLuongVatTu: 5,
           k1: 0.5,
           k2: 1,
           k3: 0.6,
-          k4: 1,
-          k5: 0.9,
-          k6: 1,
-          k7: 0.5,
         },
         {
-          partId: "1fb6dd38-6eb0-46e2-a48c-7e6eb0157522",
           equipmentId: "3285293b-b158-408b-a27e-4c01b636c04d",
           soLuongVatTu: 3,
           k1: 0.5,
           k2: 1,
           k3: 0.6,
-          k4: 1,
-          k5: 0.9,
-          k6: 1,
-          k7: 0.5,
-        },
-        {
-          partId: "2aa7bf03-234b-474d-b7be-29bb1b0038ea",
-          equipmentId: "0278a259-ff3f-4122-883f-fcf26b029072",
-          soLuongVatTu: 10,
-          k1: 0.5,
-          k2: 1,
-          k3: 0.6,
-          k4: 1,
-          k5: 0.9,
-          k6: 1,
-          k7: 0.5,
         },
       ],
     },
-    "sctx-2025-02": {
-      equipmentIds: ["2760bfd2-83b6-460b-a49b-21d9ae2c6a1b"],
+    "dn-2025-02": {
+      equipmentIds: [
+        "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
+        "3285293b-b158-408b-a27e-4c01b636c04d",
+      ],
       costs: [
         {
-          partId: "1da363de-ebd1-44cf-b481-950bf067e552",
           equipmentId: "2760bfd2-83b6-460b-a49b-21d9ae2c6a1b",
           soLuongVatTu: 5,
           k1: 0.5,
           k2: 1,
           k3: 0.6,
-          k4: 1,
-          k5: 0.9,
-          k6: 1,
-          k7: 0.5,
+        },
+        {
+          equipmentId: "3285293b-b158-408b-a27e-4c01b636c04d",
+          soLuongVatTu: 3,
+          k1: 0.5,
+          k2: 1,
+          k3: 0.6,
         },
       ],
     },
   },
+  materialDetails: {
+    "dn-2025-01": {
+      thoigianbatdau: "1/1/2025",
+      thoigianketthuc: "30/1/2025",
+    },
+    "dn-2025-02": {
+      thoigianbatdau: "1/2/2025",
+      thoigianketthuc: "28/2/2025",
+    },
+  },
 };
 
-// Mock coefficients for K1..K7 (float list)
 const MOCK_K_OPTIONS = [0.9, 0.6, 0.5, 1];
 
 // ==================
@@ -147,45 +143,48 @@ const DEFAULT_EMPTY_PRODUCT: ProductData = {
   sanLuong: "",
 };
 
-interface Equipment {
+// Interface cho API GET /api/catalog/equipment (danh sách)
+interface EquipmentListItem {
   id: string;
   code: string;
 }
 
-interface Part {
-  id: string;
-  name: string;
-  equipmentId: string;
-  unitOfMeasureName?: string;
-  costAmmount?: number;
+// Interface cho costs lồng nhau
+interface EquipmentCost {
+  startDate: string;
+  endDate: string;
+  costType: number;
+  amount: number;
 }
 
-interface PartRowData {
-  partId: string;
+// Interface cho API GET /api/catalog/equipment/{id} (chi tiết)
+interface EquipmentDetail {
+  id: string;
+  code: string;
+  name: string;
+  unitOfMeasureId: string;
+  unitOfMeasureName: string;
+  costs: EquipmentCost[];
+}
+
+interface EquipmentRowData {
   equipmentId: string;
-  tenPhuTung: string;
-  donGiaVatTu: number;
+  tenThietBi: string;
   donViTinh: string;
-  dinhMucThoiGian: string;
+  donGiaDienNang: number | null;
   soLuongVatTu: number;
-  sanLuongMetLo: string;
   k1: number | null;
   k2: number | null;
   k3: number | null;
-  k4: number | null;
-  k5: number | null;
-  k6: number | null;
-  k7: number | null;
-  unitPriceInput: number | null;
-  chiPhiSCTXKeHoach: number | null;
+  chiPhiDienNangKeHoach: number | null;
 }
 
 interface CostItem {
   equipmentId: string;
-  partId: string;
   quantity: number;
-  replacementTimeStandard: number;
-  averageMonthlyTunnelProduction: number;
+  k1?: number;
+  k2?: number;
+  k3?: number;
 }
 interface PostPayload {
   costs: CostItem[];
@@ -208,36 +207,29 @@ export default function InitialElectricityPlanInput({
   const navigate = useNavigate();
   const closePath = PATHS.SLIDE_RAILS.LIST;
 
-  // Hàm format số kiểu Việt Nam: 1.234.567
+  // Format VND
   const formatVND = (value: number | undefined | null): string => {
     if (value === null || value === undefined || isNaN(value)) return "0";
-    return new Intl.NumberFormat("vi-VN", {
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const parseLocalFloat = (str: string | undefined | null): number => {
-    if (str === undefined || str === null) return 0;
-    const cleanStr = String(str).replace(/\./g, "").replace(",", ".");
-    return parseFloat(cleanStr || "0") || 0;
+    return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(
+      value
+    );
   };
 
   // API hooks
-  const { data: equipmentData = [] } = useApi<Equipment>(
+  const { data: equipmentListData = [] } = useApi<EquipmentListItem[]>(
     "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
-  const { data: allPartsData = [] } = useApi<Part>(
-    "/api/catalog/part?pageIndex=1&pageSize=10000"
-  );
+  const { fetchById: getEquipmentDetail, loading: isLoadingRows } =
+    useApi<EquipmentDetail>("/api/catalog/equipment");
   const { postData, loading: isSubmitting } = useApi<PostPayload>(
-    "/api/pricing/maintainunitpriceequipment"
+    "/api/pricing/electricityunitpriceequipment"
   );
 
-  // state
+  // State
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>(
     []
   );
-  const [partRows, setPartRows] = useState<PartRowData[]>([]);
+  const [equipmentRows, setEquipmentRows] = useState<EquipmentRowData[]>([]);
   const [productData, setProductData] = useState<ProductData>(
     DEFAULT_EMPTY_PRODUCT
   );
@@ -245,10 +237,15 @@ export default function InitialElectricityPlanInput({
   const [endDate, setEndDate] = useState<Date | null>(null);
 
   const equipmentOptions = useMemo(
-    () => equipmentData.map((eq) => ({ value: eq.id, label: eq.code })),
-    [equipmentData]
+    () =>
+      equipmentListData.map((eq) => ({
+        value: eq.id,
+        label: eq.code,
+      })),
+    [equipmentListData]
   );
 
+  // Load plan info
   useEffect(() => {
     if (selectedId) {
       const row = MOCK_DATA.plans.find((r) => r.id === selectedId);
@@ -263,110 +260,101 @@ export default function InitialElectricityPlanInput({
             sanLuong: row.sanluong.toString(),
           });
         }
-        const [startStr, endStr] = row.thoigian.split("-");
-        if (startStr && endStr) {
-          const startParts = startStr.split("/").map(Number);
-          const endParts = endStr.split("/").map(Number);
+        const saved = MOCK_DATA.materialDetails?.[subRowId];
+        if (saved) {
           setStartDate(
-            new Date(startParts[2], startParts[1] - 1, startParts[0])
+            new Date(saved.thoigianbatdau.split("/").reverse().join("-"))
           );
-          setEndDate(new Date(endParts[2], endParts[1] - 1, endParts[0]));
+          setEndDate(
+            new Date(saved.thoigianketthuc.split("/").reverse().join("-"))
+          );
         }
       }
     }
   }, [selectedId]);
 
-  // CHỈNH SỬA: Load dữ liệu chi tiết khi isEditMode
+  const editLoadedRef = useRef<Record<string, boolean>>({});
+  // Edit mode: load saved data
   useEffect(() => {
-    if (
-      isEditMode &&
-      subRowId &&
-      selectedId &&
-      MOCK_DATA.editDetails[subRowId]
-    ) {
-      const editData = MOCK_DATA.editDetails[subRowId];
+    if (!isEditMode || !subRowId) return;
 
-      setSelectedEquipmentIds(editData.equipmentIds);
+    // Nếu đã load cho subRowId này thì không load lại
+    if (editLoadedRef.current[subRowId]) return;
 
-      const savedCosts = editData.costs;
+    const editData = MOCK_DATA.editDetails[subRowId];
+    if (!editData) return;
 
-      const loadedRows: PartRowData[] = savedCosts.map((saved) => {
-        const partInfo = allPartsData.find((p) => p.id === saved.partId);
-        if (!partInfo) {
-          return {
-            partId: saved.partId,
-            equipmentId: saved.equipmentId,
-            tenPhuTung: "Không tìm thấy phụ tùng",
-            donGiaVatTu: 0,
-            donViTinh: "",
-            dinhMucThoiGian: "",
-            soLuongVatTu: saved.soLuongVatTu,
-            sanLuongMetLo: "",
-            k1: saved.k1 ?? null,
-            k2: saved.k2 ?? null,
-            k3: saved.k3 ?? null,
-            k4: saved.k4 ?? null,
-            k5: saved.k5 ?? null,
-            k6: saved.k6 ?? null,
-            k7: saved.k7 ?? null,
-            unitPriceInput: 0,
-            chiPhiSCTXKeHoach: null,
-          };
-        }
+    // Đánh dấu đã load cho subRowId này
+    editLoadedRef.current[subRowId] = true;
 
-        const row: PartRowData = {
-          partId: partInfo.id,
-          equipmentId: partInfo.equipmentId,
-          tenPhuTung: partInfo.name,
-          donGiaVatTu: partInfo.costAmmount || 0,
-          donViTinh: partInfo.unitOfMeasureName || "",
-          dinhMucThoiGian: "",
-          soLuongVatTu: saved.soLuongVatTu,
-          sanLuongMetLo: "",
-          k1: saved.k1 ?? null,
-          k2: saved.k2 ?? null,
-          k3: saved.k3 ?? null,
-          k4: saved.k4 ?? null,
-          k5: saved.k5 ?? null,
-          k6: saved.k6 ?? null,
-          k7: saved.k7 ?? null,
-          unitPriceInput: partInfo.costAmmount || null,
-          chiPhiSCTXKeHoach: null,
+    setSelectedEquipmentIds(editData.equipmentIds);
+
+    // gọi load (hàm này dùng getEquipmentDetail bên ngoài)
+    loadEquipmentDetailsForIds(editData.equipmentIds, editData.costs);
+
+    // Chỉ phụ thuộc vào isEditMode và subRowId để chạy khi 2 giá trị này thay đổi
+  }, [isEditMode, subRowId]);
+
+  // Helper to load details for equipment IDs
+  const loadEquipmentDetailsForIds = async (
+    ids: string[],
+    savedCosts: any[]
+  ) => {
+    try {
+      const detailPromises = ids.map((id) => getEquipmentDetail(id));
+      const details = await Promise.all(detailPromises);
+      const validDetails = details.filter(
+        (eq): eq is EquipmentDetail => eq !== null
+      );
+
+      const loadedRows: EquipmentRowData[] = validDetails.map((eq, index) => {
+        const saved = savedCosts.find((c) => c.equipmentId === eq.id);
+        const electricCostObj = eq.costs?.find((c) => c.costType === 2);
+        const donGia = electricCostObj ? electricCostObj.amount : 0;
+
+        const row: EquipmentRowData = {
+          equipmentId: eq.id,
+          tenThietBi: eq.name || eq.code || "Không tìm thấy",
+          donViTinh: eq.unitOfMeasureName || "Cái",
+          donGiaDienNang: donGia,
+          soLuongVatTu: saved?.soLuongVatTu || 0,
+          k1: saved?.k1 ?? null,
+          k2: saved?.k2 ?? null,
+          k3: saved?.k3 ?? null,
+          chiPhiDienNangKeHoach: null,
         };
-
-        row.chiPhiSCTXKeHoach = computeRowCost(row);
+        row.chiPhiDienNangKeHoach = computeRowCost(row);
         return row;
       });
-
-      setPartRows(loadedRows);
+      setEquipmentRows(loadedRows);
+    } catch (error) {
+      console.error("Lỗi khi tải chi tiết thiết bị edit:", error);
     }
-  }, [isEditMode, subRowId, selectedId, allPartsData]);
+  };
 
   const handleClose = () => {
     onClose?.();
     if (!onClose && closePath) navigate(closePath);
   };
 
-  const computeRowCost = (r: PartRowData): number | null => {
+  const computeRowCost = (r: EquipmentRowData): number | null => {
     if (!r.soLuongVatTu || r.soLuongVatTu <= 0) return null;
-    const ks = [r.k1, r.k2, r.k3, r.k4, r.k5, r.k6, r.k7];
+    const ks = [r.k1, r.k2, r.k3];
     if (ks.some((v) => v === null || v === undefined)) return null;
-    if (!r.unitPriceInput || r.unitPriceInput <= 0) return null;
+    if (!r.donGiaDienNang || r.donGiaDienNang <= 0) return null;
 
-    const productK = ks.reduce((acc: number, cur) => acc * (cur as number), 1);
-    if (productK === null) return null;
-    const rawCost = r.soLuongVatTu * productK * (r.unitPriceInput as number);
-    console.log("Computed cost for row:", r.partId, "=", rawCost);
-    return Math.round(rawCost); // Làm tròn lên thành số nguyên
+    const productK = ks.reduce((acc, cur) => acc * (cur as number), 1);
+    const rawCost = r.soLuongVatTu * productK * r.donGiaDienNang;
+    return Math.round(rawCost);
   };
 
   const handleSubmit = async () => {
-    const costItems: CostItem[] = partRows.map((row) => ({
+    const costItems: CostItem[] = equipmentRows.map((row) => ({
       equipmentId: row.equipmentId,
-      partId: row.partId,
       quantity: row.soLuongVatTu,
-      replacementTimeStandard: parseLocalFloat(row.dinhMucThoiGian),
-      averageMonthlyTunnelProduction: parseLocalFloat(row.sanLuongMetLo),
+      k1: row.k1 ?? undefined,
+      k2: row.k2 ?? undefined,
+      k3: row.k3 ?? undefined,
     }));
 
     const payload: PostPayload = { costs: costItems };
@@ -380,108 +368,87 @@ export default function InitialElectricityPlanInput({
     }
   };
 
-  const handleSelectChange = (selected: any) => {
+  const handleSelectChange = async (selected: any) => {
     const newSelectedIds: string[] = selected
       ? selected.map((s: any) => s.value)
       : [];
 
-    // 1. Tìm các equipment MỚI (có trong newSelectedIds nhưng không có trong selectedEquipmentIds cũ)
-    const previousSelectedIds = selectedEquipmentIds;
-    const newlyAddedEquipmentIds = newSelectedIds.filter(
-      (id) => !previousSelectedIds.includes(id)
+    const previousIds = selectedEquipmentIds;
+    const newlyAddedIds = newSelectedIds.filter(
+      (id) => !previousIds.includes(id)
     );
 
-    // Cập nhật state thiết bị
     setSelectedEquipmentIds(newSelectedIds);
 
-    // Nếu không có equipment mới → chỉ giữ lại các dòng hiện có (và xóa nếu bỏ chọn)
-    if (newlyAddedEquipmentIds.length === 0) {
-      // Chỉ giữ lại các dòng thuộc thiết bị vẫn còn được chọn
-      const preservedRows = partRows.filter((row) =>
+    if (newlyAddedIds.length === 0) {
+      const preserved = equipmentRows.filter((row) =>
         newSelectedIds.includes(row.equipmentId)
       );
-      setPartRows(preservedRows);
+      setEquipmentRows(preserved);
       return;
     }
 
-    // 2. Chỉ lấy phụ tùng của các equipment MỚI thêm vào
-    const existingPartIds = new Set(partRows.map((r) => r.partId));
+    try {
+      const detailPromises = newlyAddedIds.map((id) => getEquipmentDetail(id));
+      const details = await Promise.all(detailPromises);
+      const validDetails = details.filter(
+        (eq): eq is EquipmentDetail => eq !== null
+      );
 
-    const newRowsFromSelection = allPartsData
-      .filter((part) => {
-        return (
-          newlyAddedEquipmentIds.includes(part.equipmentId) && // CHỈ equipment mới
-          !existingPartIds.has(part.id) // chưa từng có
-        );
-      })
-      .map((part): PartRowData => {
-        // Ưu tiên lấy dữ liệu cũ nếu có (trong edit mode)
-        let savedCost = null;
-        if (isEditMode && selectedId && MOCK_DATA.editDetails[selectedId]) {
-          savedCost = MOCK_DATA.editDetails[selectedId].costs.find(
-            (c) => c.partId === part.id
-          );
-        }
+      // Ưu tiên dữ liệu cũ nếu đang edit
+      const savedCosts =
+        isEditMode && subRowId && MOCK_DATA.editDetails[subRowId]
+          ? MOCK_DATA.editDetails[subRowId].costs
+          : [];
 
-        const row: PartRowData = {
-          partId: part.id,
-          equipmentId: part.equipmentId,
-          tenPhuTung: part.name,
-          donGiaVatTu: part.costAmmount || 0,
-          donViTinh: part.unitOfMeasureName || "Cái",
-          dinhMucThoiGian: "",
-          soLuongVatTu: savedCost?.soLuongVatTu || 0,
-          sanLuongMetLo: "",
-          k1: savedCost?.k1 ?? null,
-          k2: savedCost?.k2 ?? null,
-          k3: savedCost?.k3 ?? null,
-          k4: savedCost?.k4 ?? null,
-          k5: savedCost?.k5 ?? null,
-          k6: savedCost?.k6 ?? null,
-          k7: savedCost?.k7 ?? null,
-          unitPriceInput: part.costAmmount || null,
-          chiPhiSCTXKeHoach: null,
-        };
+      const newRows = validDetails
+        .filter((eq) => {
+          const existingIds = new Set(equipmentRows.map((r) => r.equipmentId));
+          return !existingIds.has(eq.id);
+        })
+        .map((eq): EquipmentRowData => {
+          const saved = savedCosts.find((c) => c.equipmentId === eq.id);
+          const electricCostObj = eq.costs?.find((c) => c.costType === 2);
+          const donGia = electricCostObj ? electricCostObj.amount : 0;
 
-        row.chiPhiSCTXKeHoach = computeRowCost(row);
-        return row;
-      });
+          const row: EquipmentRowData = {
+            equipmentId: eq.id,
+            tenThietBi: eq.name || eq.code || "Không tên",
+            donViTinh: eq.unitOfMeasureName || "Cái",
+            donGiaDienNang: donGia,
+            soLuongVatTu: saved?.soLuongVatTu || 0,
+            k1: saved?.k1 ?? null,
+            k2: saved?.k2 ?? null,
+            k3: saved?.k3 ?? null,
+            chiPhiDienNangKeHoach: null,
+          };
+          row.chiPhiDienNangKeHoach = computeRowCost(row);
+          return row;
+        });
 
-    // 3. Giữ lại tất cả dòng cũ + thêm dòng mới từ equipment mới
-    const preservedRows = partRows.filter((row) =>
-      newSelectedIds.includes(row.equipmentId)
-    );
+      const preservedRows = equipmentRows.filter((row) =>
+        newSelectedIds.includes(row.equipmentId)
+      );
 
-    setPartRows([...preservedRows, ...newRowsFromSelection]);
+      setEquipmentRows([...preservedRows, ...newRows]);
+    } catch (error) {
+      console.error("Lỗi khi tải chi tiết thiết bị:", error);
+    }
   };
 
   const handleRemoveRow = (indexToRemove: number) =>
-    setPartRows((prev) => prev.filter((_, i) => i !== indexToRemove));
+    setEquipmentRows((prev) => prev.filter((_, i) => i !== indexToRemove));
 
   const handleRowNumberChange = (
     index: number,
-    field: keyof PartRowData,
+    field: keyof EquipmentRowData,
     value: number | null
   ) => {
-    setPartRows((prev) => {
+    setEquipmentRows((prev) => {
       const newRows = [...prev];
       const row = { ...newRows[index] };
       (row as any)[field] = value;
-      row.chiPhiSCTXKeHoach = computeRowCost(row);
-      newRows[index] = row;
-      return newRows;
-    });
-  };
-
-  const handleRowStringChange = (
-    index: number,
-    field: keyof PartRowData,
-    value: string
-  ) => {
-    setPartRows((prev) => {
-      const newRows = [...prev];
-      const row = { ...newRows[index], [field]: value };
-      row.chiPhiSCTXKeHoach = computeRowCost(row);
+      row.chiPhiDienNangKeHoach = computeRowCost(row);
       newRows[index] = row;
       return newRows;
     });
@@ -501,14 +468,18 @@ export default function InitialElectricityPlanInput({
       </button>
 
       <div className="layout-input-header">
-        <div className="header01">Thống kê vận hành / Kế hoạch sản xuất</div>
+        <div className="header01">
+          Thống kê vận hành / Chi phí điện năng kế hoạch ban đầu
+        </div>
         <div className="line"></div>
         <div className="header02">
-          {isEditMode ? "Chỉnh sửa" : "Tạo mới"} chi phí điện năng kế hoạch
+          {isEditMode ? "Chỉnh sửa" : "Tạo mới"} chi phí điện năng kế hoạch ban
+          đầu
         </div>
       </div>
 
       <div className="layout-input-body">
+        {/* Thời gian */}
         <div
           style={{
             display: "flex",
@@ -567,49 +538,65 @@ export default function InitialElectricityPlanInput({
           </div>
         </div>
 
+        {/* Thông tin sản phẩm */}
         <div
           className="sticky-headerGroup"
-          style={{
-            position: "sticky",
-            left: 0,
-            zIndex: 1002,
-            background: "#f1f2f5",
-            paddingTop: 5,
-          }}
+          style={{ background: "#f1f2f5", paddingTop: 5 }}
         >
-          <div className="input-row" style={{ marginBottom: 20 }}>
-            <label>Mã sản phẩm</label>
-            <input
-              type="text"
-              className="input-text"
-              value={
-                productData.id
-                  ? MOCK_DATA.products[
-                      productData.id === "sp1"
-                        ? "TN01"
-                        : productData.id === "sp2"
-                          ? "KD01"
-                          : "EBH52"
-                    ]?.code || ""
-                  : ""
-              }
-              disabled
-              style={{ backgroundColor: "#f1f2f5" }}
-              placeholder="Chọn Mã sản phẩm..."
-            />
-          </div>
-
           <div
             style={{
               display: "flex",
-              gap: 16,
+              gap: "16px",
               flexWrap: "nowrap",
               alignItems: "flex-end",
               overflowX: "auto",
-              minWidth: 700,
-              marginBottom: 20,
+              minWidth: "700px",
+              width: "95%",
             }}
           >
+            <div className="input-row" style={{ marginBottom: 20, flex: 1 }}>
+              <label>Mã sản phẩm</label>
+              <input
+                type="text"
+                className="input-text"
+                value={
+                  productData.id
+                    ? MOCK_DATA.products[
+                        productData.id === "sp1"
+                          ? "TN01"
+                          : productData.id === "sp2"
+                            ? "KD01"
+                            : "EBH52"
+                      ]?.code || ""
+                    : ""
+                }
+                disabled
+                style={{ backgroundColor: "#f1f2f5" }}
+              />
+            </div>
+
+            <div className="input-row" style={{ marginBottom: 20, flex: 1 }}>
+              <label>Tên sản phẩm</label>
+              <input
+                type="text"
+                className="input-text"
+                value={
+                  productData.id
+                    ? MOCK_DATA.products[
+                        productData.id === "sp1"
+                          ? "TN01"
+                          : productData.id === "sp2"
+                            ? "KD01"
+                            : "EBH52"
+                      ]?.tensp || ""
+                    : ""
+                }
+                disabled
+                style={{ backgroundColor: "#f1f2f5" }}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
             <div className="input-row" style={{ width: 150 }}>
               <label>Mã nhóm CĐSX</label>
               <input
@@ -646,221 +633,201 @@ export default function InitialElectricityPlanInput({
                 type="text"
                 className="input-text"
                 value={productData.donViTinh}
-                disabled
+                readOnly
                 style={{ backgroundColor: "#f1f2f5" }}
-                placeholder="Chọn ĐVT..."
               />
             </div>
           </div>
 
+          {/* Select thiết bị */}
           <div className="input-row" style={{ zIndex: 9999, marginBottom: 20 }}>
             <label>Mã thiết bị</label>
             <Select
               isMulti
               options={equipmentOptions}
-              value={selectedEquipmentIds
-                .map((id) => equipmentOptions.find((o) => o.value === id))
-                .filter(Boolean)}
+              value={selectedOptions}
               onChange={handleSelectChange}
               className="transaction-select-wrapper"
               classNamePrefix="transaction-select"
               placeholder="Chọn Mã thiết bị"
+              isDisabled={isLoadingRows}
               menuPortalTarget={document.body}
               styles={{ menuPortal: (p) => ({ ...p, zIndex: 999999 }) }}
             />
           </div>
 
+          {/* Danh sách thiết bị */}
           <div style={{ width: "97%", maxHeight: 400, overflowY: "auto" }}>
-            {partRows.map((row, index) => (
-              <div
-                key={row.partId}
-                style={{
-                  display: "flex",
-                  gap: 16,
-                  width: "max-content",
-                  flexWrap: "wrap",
-                  marginBottom: 20,
-                  borderBottom: "1px dashed #ccc",
-                  paddingBottom: 12,
-                }}
-              >
-                <div className="input-row" style={{ width: 100, margin: 0 }}>
-                  <label
-                    style={{
-                      display: "flex",
-                      textAlign: "center",
-                      height: 30,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    Tên phụ tùng
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      className="input-text"
-                      value={row.tenPhuTung}
-                      readOnly
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                    />
-                    <span className="tooltip-text">{row.tenPhuTung}</span>
-                  </div>
-                </div>
-
-                <div className="input-row" style={{ width: 80, margin: 0 }}>
-                  <label
-                    style={{
-                      display: "flex",
-                      textAlign: "center",
-                      height: 30,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    ĐVT
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      className="input-text"
-                      value={row.donViTinh}
-                      readOnly
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                    />
-                    <span className="tooltip-text">{row.donViTinh}</span>
-                  </div>
-                </div>
-
-                {/* Số lượng - cho phép bỏ số 0 đầu */}
-                <div className="input-row" style={{ width: 120, margin: 0 }}>
-                  <label
-                    htmlFor={`soluong-${index}`}
-                    style={{ textAlign: "center", height: 30 }}
-                  >
-                    Số lượng
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      id={`soluong-${index}`}
-                      type="number"
-                      placeholder="Nhập số lượng"
-                      className="input-text"
-                      value={row.soLuongVatTu || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const num = val === "" ? 0 : parseFloat(val);
-                        handleRowNumberChange(
-                          index,
-                          "soLuongVatTu",
-                          isNaN(num) ? 0 : num
-                        );
-                      }}
-                      step="any"
-                      min="0"
-                    />
-                    <span className="tooltip-text">
-                      {row.soLuongVatTu || 0}
-                    </span>
-                  </div>
-                </div>
-
-                {/* K1..K7 selects */}
-                {["k1", "k2", "k3", "k4", "k5", "k6", "k7"].map((kKey, i) => (
-                  <div
-                    key={kKey}
-                    className="input-row"
-                    style={{ width: 70, margin: 0 }}
-                  >
-                    <label
-                      htmlFor={`${kKey}-${index}`}
-                      style={{
-                        display: "flex",
-                        textAlign: "center",
-                        height: 30,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {kKey.toUpperCase()}
+            {isLoadingRows && (
+              <div style={{ textAlign: "center", padding: "20px" }}>
+                Đang tải dữ liệu thiết bị...
+              </div>
+            )}
+            {!isLoadingRows &&
+              equipmentRows.map((row, index) => (
+                <div
+                  key={row.equipmentId}
+                  style={{
+                    display: "flex",
+                    gap: 16,
+                    width: "max-content",
+                    flexWrap: "wrap",
+                    marginBottom: 20,
+                    borderBottom: "1px dashed #ccc",
+                    paddingBottom: 12,
+                  }}
+                >
+                  {/* Tên thiết bị */}
+                  <div className="input-row" style={{ width: 100, margin: 0 }}>
+                    <label style={{ textAlign: "center", height: 30 }}>
+                      Tên thiết bị
                     </label>
                     <div className="tooltip-wrapper">
-                      <select
-                        id={`${kKey}-${index}`}
+                      <input
+                        type="text"
                         className="input-text"
-                        value={(row as any)[kKey] ?? ""}
-                        onChange={(e) =>
-                          handleRowNumberChange(
-                            index,
-                            kKey as keyof PartRowData,
-                            e.target.value === ""
-                              ? null
-                              : parseFloat(e.target.value)
-                          )
-                        }
-                      >
-                        <option value="">Chọn hệ số</option>
-                        {MOCK_K_OPTIONS.map((k) => (
-                          <option key={k} value={k}>
-                            {k}
-                          </option>
-                        ))}
-                      </select>
+                        value={row.tenThietBi}
+                        readOnly
+                        style={{ backgroundColor: "#f1f2f5" }}
+                      />
+                      <span className="tooltip-text">{row.tenThietBi}</span>
+                    </div>
+                  </div>
+
+                  {/* ĐVT */}
+                  <div className="input-row" style={{ width: 80, margin: 0 }}>
+                    <label style={{ textAlign: "center", height: 30 }}>
+                      ĐVT
+                    </label>
+                    <div className="tooltip-wrapper">
+                      <input
+                        type="text"
+                        className="input-text"
+                        value={row.donViTinh}
+                        readOnly
+                        style={{ backgroundColor: "#f1f2f5" }}
+                      />
+                      <span className="tooltip-text">{row.donViTinh}</span>
+                    </div>
+                  </div>
+
+                  {/* Đơn giá điện năng */}
+                  <div className="input-row" style={{ width: 130, margin: 0 }}>
+                    <label style={{ textAlign: "center", height: 30 }}>
+                      Đơn giá điện năng
+                    </label>
+                    <div className="tooltip-wrapper">
+                      <input
+                        type="text"
+                        className="input-text"
+                        value={formatVND(row.donGiaDienNang)}
+                        readOnly
+                        style={{ backgroundColor: "#f1f2f5" }}
+                      />
                       <span className="tooltip-text">
-                        {(row as any)[kKey] ?? "Chưa chọn"}
+                        {formatVND(row.donGiaDienNang)}
                       </span>
                     </div>
                   </div>
-                ))}
 
-                {/* Đơn giá (disabled) - format VND */}
-                <div className="input-row" style={{ width: 120, margin: 0 }}>
-                  <label style={{ textAlign: "center", height: 30 }}>
-                    Đơn giá
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      className="input-text"
-                      value={formatVND(row.unitPriceInput)}
-                      disabled
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                    />
-                    <span className="tooltip-text">
-                      {formatVND(row.unitPriceInput)}
-                    </span>
+                  {/* Số lượng */}
+                  <div className="input-row" style={{ width: 120, margin: 0 }}>
+                    <label style={{ textAlign: "center", height: 30 }}>
+                      Số lượng
+                    </label>
+                    <div className="tooltip-wrapper">
+                      <input
+                        type="number"
+                        className="input-text"
+                        value={row.soLuongVatTu || ""}
+                        onChange={(e) => {
+                          const val =
+                            e.target.value === ""
+                              ? 0
+                              : parseFloat(e.target.value);
+                          handleRowNumberChange(
+                            index,
+                            "soLuongVatTu",
+                            isNaN(val) ? 0 : val
+                          );
+                        }}
+                        min="0"
+                        step="any"
+                      />
+                      <span className="tooltip-text">
+                        {row.soLuongVatTu || 0}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Chi phí SCTX kế hoạch - làm tròn lên + format VND */}
-                <div className="input-row" style={{ width: 140, margin: 0 }}>
-                  <label style={{ textAlign: "center", height: 30 }}>
-                    Chi phí điện năng kế hoạch
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      className="input-text"
-                      value={formatVND(row.chiPhiSCTXKeHoach)}
-                      disabled
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                    />
-                    <span className="tooltip-text">
-                      {formatVND(row.chiPhiSCTXKeHoach)}
-                    </span>
+                  {/* K1-K3 */}
+                  {["k1", "k2", "k3"].map((kKey) => (
+                    <div
+                      key={kKey}
+                      className="input-row"
+                      style={{ width: 70, margin: 0 }}
+                    >
+                      <label style={{ textAlign: "center", height: 30 }}>
+                        {kKey.toUpperCase()}
+                      </label>
+                      <div className="tooltip-wrapper">
+                        <select
+                          className="input-text"
+                          value={row[kKey as keyof EquipmentRowData] ?? ""}
+                          onChange={(e) =>
+                            handleRowNumberChange(
+                              index,
+                              kKey as keyof EquipmentRowData,
+                              e.target.value === ""
+                                ? null
+                                : parseFloat(e.target.value)
+                            )
+                          }
+                        >
+                          <option value="">Chọn</option>
+                          {MOCK_K_OPTIONS.map((k) => (
+                            <option key={k} value={k}>
+                              {k}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="tooltip-text">
+                          {row[kKey as keyof EquipmentRowData] ?? "Chưa chọn"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Chi phí điện năng kế hoạch */}
+                  <div className="input-row" style={{ width: 150, margin: 0 }}>
+                    <label style={{ textAlign: "center", height: 30 }}>
+                      Chi phí điện năng kế hoạch ban đầu
+                    </label>
+                    <div className="tooltip-wrapper">
+                      <input
+                        type="text"
+                        className="input-text"
+                        value={formatVND(row.chiPhiDienNangKeHoach)}
+                        readOnly
+                        style={{ backgroundColor: "#f1f2f5" }}
+                      />
+                      <span className="tooltip-text">
+                        {formatVND(row.chiPhiDienNangKeHoach)}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  type="button"
-                  className="row-remove-button"
-                  title="Xóa hàng này"
-                  onClick={() => handleRemoveRow(index)}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
+                  {/* Nút xóa */}
+                  <button
+                    type="button"
+                    className="row-remove-button"
+                    title="Xóa hàng này"
+                    onClick={() => handleRemoveRow(index)}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
           </div>
         </div>
       </div>
@@ -872,7 +839,7 @@ export default function InitialElectricityPlanInput({
         <button
           className="btn-confirm"
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLoadingRows}
         >
           {isSubmitting ? "Đang xử lý..." : "Xác nhận"}
         </button>

@@ -36,7 +36,7 @@ const Unified_Cost: React.FC = () => {
       subRows: [
         // SubRows riêng cho sản phẩm TN01
         {
-          label: "Chi phí vật liệu kế hoạch",
+          label: "Chi phí vật liệu kế hoạch ban đầu",
           validityPeriod: "1/1/2025-30/1/2025",
           sanluong: 500,
           chiphi: 100000000,
@@ -53,7 +53,7 @@ const Unified_Cost: React.FC = () => {
           ),
         },
         {
-          label: "Chi phí SCTX kế hoạch",
+          label: "Chi phí SCTX kế hoạch ban đầu",
           validityPeriod: "1/1/2025-30/1/2025",
           sanluong: 500,
           chiphi: 100000000,
@@ -70,16 +70,24 @@ const Unified_Cost: React.FC = () => {
           ),
         },
         {
-          label: "Chi phí điện năng kế hoạch",
+          label: "Chi phí điện năng kế hoạch ban đầu",
           validityPeriod: "1/1/2025-30/1/2025",
           sanluong: 500,
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <InitialElectricityPlanInput selectedId={1} />,
-          createComponent: <InitialElectricityPlanInput selectedId={1} />,
+          editComponent: (
+            <InitialElectricityPlanInput
+              selectedId={1}
+              isEditMode={true}
+              subRowId="dn-2025-01"
+            />
+          ),
+          createComponent: (
+            <InitialElectricityPlanInput selectedId={1} subRowId="dn-2025-01" />
+          ),
         },
         {
-          label: "Chi phí vật liệu kế hoạch",
+          label: "Chi phí vật liệu kế hoạch ban đầu",
           validityPeriod: "30/1/2025-28/2/2025",
           sanluong: 500,
           chiphi: 50000000,
@@ -96,7 +104,7 @@ const Unified_Cost: React.FC = () => {
           ),
         },
         {
-          label: "Chi phí SCTX kế hoạch",
+          label: "Chi phí SCTX kế hoạch ban đầu",
           validityPeriod: "30/1/2025-28/2/2025",
           sanluong: 500,
           chiphi: 50000000,
@@ -113,13 +121,21 @@ const Unified_Cost: React.FC = () => {
           ),
         },
         {
-          label: "Chi phí điện năng kế hoạch",
+          label: "Chi phí điện năng kế hoạch ban đầu",
           validityPeriod: "30/1/2025-28/2/2025",
           sanluong: 500,
           chiphi: 100000000,
           detailComponent: <Material_Unified_Cost />,
-          editComponent: <InitialElectricityPlanInput selectedId={1} />,
-          createComponent: <InitialElectricityPlanInput selectedId={1} />,
+          editComponent: (
+            <InitialElectricityPlanInput
+              selectedId={1}
+              subRowId="dn-2025-02"
+              isEditMode={true}
+            />
+          ),
+          createComponent: (
+            <InitialElectricityPlanInput selectedId={1} subRowId="dn-2025-02" />
+          ),
         },
       ],
     },
@@ -135,7 +151,7 @@ const Unified_Cost: React.FC = () => {
       subRows: [
         // SubRows riêng cho sản phẩm KD01
         {
-          label: "Chi phí vật liệu kế hoạch",
+          label: "Chi phí vật liệu kế hoạch ban đầu",
           validityPeriod: "1/2/2025-28/2/2025",
           sanluong: 1600,
           chiphi: 300000000,
@@ -144,7 +160,7 @@ const Unified_Cost: React.FC = () => {
           createComponent: <InitialMaterialPlanInput selectedId={2} />,
         },
         {
-          label: "Chi phí SCTX kế hoạch",
+          label: "Chi phí SCTX kế hoạch ban đầu",
           validityPeriod: "1/2/2025-28/2/2025",
           sanluong: 1700,
           chiphi: 350000000,
@@ -155,7 +171,7 @@ const Unified_Cost: React.FC = () => {
           createComponent: <InitialRepairPlanInput selectedId={2} />,
         },
         {
-          label: "Chi phí điện năng kế hoạch",
+          label: "Chi phí điện năng kế hoạch ban đầu",
           validityPeriod: "1/2/2025-28/2/2025",
           sanluong: 1800,
           chiphi: 150000000,
@@ -177,7 +193,7 @@ const Unified_Cost: React.FC = () => {
       subRows: [
         // SubRows riêng cho sản phẩm EBH52
         {
-          label: "Chi phí vật liệu kế hoạch",
+          label: "Chi phí vật liệu kế hoạch ban đầu",
           validityPeriod: "1/3/2025-31/3/2025",
           sanluong: 1200,
           chiphi: 250000000,
@@ -186,7 +202,7 @@ const Unified_Cost: React.FC = () => {
           createComponent: <InitialMaterialPlanInput selectedId={3} />,
         },
         {
-          label: "Chi phí SCTX kế hoạch",
+          label: "Chi phí SCTX kế hoạch ban đầu",
           validityPeriod: "1/3/2025-31/3/2025",
           sanluong: 1300,
           chiphi: 200000000,
@@ -199,7 +215,7 @@ const Unified_Cost: React.FC = () => {
           ),
         },
         {
-          label: "Chi phí điện năng kế hoạch",
+          label: "Chi phí điện năng kế hoạch ban đầu",
           validityPeriod: "1/3/2025-31/3/2025",
           sanluong: 1400,
           chiphi: 150000000,

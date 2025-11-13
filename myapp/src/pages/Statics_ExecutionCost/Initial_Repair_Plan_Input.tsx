@@ -39,6 +39,8 @@ const MOCK_DATA = {
     TN01: {
       id: "sp1",
       code: "TN01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-01",
       tenNhom: "Nhóm công đoạn Đào lò",
       donViTinh: "mét",
@@ -46,6 +48,8 @@ const MOCK_DATA = {
     KD01: {
       id: "sp2",
       code: "KD01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-02",
       tenNhom: "Nhóm công đoạn Khai thác",
       donViTinh: "tấn",
@@ -53,6 +57,8 @@ const MOCK_DATA = {
     EBH52: {
       id: "sp3",
       code: "EBH52",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-03",
       tenNhom: "Nhóm công đoạn Khai thác than",
       donViTinh: "tấn",
@@ -121,6 +127,17 @@ const MOCK_DATA = {
           k7: 0.5,
         },
       ],
+    },
+  },
+
+  materialDetails: {
+    "sctx-2025-01": {
+      thoigianbatdau: "1/1/2025",
+      thoigianketthuc: "30/1/2025",
+    },
+    "sctx-2025-02": {
+      thoigianbatdau: "1/2/2025",
+      thoigianketthuc: "28/2/2025",
     },
   },
 };
@@ -263,14 +280,14 @@ export default function InitialRepairPlanInput({
             sanLuong: row.sanluong.toString(),
           });
         }
-        const [startStr, endStr] = row.thoigian.split("-");
-        if (startStr && endStr) {
-          const startParts = startStr.split("/").map(Number);
-          const endParts = endStr.split("/").map(Number);
+        const saved = MOCK_DATA.materialDetails?.[subRowId];
+        if (saved) {
           setStartDate(
-            new Date(startParts[2], startParts[1] - 1, startParts[0])
+            new Date(saved.thoigianbatdau.split("/").reverse().join("-"))
           );
-          setEndDate(new Date(endParts[2], endParts[1] - 1, endParts[0]));
+          setEndDate(
+            new Date(saved.thoigianketthuc.split("/").reverse().join("-"))
+          );
         }
       }
     }
@@ -501,10 +518,12 @@ export default function InitialRepairPlanInput({
       </button>
 
       <div className="layout-input-header">
-        <div className="header01">Thống kê vận hành / Kế hoạch sản xuất</div>
+        <div className="header01">
+          Thống kê vận hành / Chi phí SCTX kế hoạch ban đầu
+        </div>
         <div className="line"></div>
         <div className="header02">
-          {isEditMode ? "Chỉnh sửa" : "Tạo mới"} chi phí SCTX kế hoạch
+          {isEditMode ? "Chỉnh sửa" : "Tạo mới"} chi phí SCTX kế hoạch ban đầu
         </div>
       </div>
 
@@ -577,28 +596,61 @@ export default function InitialRepairPlanInput({
             paddingTop: 5,
           }}
         >
-          <div className="input-row" style={{ marginBottom: 20 }}>
-            <label>Mã sản phẩm</label>
-            <input
-              type="text"
-              className="input-text"
-              value={
-                productData.id
-                  ? MOCK_DATA.products[
-                      productData.id === "sp1"
-                        ? "TN01"
-                        : productData.id === "sp2"
-                          ? "KD01"
-                          : "EBH52"
-                    ]?.code || ""
-                  : ""
-              }
-              disabled
-              style={{ backgroundColor: "#f1f2f5" }}
-              placeholder="Chọn Mã sản phẩm..."
-            />
-          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              flexWrap: "nowrap",
+              alignItems: "flex-end",
+              overflowX: "auto",
+              minWidth: "700px",
+              width: "95%",
+            }}
+          >
+            <div className="input-row" style={{ marginBottom: 20, flex: 1 }}>
+              <label>Mã sản phẩm</label>
+              <input
+                type="text"
+                className="input-text"
+                value={
+                  productData.id
+                    ? MOCK_DATA.products[
+                        productData.id === "sp1"
+                          ? "TN01"
+                          : productData.id === "sp2"
+                            ? "KD01"
+                            : "EBH52"
+                      ]?.code || ""
+                    : ""
+                }
+                disabled
+                style={{ backgroundColor: "#f1f2f5" }}
+                placeholder="Chọn Mã sản phẩm..."
+              />
+            </div>
 
+            <div className="input-row" style={{ marginBottom: 20, flex: 1 }}>
+              <label>Tên sản phẩm</label>
+              <input
+                type="text"
+                className="input-text"
+                value={
+                  productData.id
+                    ? MOCK_DATA.products[
+                        productData.id === "sp1"
+                          ? "TN01"
+                          : productData.id === "sp2"
+                            ? "KD01"
+                            : "EBH52"
+                      ]?.tensp || ""
+                    : ""
+                }
+                disabled
+                style={{ backgroundColor: "#f1f2f5" }}
+                placeholder="Chọn Mã sản phẩm..."
+              />
+            </div>
+          </div>
           <div
             style={{
               display: "flex",
@@ -731,7 +783,24 @@ export default function InitialRepairPlanInput({
                     <span className="tooltip-text">{row.donViTinh}</span>
                   </div>
                 </div>
-
+                {/* Đơn giá (disabled) - format VND */}
+                <div className="input-row" style={{ width: 120, margin: 0 }}>
+                  <label style={{ textAlign: "center", height: 30 }}>
+                    Đơn giá phụ tùng
+                  </label>
+                  <div className="tooltip-wrapper">
+                    <input
+                      type="text"
+                      className="input-text"
+                      value={formatVND(row.unitPriceInput)}
+                      disabled
+                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
+                    />
+                    <span className="tooltip-text">
+                      {formatVND(row.unitPriceInput)}
+                    </span>
+                  </div>
+                </div>
                 {/* Số lượng - cho phép bỏ số 0 đầu */}
                 <div className="input-row" style={{ width: 120, margin: 0 }}>
                   <label
@@ -813,29 +882,10 @@ export default function InitialRepairPlanInput({
                   </div>
                 ))}
 
-                {/* Đơn giá (disabled) - format VND */}
-                <div className="input-row" style={{ width: 120, margin: 0 }}>
-                  <label style={{ textAlign: "center", height: 30 }}>
-                    Đơn giá
-                  </label>
-                  <div className="tooltip-wrapper">
-                    <input
-                      type="text"
-                      className="input-text"
-                      value={formatVND(row.unitPriceInput)}
-                      disabled
-                      style={{ width: "100%", backgroundColor: "#f1f2f5" }}
-                    />
-                    <span className="tooltip-text">
-                      {formatVND(row.unitPriceInput)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Chi phí SCTX kế hoạch - làm tròn lên + format VND */}
+                {/* Chi phí SCTX kế hoạch ban đầu - làm tròn lên + format VND */}
                 <div className="input-row" style={{ width: 140, margin: 0 }}>
                   <label style={{ textAlign: "center", height: 30 }}>
-                    Chi phí SCTX kế hoạch
+                    Chi phí SCTX kế hoạch ban đầu
                   </label>
                   <div className="tooltip-wrapper">
                     <input

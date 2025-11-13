@@ -15,6 +15,8 @@ const MOCK_DATA = {
     {
       id: 1,
       productCode: "TN01",
+      productName:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "DL",
       sanluong: 1000,
       thoigian: "1/1/2025-30/1/2025",
@@ -26,6 +28,8 @@ const MOCK_DATA = {
     {
       id: 2,
       productCode: "KD01",
+      productName:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "L1",
       sanluong: 2000,
       thoigian: "1/2/2025-28/2/2025",
@@ -37,6 +41,8 @@ const MOCK_DATA = {
     {
       id: 3,
       productCode: "EBH52",
+      productName:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "L2",
       sanluong: 1500,
       thoigian: "1/3/2025-31/3/2025",
@@ -50,6 +56,8 @@ const MOCK_DATA = {
     TN01: {
       id: "sp1",
       code: "TN01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-01",
       tenNhom: "Nhóm công đoạn Đào lò",
       donViTinh: "mét",
@@ -58,6 +66,8 @@ const MOCK_DATA = {
     KD01: {
       id: "sp2",
       code: "KD01",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-02",
       tenNhom: "Nhóm công đoạn Khai thác",
       donViTinh: "tấn",
@@ -66,6 +76,8 @@ const MOCK_DATA = {
     EBH52: {
       id: "sp3",
       code: "EBH52",
+      tensp:
+        "Lò than 11-1.26 lò chống giá xích chiều dài lò than: 72 m. Các yếu tố TT bằng chiều dài 80 m. Chiều dày vỉa: 9.77 m . Tỷ lệ đá kẹp 23% có trải lưới thép nóc.",
       maNhom: "NCD-03",
       tenNhom: "Nhóm công đoạn Khai thác than",
       donViTinh: "tấn",
@@ -82,11 +94,15 @@ const MOCK_DATA = {
   materialDetails: {
     "vl-1-202501": {
       tyLeDaKep: "10% ≤ Ckep ≤ 20%",
+      thoigianbatdau: "1/1/2025",
+      thoigianketthuc: "30/1/2025",
       mangTruot: "MTD",
       unitPriceId: "dg1",
     },
     "vl-1-202502": {
       tyLeDaKep: "Ckep ≥ 20%",
+      thoigianbatdau: "1/2/2025",
+      thoigianketthuc: "28/2/2025",
       mangTruot: "MTINOX",
       unitPriceId: "dg2",
     },
@@ -169,22 +185,17 @@ export default function InitialMaterialPlanInput({
           });
         }
 
-        // Parse thoigian
-        const [startStr, endStr] = row.thoigian.split("-");
-        if (startStr && endStr) {
-          const startParts = startStr.split("/").map(Number);
-          const endParts = endStr.split("/").map(Number);
-          setStartDate(
-            new Date(startParts[2], startParts[1] - 1, startParts[0])
-          );
-          setEndDate(new Date(endParts[2], endParts[1] - 1, endParts[0]));
-        }
-
         const saved = MOCK_DATA.materialDetails?.[subRowId];
         if (saved) {
           setTyLeDaKep(saved.tyLeDaKep);
           setSuDungMangTruot(saved.mangTruot);
           setSelectedUnitPriceId(saved.unitPriceId);
+          setStartDate(
+            new Date(saved.thoigianbatdau.split("/").reverse().join("-"))
+          );
+          setEndDate(
+            new Date(saved.thoigianketthuc.split("/").reverse().join("-"))
+          );
         }
       }
     }
@@ -230,10 +241,13 @@ export default function InitialMaterialPlanInput({
       </button>
 
       <div className="layout-input-header">
-        <div className="header01">Thống kê vận hành / Kế hoạch sản xuất</div>
+        <div className="header01">
+          Thống kê vận hành / Chi phí vật liệu kế hoạch ban đầu
+        </div>
         <div className="line"></div>
         <div className="header02">
-          {isEditMode ? "Chỉnh sửa" : "Tạo mới"} chi phí vật liệu kế hoạch
+          {isEditMode ? "Chỉnh sửa" : "Tạo mới"} chi phí vật liệu kế hoạch ban
+          đầu
         </div>
       </div>
 
@@ -310,28 +324,66 @@ export default function InitialMaterialPlanInput({
           }}
         >
           {/* 1. Hàng Mã sản phẩm */}
-          <div className="input-row" style={{ marginBottom: "20px" }}>
-            <label>Mã sản phẩm</label>
-            <input
-              type="text"
-              className="input-text"
-              value={
-                productData.id
-                  ? MOCK_DATA.products[
-                      productData.id === "sp1"
-                        ? "TN01"
-                        : productData.id === "sp2"
-                          ? "KD01"
-                          : "EBH52"
-                    ]?.code || ""
-                  : ""
-              }
-              disabled
-              style={{ backgroundColor: "#f1f2f5" }}
-              placeholder="Chọn Mã sản phẩm..."
-            />
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              flexWrap: "nowrap",
+              alignItems: "flex-end",
+              overflowX: "auto",
+              minWidth: "700px",
+              width: "95%",
+            }}
+          >
+            <div
+              className="input-row"
+              style={{ marginBottom: "20px", flex: 1 }}
+            >
+              <label>Mã sản phẩm</label>
+              <input
+                type="text"
+                className="input-text"
+                value={
+                  productData.id
+                    ? MOCK_DATA.products[
+                        productData.id === "sp1"
+                          ? "TN01"
+                          : productData.id === "sp2"
+                            ? "KD01"
+                            : "EBH52"
+                      ]?.code || ""
+                    : ""
+                }
+                disabled
+                style={{ backgroundColor: "#f1f2f5" }}
+                placeholder="Chọn Mã sản phẩm..."
+              />
+            </div>
+            <div
+              className="input-row"
+              style={{ marginBottom: "20px", flex: 1 }}
+            >
+              <label>Tên sản phẩm</label>
+              <input
+                type="text"
+                className="input-text"
+                value={
+                  productData.id
+                    ? MOCK_DATA.products[
+                        productData.id === "sp1"
+                          ? "TN01"
+                          : productData.id === "sp2"
+                            ? "KD01"
+                            : "EBH52"
+                      ]?.tensp || ""
+                    : ""
+                }
+                disabled
+                style={{ backgroundColor: "#f1f2f5" }}
+                placeholder="Chọn Mã sản phẩm..."
+              />
+            </div>
           </div>
-
           {/* 2. Hàng ngang thông tin sản phẩm */}
           <div
             style={{
@@ -402,7 +454,7 @@ export default function InitialMaterialPlanInput({
           <div style={{ marginTop: "24px" }} className="input-row">
             {/* Dòng 3: Chọn đơn giá */}
             <div className="input-row" style={{ marginBottom: "20px" }}>
-              <label>Mã định mức vật liệu</label>
+              <label>Mã định mức đơn giá vật liệu</label>
               <DropdownMenuSearchable
                 options={MOCK_DATA.unitPrices.map((up) => ({
                   value: up.id,
@@ -410,7 +462,7 @@ export default function InitialMaterialPlanInput({
                 }))}
                 value={selectedUnitPriceId}
                 onChange={setSelectedUnitPriceId}
-                placeholder="Chọn mã định mức vật liệu"
+                placeholder="Chọn Mã định mức đơn giá vật liệu"
               />
             </div>
 
