@@ -4,9 +4,9 @@ import "../../components/bodytable.css";
 import PencilButton from "../../components/PencilButtons";
 import Material_Unified_Cost from "../../layout/KHSX_VL";
 import Layout from "../../layout/layout_filter";
-import InitialElectricityPlanInput from "./Initial_Electricity_Plan_Input";
-import InitialMaterialPlanInput from "./Initial_Material_Plan_Input";
-import InitialRepairPlanInput from "./Initial_Repair_Plan_Input";
+import ExecutionMaterialInput from "./Excecution_Material_Input";
+import ExecutionElectricityInput from "./Execution_Electricity_Input";
+import ExecutionRepairInput from "./Execution_Repair_Input";
 import ProductCostInput from "./Product_Cost_Input";
 
 const UnifiedOperationCost: React.FC = () => {
@@ -44,14 +44,14 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 100000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialMaterialPlanInput
+                <ExecutionMaterialInput
                   selectedId={1}
                   isEditMode={true}
                   subRowId="vl-th-1-202501"
                 />
               ),
               createComponent: (
-                <InitialMaterialPlanInput
+                <ExecutionMaterialInput
                   selectedId={1}
                   subRowId="vl-th-1-202501"
                 />
@@ -64,14 +64,14 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 100000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialRepairPlanInput
+                <ExecutionRepairInput
                   selectedId={1}
                   isEditMode={true}
                   subRowId="sctx-th-2025-01"
                 />
               ),
               createComponent: (
-                <InitialRepairPlanInput
+                <ExecutionRepairInput
                   selectedId={1}
                   subRowId="sctx-th-2025-01"
                 />
@@ -84,14 +84,14 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 100000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialElectricityPlanInput
+                <ExecutionElectricityInput
                   selectedId={1}
                   isEditMode={true}
                   subRowId="dn-th-2025-01"
                 />
               ),
               createComponent: (
-                <InitialElectricityPlanInput
+                <ExecutionElectricityInput
                   selectedId={1}
                   subRowId="dn-th-2025-01"
                 />
@@ -104,14 +104,14 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 50000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialMaterialPlanInput
+                <ExecutionMaterialInput
                   selectedId={1}
                   subRowId="vl-th-1-202502"
                   isEditMode={true}
                 />
               ),
               createComponent: (
-                <InitialMaterialPlanInput
+                <ExecutionMaterialInput
                   selectedId={1}
                   subRowId="vl-th-1-202502"
                 />
@@ -124,14 +124,14 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 50000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialRepairPlanInput
+                <ExecutionRepairInput
                   selectedId={1}
                   isEditMode={true}
                   subRowId="sctx-th-2025-02"
                 />
               ),
               createComponent: (
-                <InitialRepairPlanInput
+                <ExecutionRepairInput
                   selectedId={1}
                   subRowId="sctx-th-2025-02"
                 />
@@ -144,14 +144,14 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 100000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialElectricityPlanInput
+                <ExecutionElectricityInput
                   selectedId={1}
                   subRowId="dn-th-2025-02"
                   isEditMode={true}
                 />
               ),
               createComponent: (
-                <InitialElectricityPlanInput
+                <ExecutionElectricityInput
                   selectedId={1}
                   subRowId="dn-th-2025-02"
                 />
@@ -228,8 +228,8 @@ const UnifiedOperationCost: React.FC = () => {
               sanluong: 1600,
               chiphi: 300000000,
               detailComponent: <Material_Unified_Cost />,
-              editComponent: <InitialMaterialPlanInput selectedId={2} />,
-              createComponent: <InitialMaterialPlanInput selectedId={2} />,
+              editComponent: <ExecutionMaterialInput selectedId={2} />,
+              createComponent: <ExecutionMaterialInput selectedId={2} />,
             },
             {
               label: "Chi phí SCTX thực hiện",
@@ -238,9 +238,9 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 350000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialRepairPlanInput selectedId={2} isEditMode={true} />
+                <ExecutionRepairInput selectedId={2} isEditMode={true} />
               ),
-              createComponent: <InitialRepairPlanInput selectedId={2} />,
+              createComponent: <ExecutionRepairInput selectedId={2} />,
             },
             {
               label: "Chi phí điện năng thực hiện",
@@ -248,8 +248,8 @@ const UnifiedOperationCost: React.FC = () => {
               sanluong: 1800,
               chiphi: 150000000,
               detailComponent: <Material_Unified_Cost />,
-              editComponent: <InitialElectricityPlanInput selectedId={2} />,
-              createComponent: <InitialElectricityPlanInput selectedId={2} />,
+              editComponent: <ExecutionElectricityInput selectedId={2} />,
+              createComponent: <ExecutionElectricityInput selectedId={2} />,
             },
           ],
         },
@@ -300,8 +300,8 @@ const UnifiedOperationCost: React.FC = () => {
               sanluong: 1200,
               chiphi: 250000000,
               detailComponent: <Material_Unified_Cost />,
-              editComponent: <InitialMaterialPlanInput selectedId={3} />,
-              createComponent: <InitialMaterialPlanInput selectedId={3} />,
+              editComponent: <ExecutionMaterialInput selectedId={3} />,
+              createComponent: <ExecutionMaterialInput selectedId={3} />,
             },
             {
               label: "Chi phí SCTX thực hiện",
@@ -310,10 +310,10 @@ const UnifiedOperationCost: React.FC = () => {
               chiphi: 200000000,
               detailComponent: <Material_Unified_Cost />,
               editComponent: (
-                <InitialRepairPlanInput selectedId={3} isEditMode={true} />
+                <ExecutionRepairInput selectedId={3} isEditMode={true} />
               ),
               createComponent: (
-                <InitialRepairPlanInput selectedId={3} isEditMode={true} />
+                <ExecutionRepairInput selectedId={3} isEditMode={true} />
               ),
             },
             {
@@ -322,8 +322,8 @@ const UnifiedOperationCost: React.FC = () => {
               sanluong: 1400,
               chiphi: 150000000,
               detailComponent: <Material_Unified_Cost />,
-              editComponent: <InitialElectricityPlanInput selectedId={3} />,
-              createComponent: <InitialElectricityPlanInput selectedId={3} />,
+              editComponent: <ExecutionElectricityInput selectedId={3} />,
+              createComponent: <ExecutionElectricityInput selectedId={3} />,
             },
           ],
         },

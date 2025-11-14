@@ -109,8 +109,7 @@ const Navbar = () => {
           }
           items={[
             { label: "Chi phí kế hoạch ban đầu", path: "/UnifiedCost" },
-            { label: "Chi phí thưc hiện", path: "/MaterialsCost" },
-            { label: "Chi phí kế hoạch", path: "/MaterialsPlanCost" },
+            { label: "Vận hành sản xuất", path: "/UnifiedOperationCost" },
           ]}
         />
         {/* Thống kê */}
