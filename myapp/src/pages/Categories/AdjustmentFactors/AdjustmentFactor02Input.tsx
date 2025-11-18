@@ -92,7 +92,7 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
 
     // Gửi dữ liệu
     await postData(payload, () => {
-      console.log("✅ Tạo diễn giải thành công!");
+      alert("✅ Tạo diễn giải thành công!");
       onSuccess?.();
       onClose?.();
     });

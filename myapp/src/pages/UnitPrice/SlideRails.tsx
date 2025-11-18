@@ -66,9 +66,9 @@ const SlideRails: React.FC = () => {
  // === 5. Cập nhật độ rộng cột ===
  const columnWidths = [
   6, // STT
-  20, // Mã thiết bị (giảm bớt)
-  57,
-  10, // Tổng tiền (cột mới)
+  20.5, // Mã thiết bị (giảm bớt)
+  56,
+  10.5, // Tổng tiền (cột mới)
   3, // Xem
   4  // Sửa
  ];
@@ -102,10 +102,10 @@ const SlideRails: React.FC = () => {
     detailComponent={<SlideRailExample id={row.id} />}
    />,
    <PencilButton
-    key={`${row.equipmentId}-pencil`} // Thêm key
-    id={row.equipmentId}
+    key={`${row.id}-pencil`} // Thêm key
+    id={row.id}
     // SỬA ĐỔI: Thêm onSuccess={refresh}
-    editElement={<SlideRailsEdit id={row.equipmentId} onSuccess={refresh} />}
+    editElement={<SlideRailsEdit id={row.id} onSuccess={refresh} />}
    />,
   ]) || []; // Thêm fallback || []
 

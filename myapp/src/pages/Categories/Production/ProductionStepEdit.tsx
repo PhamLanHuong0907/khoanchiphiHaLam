@@ -94,7 +94,7 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
     await putData(
       payload,
       () => {
-        console.log("✅ Cập nhật công đoạn sản xuất thành công!");
+        alert("✅ Cập nhật công đoạn sản xuất thành công!");
         onSuccess?.(); // refresh danh sách
         onClose?.();   // đóng popup
       },

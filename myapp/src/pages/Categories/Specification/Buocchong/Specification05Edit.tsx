@@ -66,7 +66,7 @@ export default function Specification05Edit({ id, onClose, onSuccess }: Specific
 
     // Gửi dữ liệu
     await putData( payload, () => {
-      console.log("✅ Cập nhật Bước chống thành công!");
+      alert("✅ Cập nhật Bước chống thành công!");
       onSuccess?.();
       onClose?.();
     });

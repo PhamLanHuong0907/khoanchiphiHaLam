@@ -31,7 +31,7 @@ export default function Specification05Input({ onClose, onSuccess }: Specificati
 
     // Gửi dữ liệu
     await postData(payload, () => {
-      console.log("✅ Tạo Bước chống thành công!");
+      alert("✅ Tạo Bước chống thành công!");
       onSuccess?.();
       onClose?.();
     });

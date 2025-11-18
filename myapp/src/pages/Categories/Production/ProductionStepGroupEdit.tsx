@@ -69,7 +69,7 @@ const ProductionStepGroupEdit: React.FC<ProductionStepGroupEditProps> = ({
         await putData(// Assuming PUT needs ID in URL
           payload,
           () => { // Success callback
-            console.log("✅ Cập nhật nhóm công đoạn thành công!");
+            alert("✅ Cập nhật nhóm công đoạn thành công!");
             onSuccess?.(); // refresh table
             onClose?.();   // close popup
           }

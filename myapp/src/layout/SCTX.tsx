@@ -49,17 +49,20 @@ const SlideRailGroupTable: React.FC<SlideRailGroupTableProps> = ({ data }) => {
           <tr style={{ fontSize: "14px" }}>
             <th
               style={{
-                width: "7%",
-                textAlign: "center",
+                width: "6.5%",
+                
                 border: "rgba(241, 242, 245, 1)",
                 backgroundColor: "rgba(241, 242, 245, 1)",
+                
+                textAlign: "left",
+                paddingLeft: "2.5%",
               }}
             >
               STT
             </th>
             <th
               style={{
-                width: "16%",
+                width: "16.5%",
                 textAlign: "left",
                 border: "none",
                 backgroundColor: "rgba(241, 242, 245, 1)",
@@ -149,7 +152,7 @@ const SlideRailGroupTable: React.FC<SlideRailGroupTableProps> = ({ data }) => {
                 // Sử dụng item.id làm key sẽ tốt hơn idx nếu nó là duy nhất
                 <tr key={item.id} className="item-row">
                   {/* SẮP XẾP LẠI THỨ TỰ CÁC CỘT CHO ĐÚNG */}
-                  <td style={{ textAlign: "center", height: "22px" }}>
+                  <td style={{ textAlign: "left", paddingLeft:"3.1%", height: "22px" }}>
                     {item.id}
                   </td>
                   <td style={{ textAlign: "left", height: "22px" }}>

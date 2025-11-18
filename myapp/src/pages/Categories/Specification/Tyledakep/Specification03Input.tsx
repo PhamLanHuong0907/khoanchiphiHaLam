@@ -35,7 +35,7 @@ export default function Specification03Input({
 
     // Gửi dữ liệu
     await postData(payload, () => {
-      console.log("✅ Tạo Tỷ lệ đá kẹp thành công!");
+      alert("✅ Tạo Tỷ lệ đá kẹp thành công!");
       onSuccess?.();
       onClose?.();
     });

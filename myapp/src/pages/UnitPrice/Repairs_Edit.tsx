@@ -535,7 +535,7 @@ return new Intl.NumberFormat('de-DE').format(value);
 
   // Dùng putData
   await putData(payload, () => {
-   console.log("✅ Cập nhật đơn giá máng trượt thành công!");
+   alert("✅ Cập nhật đơn giá máng trượt thành công!");
    onSuccess?.();
    onClose?.();
   });

@@ -310,12 +310,14 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
 
     setPendingDelete(() => async () => {
       try {
+        // 1. Xử lý xóa qua API nếu có basePath
         if (basePath) {
           const idsToDelete = selectedRows
             .map((i) => {
               const row = sortedData[i];
               if (!row) return null;
 
+              // Logic lấy ID từ nút sửa (Pencil)
               const pencilButton = row.find(
                 (cell): cell is React.ReactElement<EditButtonProps> =>
                   React.isValidElement(cell) &&
@@ -335,32 +337,39 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
             });
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           }
-
-          if (onDeleted) onDeleted();
-        } else {
-          const rowsInSortedData = selectedRows.map((i) => sortedData[i]);
-          const updated = tableData.filter(
-            (row) => !rowsInSortedData.includes(row)
-          );
-
-          const reordered = updated.map((row, idx) => {
-            const newRow = [...row];
-            newRow[0] = idx + 1;
-            return newRow;
-          });
-          setTableData(reordered);
         }
+
+        // 2. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Local State Update)
+        // Bất kể là xóa API hay xóa thường, ta đều xóa dòng khỏi state tableData
+        // để người dùng thấy kết quả ngay mà không cần chờ API fetch lại.
+        const rowsInSortedData = selectedRows.map((i) => sortedData[i]);
+        const updated = tableData.filter(
+          (row) => !rowsInSortedData.includes(row)
+        );
+        
+        // Đánh lại số thứ tự nếu cần (tuỳ logic dữ liệu của bạn, ở đây giữ nguyên logic cũ)
+        // Nếu cột đầu tiên là STT thì uncomment dòng dưới:
+        // const reordered = updated.map((row, idx) => { const newRow = [...row]; newRow[0] = idx + 1; return newRow; });
+        
+        setTableData(updated); // Cập nhật bảng ngay lập tức
+
+        // 3. Gọi callback onDeleted để Parent component biết và refresh dữ liệu từ server
+        if (onDeleted) {
+           onDeleted();
+        }
+
       } catch (err) {
         console.error("❌ Lỗi khi xoá dữ liệu:", err);
+        alert("Có lỗi xảy ra khi xóa dữ liệu!"); // Thêm thông báo lỗi cơ bản
       } finally {
-        setSelectedRows([]);
         setShowDeleteModal(false);
+        setSelectedRows([]);
+        alert("Xóa thành công");
       }
     });
 
     setShowDeleteModal(true);
   };
-
   const toggleRowLevel1 = (index: number) => {
     if (expandedRowLevel1 === index) {
       setExpandedRowLevel1(null);

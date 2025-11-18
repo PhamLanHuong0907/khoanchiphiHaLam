@@ -9,7 +9,6 @@ import "../../components/transactionselector.css"; // Import CSS
 import FormRow from "../../components/formRow";
 
 // === Định nghĩa interface cho dữ liệu ===
-// ... (Interfaces của bạn giữ nguyên) ...
 interface Equipment {
   id: string;
   code: string;
@@ -33,100 +32,76 @@ interface PartRowData {
   tenPhuTung: string;
   donGiaVatTu: number; // Sẽ lưu SỐ THÔ (number)
   donViTinh: string;
-  dinhMucThoiGian: string; // Sẽ lưu chuỗi (vd: "1234,5") - SẠCH, KHÔNG CÓ DẤU CHẤM
-  soLuongVatTu: string; // Sẽ lưu chuỗi (vd: "1234,5") - SẠCH, KHÔNG CÓ DẤU CHẤM
-  sanLuongMetLo: string; // Sẽ lưu chuỗi (vd: "1234,5") - SẠCH, KHÔNG CÓ DẤU CHẤM
+  dinhMucThoiGian: string; // Sẽ lưu chuỗi (vd: "1234,5")
+  soLuongVatTu: string; // Sẽ lưu chuỗi (vd: "1234,5")
+  sanLuongMetLo: string; // Sẽ lưu chuỗi (vd: "1234,5")
   dinhMucVatTuSCTX: string; // Sẽ lưu chuỗi định dạng (vd: "123,45")
   chiPhiVatTuSCTX: string; // Sẽ lưu chuỗi định dạng (vd: "100.000")
 }
+
+// Interface chi tiết chi phí (trong mảng costs)
 interface CostItem {
-  equipmentId: string;
   partId: string;
   quantity: number;
   replacementTimeStandard: number;
   averageMonthlyTunnelProduction: number;
 }
-interface PostPayload {
+
+// Interface Payload (Mảng các object theo thiết bị)
+interface EquipmentPayload {
+  equipmentId: string;
+  startDate: string;
+  endDate: string;
   costs: CostItem[];
 }
 
-// 1. Cập nhật Props (Sửa tên Interface cho đúng)
+// 1. Cập nhật Props
 interface RepairsInputProps {
   onClose?: () => void;
   onSuccess?: () => void;
 }
 
 export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProps) {
-  // SỬA TÊN
   const navigate = useNavigate();
   const closePath = PATHS.SLIDE_RAILS.LIST;
 
-  // ====== BẮT ĐẦU SỬA ĐỔI 1: Thêm 3 HÀM TIỆN ÍCH ======
-  /**
-   * (ĐỊNH MỨC - INPUTS) Chuyển đổi chuỗi (VD: "123,4") sang số (123.4)
-   */
+  // ====== CÁC HÀM TIỆN ÍCH ======
   const parseLocalFloat = (str: string | undefined | null): number => {
     if (!str) return 0;
-    // 1. Xóa tất cả dấu chấm (ngăn cách hàng nghìn)
-    // 2. Thay dấu phẩy (thập phân) bằng dấu chấm
     const cleanStr = str.replace(/\./g, "").replace(",", ".");
     return parseFloat(cleanStr || "0");
   };
 
-  /**
-   * (CHI PHÍ - OUTPUT) Chuyển đổi số (VD: 100000) thành chuỗi ("100.000")
-   */
   const formatNumberForDisplay = (value: number | undefined | null): string => {
     if (value === null || value === undefined) return "0";
-    // Dùng 'de-DE' để có dấu chấm (.) ngăn cách hàng nghìn
-    // Làm tròn về 0 số thập phân cho chi phí
     return new Intl.NumberFormat("de-DE", {
       maximumFractionDigits: 0,
       minimumFractionDigits: 0,
     }).format(value);
   };
 
-  /**
-   * (ĐỊNH MỨC - OUTPUT) Chuyển đổi số (VD: 123.456) thành chuỗi ("123,456")
-   */
   const formatLocalFloat = (value: number | undefined | null): string => {
     if (value === null || value === undefined) return "0";
-    // Dùng 'vi-VN' để có dấu phẩy (,) ngăn cách thập phân
     return new Intl.NumberFormat("vi-VN", {
-      maximumFractionDigits: 4, // Giữ nguyên logic cũ
+      maximumFractionDigits: 4,
     }).format(value);
   };
 
-  // ====== THÊM MỚI: HÀM ĐỊNH DẠNG INPUT KHI NHẬP ======
-  /**
-   * (INPUT DISPLAY) Định dạng chuỗi "thô" từ state (vd: "12345,6")
-   * thành chuỗi hiển thị trong input (vd: "12.345,6")
-   */
   const formatInputDisplay = (value: string | undefined | null): string => {
     if (!value) return "";
-
-    // Tách phần nguyên và phần thập phân (luôn dùng dấu phẩy)
     const parts = value.split(",");
     const integerPart = parts[0];
     const decimalPart = parts[1];
-
-    // Chỉ định dạng phần nguyên bằng dấu chấm
-    // Ví dụ: "1234567" -> "1.234.567"
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-    // Ghép lại
     if (value.endsWith(",")) {
-      // Nếu người dùng vừa gõ xong dấu phẩy (vd: "12.345,")
       return formattedInteger + ",";
     }
     if (decimalPart !== undefined) {
-      // Nếu có cả phần thập phân (vd: "12.345,6")
       return formattedInteger + "," + decimalPart;
     }
-    // Nếu chỉ có phần nguyên (vd: "12.345")
     return formattedInteger;
   };
-  // ====== KẾT THÚC SỬA ĐỔI 1 ======
 
   // === Gọi API ===
   const { data: equipmentData = [] } = useApi<Equipment>(
@@ -136,13 +111,18 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     "/api/catalog/part?pageIndex=1&pageSize=10000"
   );
 
-  const { postData, loading: isSubmitting } = useApi<PostPayload>(
+  // Payload là mảng EquipmentPayload[]
+  const { postData, loading: isSubmitting } = useApi<EquipmentPayload[]>(
     "/api/pricing/maintainunitpriceequipment"
   );
 
   // === State ===
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
   const [partRows, setPartRows] = useState<PartRowData[]>([]);
+
+  // BỔ SUNG: State ngày tháng
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   // === Memoized Options cho Dropdown ===
   const equipmentOptions = useMemo(() => {
@@ -152,11 +132,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     }));
   }, [equipmentData]);
 
-  // 7. ====== Load dropdowns (Đã sửa) ======
-  useEffect(() => {
-    // Không cần fetchAllData phức tạp ở đây
-    // Các hook useApi ở trên đã tự động fetch
-  }, []); // useEffect rỗng để chạy 1 lần (mặc dù các hook useApi đã tự chạy)
+  useEffect(() => {}, []);
 
   // === Xử lý sự kiện ===
   const handleClose = () => {
@@ -166,49 +142,38 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
 
   const handleSelectChange = (selected: any) => {
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
-
-    // 1. Lấy state CŨ (dữ liệu người dùng đã nhập) ra trước
     const oldRowsMap = new Map<string, PartRowData>();
     partRows.forEach((row) => {
       oldRowsMap.set(row.partId, row);
     });
 
-    // 2. Tạo danh sách hàng mới dựa trên các ID vừa chọn
     const newRows = allPartsData
       .filter((part) => newSelectedIds.includes(part.equipmentId))
       .map(
         (part): PartRowData => {
-          // 3. KIỂM TRA: Hàng này (partId) đã có trong state cũ chưa?
           const existingRowData = oldRowsMap.get(part.id);
-
-          // 4. NẾU CÓ: Trả về object cũ (chứa dữ liệu người dùng đã nhập)
           if (existingRowData) {
             return existingRowData;
           }
-
-          // 5. NẾU KHÔNG (Đây là hàng mới): Tạo hàng mặc định
           return {
             partId: part.id,
             equipmentId: part.equipmentId,
             tenPhuTung: part.name,
             donGiaVatTu: part.costAmmount || 0,
             donViTinh: part.unitOfMeasureName || "Cái",
-            dinhMucThoiGian: "", // <-- Mặc định
-            soLuongVatTu: "", // <-- Mặc định
-            sanLuongMetLo: "", // <-- Mặc định
+            dinhMucThoiGian: "",
+            soLuongVatTu: "",
+            sanLuongMetLo: "",
             dinhMucVatTuSCTX: "0",
             chiPhiVatTuSCTX: "0",
           };
         }
       );
 
-    // 6. Cập nhật state ID và state Hàng
     setSelectedEquipmentIds(newSelectedIds);
     setPartRows(newRows);
   };
 
-  // ====== BẮT ĐẦU SỬA ĐỔI 2: Cập nhật handleRowChange (cho Định mức) ======
-  // (HÀM NÀY GIỮ NGUYÊN - NÓ ĐÃ HOẠT ĐỘNG ĐÚNG)
   const handleRowChange = (
     index: number,
     field: keyof PartRowData,
@@ -217,95 +182,49 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     const newRows = [...partRows];
     let cleanValue = value;
 
-    // 1. Áp dụng logic dấu phẩy (,) cho 3 trường nhập liệu
     if (
       field === "dinhMucThoiGian" ||
       field === "soLuongVatTu" ||
       field === "sanLuongMetLo"
     ) {
-      // 1a. CHẶN DẤU CHẤM: Xóa tất cả dấu chấm ('.')
-      // (Người dùng có thể gõ "1.000,5" -> state lưu "1000,5")
       cleanValue = value.replace(/\./g, "");
-
-      // 1b. KIỂM TRA HỢP LỆ: Chỉ cho phép số và 1 dấu phẩy
       if (!/^[0-9]*(,[0-9]*)?$/.test(cleanValue)) {
-        return; // Không cập nhật nếu nhập không hợp lệ (vd: "12,3,4")
+        return;
       }
     }
 
-    // 2. Cập nhật giá trị "sạch" (cleanValue) vào state
     const updatedRow = { ...newRows[index], [field]: cleanValue };
 
-    // 3. Tính toán lại
-    const donGia = updatedRow.donGiaVatTu || 0; // Đọc SỐ THÔ (number)
-    // Dùng parseLocalFloat để đọc giá trị từ state (chuỗi có dấu phẩy)
+    const donGia = updatedRow.donGiaVatTu || 0;
     const dinhMucThoiGian = parseLocalFloat(updatedRow.dinhMucThoiGian);
     const soLuongVatTu = parseLocalFloat(updatedRow.soLuongVatTu);
     const sanLuongMetLo = parseLocalFloat(updatedRow.sanLuongMetLo);
 
     let dinhMucVatTu = 0;
-    // Thêm kiểm tra chia cho 0
     if (sanLuongMetLo !== 0 && dinhMucThoiGian !== 0) {
       dinhMucVatTu = soLuongVatTu / dinhMucThoiGian / sanLuongMetLo;
     }
 
     const chiPhiVatTu = dinhMucVatTu * donGia;
 
-    // 4. Định dạng kết quả đầu ra
-    // Yêu cầu: "Định mức" dùng dấu phẩy (,)
     updatedRow.dinhMucVatTuSCTX = formatLocalFloat(dinhMucVatTu);
-    // Yêu cầu: "Chi phí" dùng dấu chấm (.)
     updatedRow.chiPhiVatTuSCTX = formatNumberForDisplay(chiPhiVatTu);
 
     newRows[index] = updatedRow;
     setPartRows(newRows);
   };
-  // ====== KẾT THÚC SỬA ĐỔI 2 ======
-
-  // ====== BẮT ĐẦU SỬA ĐỔI 3: Cập nhật handleSubmit (dùng parseLocalFloat) ======
-  // (HÀM NÀY GIỮ NGUYÊN - NÓ ĐÃ HOẠT ĐỘNG ĐÚNG)
-  const handleSubmit = async () => {
-    const costItems: CostItem[] = partRows.map((row) => ({
-      equipmentId: row.equipmentId,
-      partId: row.partId,
-      // Dùng hàm parse mới để chuyển "123,4" (string) -> 123.4 (number)
-      quantity: parseLocalFloat(row.soLuongVatTu),
-      replacementTimeStandard: parseLocalFloat(row.dinhMucThoiGian),
-      averageMonthlyTunnelProduction: parseLocalFloat(row.sanLuongMetLo),
-    }));
-
-    // (Validation có thể thêm ở đây nếu muốn)
-
-    const payload: PostPayload = {
-      costs: costItems,
-    };
-
-    try {
-      await postData(payload, () => {
-        console.log("📤 Đã gửi thành công:", payload);
-        handleClose();
-      });
-    } catch (error) {
-      console.error("Lỗi khi gửi dữ liệu:", error);
-    }
-  };
-  // ====== KẾT THÚC SỬA ĐỔI 3 ======
 
   const handleRemoveRow = (indexToRemove: number) => {
     const newRows = partRows.filter((_, index) => index !== indexToRemove);
     setPartRows(newRows);
   };
 
-  const selectedOptions = equipmentOptions.filter((opt) =>
-    selectedEquipmentIds.includes(opt.value)
-  );
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  // ====== CẬP NHẬT: Data cho FormRow (Ngày tháng) ======
   const dateRowData = useMemo(
     () => [
       [
         {
-          type: "date" as const, // 'as const' giúp TS suy luận kiểu hẹp
+          type: "date" as const,
           label: "Ngày bắt đầu",
           value: startDate,
           onChange: setStartDate,
@@ -321,7 +240,54 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
       ],
     ],
     [startDate, endDate]
-  ); // Phụ thuộc vào state ngày tháng
+  );
+
+  // ====== CẬP NHẬT: handleSubmit ======
+  const handleSubmit = async () => {
+    // Validation
+    if (!startDate) return alert("⚠️ Vui lòng chọn Ngày bắt đầu!");
+    if (!endDate) return alert("⚠️ Vui lòng chọn Ngày kết thúc!");
+    if (startDate > endDate) return alert("⚠️ Ngày kết thúc không được nhỏ hơn Ngày bắt đầu!");
+    if (partRows.length === 0) return alert("⚠️ Vui lòng chọn ít nhất một thiết bị!");
+
+    // Gom nhóm các rows theo equipmentId
+    const groupedByEquipment = new Map<string, PartRowData[]>();
+    
+    partRows.forEach(row => {
+      const existing = groupedByEquipment.get(row.equipmentId) || [];
+      existing.push(row);
+      groupedByEquipment.set(row.equipmentId, existing);
+    });
+
+    // Tạo Payload dạng Mảng (Array)
+    const payload: EquipmentPayload[] = Array.from(groupedByEquipment.entries()).map(([equipmentId, rows]) => ({
+      equipmentId: equipmentId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      costs: rows.map(row => ({
+        partId: row.partId,
+        quantity: parseLocalFloat(row.soLuongVatTu),
+        replacementTimeStandard: parseLocalFloat(row.dinhMucThoiGian),
+        averageMonthlyTunnelProduction: parseLocalFloat(row.sanLuongMetLo)
+      }))
+    }));
+
+    console.log("📤 POST payload:", payload);
+
+    try {
+      await postData(payload, () => {
+        console.log("✅ Đã gửi thành công!");
+        onSuccess?.(); // Gọi callback onSuccess trước
+        handleClose();
+      });
+    } catch (error) {
+      console.error("Lỗi khi gửi dữ liệu:", error);
+    }
+  };
+
+  const selectedOptions = equipmentOptions.filter((opt) =>
+    selectedEquipmentIds.includes(opt.value)
+  );
 
   return (
     <div
@@ -341,28 +307,34 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
       </div>
 
       <div className="layout-input-body">
-        <div className="layout-input-header1" style={{ position: "fixed", zIndex:9999999 , backgroundColor:"#f1f2f5", width: "755px"}}>
+        <div className="layout-input-header1" style={{ position: "fixed", zIndex: 9999999, backgroundColor: "#f1f2f5", width: "755px" }}>
           
-        <div className="input-row" >
-          <label style={{marginTop: "20px"}}>Mã thiết bị</label>
-          <Select
-            isMulti
-            options={equipmentOptions}
-            value={selectedOptions}
-            onChange={handleSelectChange}
-            className="transaction-select-wrapper"
-            classNamePrefix="transaction-select"
-            placeholder="Chọn Mã thiết bị"
-            menuPortalTarget={document.body}
-            styles={{
-              menuPortal: (provided) => ({ ...provided, zIndex: 999999 }),
-            }}
-          />
+          {/* BỔ SUNG: Hàng chọn ngày tháng */}
+          <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+            <FormRow rows={dateRowData} />
+          </div>
+
+          <div className="input-row">
+            <label style={{ marginTop: "10px" }}>Mã thiết bị</label>
+            <Select
+              isMulti
+              options={equipmentOptions}
+              value={selectedOptions}
+              onChange={handleSelectChange}
+              className="transaction-select-wrapper"
+              classNamePrefix="transaction-select"
+              placeholder="Chọn Mã thiết bị"
+              menuPortalTarget={document.body}
+              styles={{
+                menuPortal: (provided) => ({ ...provided, zIndex: 999999 }),
+              }}
+            />
+          </div>
         </div>
-        </div>
+        
         <div
           style={{
-            marginTop: "180px",
+            marginTop: "250px", // Tăng margin top để tránh bị che bởi header
             width: "100%",
             maxHeight: "400px",
           }}
@@ -417,8 +389,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                 </div>
               ))}
 
-              {/* ====== BẮT ĐẦU SỬA ĐỔI 4: Định dạng Đơn giá vật tư ====== */}
-              {/* (KHÔNG THAY ĐỔI, VẪN GIỮ NGUYÊN) */}
+              {/* Định dạng Đơn giá vật tư */}
               <div
                 className="input-row"
                 style={{ width: "100px", marginBottom: "21px" }}
@@ -441,18 +412,15 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                     id={`donGiaVatTu-${index}`}
                     name="donGiaVatTu"
                     className="input-text"
-                    // SỬA: Dùng hàm format (vì state lưu là number)
                     value={formatNumberForDisplay(row.donGiaVatTu)}
                     readOnly
                     style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                   />
                   <span className="tooltip-text">
-                    {/* SỬA: Dùng hàm format */}
                     {formatNumberForDisplay(row.donGiaVatTu)}
                   </span>
                 </div>
               </div>
-              {/* ====== KẾT THÚC SỬA ĐỔI 4 ====== */}
 
               {[
                 { label: "ĐVT", name: "donViTinh" },
@@ -491,7 +459,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                 </div>
               ))}
 
-              {/* ====== BẮT ĐẦU SỬA ĐỔI 5: SỬ DỤNG HÀM FORMAT MỚI ====== */}
+              {/* Các trường nhập liệu có format */}
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`dinhMucThoiGian-${index}`}
@@ -501,12 +469,11 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                 </label>
                 <div className="tooltip-wrapper">
                   <input
-                    type="text" // (Giữ nguyên type="text")
+                    type="text"
                     id={`dinhMucThoiGian-${index}`}
                     name="dinhMucThoiGian"
                     placeholder="Nhập định mức"
                     className="input-text"
-                    // ====== SỬA: Dùng hàm formatInputDisplay ======
                     value={formatInputDisplay(row.dinhMucThoiGian)}
                     onChange={(e) =>
                       handleRowChange(index, "dinhMucThoiGian", e.target.value)
@@ -514,7 +481,6 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                     autoComplete="off"
                   />
                   <span className="tooltip-text">
-                    {/* Sửa tooltip để hiển thị đẹp hơn */}
                     {formatInputDisplay(row.dinhMucThoiGian) || "Chưa nhập"}
                   </span>
                 </div>
@@ -528,12 +494,11 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                 </label>
                 <div className="tooltip-wrapper">
                   <input
-                    type="text" // (Giữ nguyên type="text")
+                    type="text"
                     id={`soLuongVatTu-${index}`}
                     name="soLuongVatTu"
                     placeholder="Nhập số lượng"
                     className="input-text"
-                    // ====== SỬA: Dùng hàm formatInputDisplay ======
                     value={formatInputDisplay(row.soLuongVatTu)}
                     onChange={(e) =>
                       handleRowChange(index, "soLuongVatTu", e.target.value)
@@ -541,7 +506,6 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                     autoComplete="off"
                   />
                   <span className="tooltip-text">
-                    {/* Sửa tooltip để hiển thị đẹp hơn */}
                     {formatInputDisplay(row.soLuongVatTu) || "Chưa nhập"}
                   </span>
                 </div>
@@ -555,12 +519,11 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                 </label>
                 <div className="tooltip-wrapper">
                   <input
-                    type="text" // (Giữ nguyên type="text")
+                    type="text"
                     id={`sanLuongMetLo-${index}`}
                     name="sanLuongMetLo"
                     placeholder="Nhập sản lượng"
                     className="input-text"
-                    // ====== SỬA: Dùng hàm formatInputDisplay ======
                     value={formatInputDisplay(row.sanLuongMetLo)}
                     onChange={(e) =>
                       handleRowChange(index, "sanLuongMetLo", e.target.value)
@@ -568,12 +531,10 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                     autoComplete="off"
                   />
                   <span className="tooltip-text">
-                    {/* Sửa tooltip để hiển thị đẹp hơn */}
                     {formatInputDisplay(row.sanLuongMetLo) || "Chưa nhập"}
                   </span>
                 </div>
               </div>
-              {/* ====== KẾT THÚC SỬA ĐỔI 5 ====== */}
 
               <div
                 className="input-row"
@@ -591,7 +552,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                     id={`dinhMucVatTuSCTX-${index}`}
                     name="dinhMucVatTuSCTX"
                     className="input-text"
-                    value={row.dinhMucVatTuSCTX} // Đã được định dạng dấu phẩy (,)
+                    value={row.dinhMucVatTuSCTX}
                     readOnly
                     style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                   />
@@ -614,7 +575,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                     id={`chiPhiVatTuSCTX-${index}`}
                     name="chiPhiVatTuSCTX"
                     className="input-text"
-                    value={row.chiPhiVatTuSCTX} // Đã được định dạng dấu chấm (.)
+                    value={row.chiPhiVatTuSCTX}
                     readOnly
                     style={{ width: "100%", backgroundColor: "#f1f2f5" }}
                   />

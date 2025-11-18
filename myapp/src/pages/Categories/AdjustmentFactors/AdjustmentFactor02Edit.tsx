@@ -131,7 +131,7 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     console.log("📤 PUT payload:", payload);
 
     await putData( payload, () => {
-      console.log("✅ Cập nhật diễn giải thành công!");
+      alert("✅ Cập nhật diễn giải thành công!");
       onSuccess?.();
       onClose?.();
     });

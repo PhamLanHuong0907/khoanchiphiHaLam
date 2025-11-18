@@ -144,7 +144,7 @@ const Materials_Ingredient: React.FC = () => {
  ];
  // ====== KẾT THÚC THAY ĐỔI (4/5) ======
 
- const columnWidths = [6.3, 18.6, 42, 18.5, 10, 3.5, 4];
+ const columnWidths = [6, 18, 41.5, 17.3, 9.7, 3.5, 4];
 
  // 6. Map dữ liệu từ API (Bọc trong useMemo)
  const tableData = useMemo(() => {

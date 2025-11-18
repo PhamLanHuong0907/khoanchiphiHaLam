@@ -1,41 +1,41 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
-/**
- * Interface cho API response có phân trang
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PaginatedResponse<T> {
-  items: T[];       // Mảng dữ liệu của trang hiện tại
-  totalCount: number; // Tổng số bản ghi
+  items: T[];
+  totalCount: number;
 }
-
-/**
- * Hook API tổng hợp hỗ trợ CRUD và Phân trang Phía Server
- *
- * @param basePath - Đường dẫn API (có thể chứa query params động)
- * @param options - { autoRefresh?: number, autoFetch?: boolean }
- */
 
 export function useApi<T = any>(
   basePath: string,
   options: { 
     autoRefresh?: number;
-    autoFetch?: boolean; // Tùy chọn để tắt auto-fetch (cho POST/PUT)
+    autoFetch?: boolean; 
   } = {}
 ) {
-  // ===== Trạng thái chung =====
   const [data, setData] = useState<T[]>([]);
-  const [totalCount, setTotalCount] = useState(0); // <-- STATE QUAN TRỌNG
+  const [totalCount, setTotalCount] = useState(0); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Ref để kiểm tra component còn mounted không
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  // ====== Helper Set State an toàn ======
+  const safeSetState = (setter: React.Dispatch<React.SetStateAction<any>>, value: any) => {
+    if (isMounted.current) setter(value);
+  };
+
   // ====== GET (Fetch data) ======
   const fetchData = useCallback(async () => {
     if (!basePath) return;
-    setLoading(true);
-    setError(null);
+    safeSetState(setLoading, true);
+    safeSetState(setError, null);
 
     try {
       const res = await fetch(basePath, {
@@ -46,60 +46,41 @@ export function useApi<T = any>(
 
       const result = await res.json();
 
-      // --- 🔽 LOGIC MỚI QUAN TRỌNG Ở ĐÂY 🔽 ---
-      
-      // 1. Ưu tiên kiểm tra cấu trúc phân trang { items: [...], totalCount: ... }
-      if (
-        result &&
-        typeof result.totalCount === "number" &&
-        Array.isArray(result.items)
-      ) {
-        setData(result.items);
-        setTotalCount(result.totalCount);
+      if (isMounted.current) {
+        if (result && typeof result.totalCount === "number" && Array.isArray(result.items)) {
+          setData(result.items);
+          setTotalCount(result.totalCount);
+        } else if (result?.success && Array.isArray(result.result)) {
+          setData(result.result);
+          setTotalCount(result.result.length);
+        } else if (Array.isArray(result)) {
+          setData(result);
+          setTotalCount(result.length);
+        } else {
+           setData([]);
+           setTotalCount(0);
+        }
+        setSuccess(true);
       }
-      // 2. Fallback về logic cũ (API trả về { success: true, result: [...] })
-      else if (result?.success && Array.isArray(result.result)) {
-        setData(result.result);
-        setTotalCount(result.result.length); // Không có phân trang, tự đếm
-      }
-      // 3. Fallback về logic cũ (API trả về mảng trực tiếp [...])
-      else if (Array.isArray(result)) {
-        setData(result);
-        setTotalCount(result.length); // Không có phân trang, tự đếm
-      }
-      // 4. Lỗi không đúng định dạng
-      else {
-         throw new Error("Unexpected API format. Expected { items: [], totalCount: 0 } or [...]");
-      }
-      // --- 🔼 KẾT THÚC LOGIC MỚI 🔼 ---
+      return result; // Return data để await
 
-      setSuccess(true);
-    
     } catch (err: any) {
       console.error("Error fetching data:", err);
-      setError(err.message || "Error fetching data");
-      setData([]); // Xóa data cũ khi có lỗi
+      safeSetState(setError, err.message || "Error fetching data");
+      safeSetState(setData, []); 
       setTotalCount(0);
     } finally {
-      setLoading(false);
+      safeSetState(setLoading, false);
     }
-  }, [basePath]); // Hook sẽ tự fetch lại khi 'basePath' thay đổi
+  }, [basePath]);
 
-  // ===== Refresh dữ liệu =====
-  const refresh = useCallback(() => {
-    fetchData();
-  }, [fetchData]);
+  const refresh = useCallback(() => fetchData(), [fetchData]);
 
-  // ===== Tự fetch khi mount =====
   useEffect(() => {
-    const { autoFetch = true } = options; // Mặc định là true
-    if (autoFetch === false) {
-      return; // Bỏ qua nếu 'autoFetch: false'
-    }
-    fetchData();
+    const { autoFetch = true } = options;
+    if (autoFetch) fetchData();
   }, [fetchData, options.autoFetch]);
 
-  // ===== Auto refresh (Giữ nguyên) =====
   useEffect(() => {
     if (!options.autoRefresh) return;
     const interval = setInterval(fetchData, options.autoRefresh);
@@ -108,51 +89,53 @@ export function useApi<T = any>(
 
   // ====== POST (Tạo mới) ======
   const postData = useCallback(
-    async (body: T, onSuccess?: () => void) => {
-      setLoading(true);
-      setError(null);
-      setSuccess(false);
+    async (body: T, onSuccess?: () => Promise<void> | void) => {
+      safeSetState(setLoading, true);
+      safeSetState(setError, null);
+      safeSetState(setSuccess, false);
       try {
-        // Chỉ POST về base path (loại bỏ query params)
         const res = await fetch(basePath.split("?")[0], { 
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "accept": "application/json",
-          },
+          headers: { "Content-Type": "application/json", "accept": "application/json" },
           body: JSON.stringify(body),
         });
+        
         if (!res.ok) {
            const errText = await res.text();
            throw new Error(`HTTP error! status: ${res.status} - ${errText}`);
         }
+        
         await res.json();
-        setSuccess(true);
-        if (onSuccess) onSuccess(); // Để component cha gọi 'refresh'
+        safeSetState(setSuccess, true);
+        
+        // Chỉ reload nội bộ hook này NẾU nó đang chế độ autoFetch (đang hiển thị list)
+        // Giúp form input (autoFetch=false) không bị fetch thừa
+        if (options.autoFetch !== false) {
+            await fetchData();
+        }
+
+        // QUAN TRỌNG: Chờ Parent reload xong
+        if (onSuccess) await onSuccess(); 
+
       } catch (err: any) {
         console.error("Error posting data:", err);
-        setError(err.message || "Error posting data");
+        safeSetState(setError, err.message || "Error posting data");
       } finally {
-        setLoading(false);
+        safeSetState(setLoading, false);
       }
     },
-    [basePath]
+    [basePath, fetchData, options.autoFetch]
   );
 
   // ====== PUT (Cập nhật) ======
   const putData = useCallback(
-    async (body: T, onSuccess?: () => void) => {
-      setLoading(true);
-      setError(null);
-      setSuccess(false);
+    async (body: T, onSuccess?: () => Promise<void> | void) => {
+      safeSetState(setLoading, true);
+      safeSetState(setError, null);
       try {
-        const url = basePath.split("?")[0];
-        const res = await fetch(url, {
+        const res = await fetch(basePath.split("?")[0], {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "accept": "application/json",
-          },
+          headers: { "Content-Type": "application/json", "accept": "application/json" },
           body: JSON.stringify(body),
         });
          if (!res.ok) {
@@ -160,26 +143,27 @@ export function useApi<T = any>(
            throw new Error(`HTTP error! status: ${res.status} - ${errText}`);
         }
         await res.json();
-        setSuccess(true);
-        if (onSuccess) onSuccess();
+        safeSetState(setSuccess, true);
+
+        if (options.autoFetch !== false) await fetchData(); 
+        if (onSuccess) await onSuccess();
+
       } catch (err: any) {
         console.error("Error putting data:", err);
-        setError(err.message || "Error putting data");
+        safeSetState(setError, err.message);
       } finally {
-        setLoading(false);
+        safeSetState(setLoading, false);
       }
     },
-    [basePath]
+    [basePath, fetchData, options.autoFetch]
   );
 
-  // ====== DELETE (Xóa dữ liệu) ======
+  // ====== DELETE ======
   const deleteData = useCallback(
-    async (id: string | number, onSuccess?: () => void) => {
-      setLoading(true);
-      setError(null);
-      setSuccess(false);
+    async (id: string | number, onSuccess?: () => Promise<void> | void) => {
+      safeSetState(setLoading, true);
       try {
-        const res = await fetch(`${basePath.split("?")[0]}/${id}`, { 
+        const res = await fetch(`${basePath}`, { 
           method: "DELETE",
           headers: { "accept": "application/json" },
         });
@@ -188,19 +172,21 @@ export function useApi<T = any>(
            throw new Error(`HTTP error! status: ${res.status} - ${errText}`);
         }
         await res.json();
-        setSuccess(true);
-        if (onSuccess) onSuccess();
+        safeSetState(setSuccess, true);
+
+        if (options.autoFetch !== false) await fetchData();
+        if (onSuccess) await onSuccess();
       } catch (err: any) {
         console.error("Error deleting data:", err);
-        setError(err.message || "Error deleting data");
+        safeSetState(setError, err.message);
       } finally {
-        setLoading(false);
+        safeSetState(setLoading, false);
       }
     },
-    [basePath]
+    [basePath, fetchData, options.autoFetch]
   );
 
-  // ====== GET BY ID (Fetch 1 bản ghi) ======
+  // ====== GET BY ID ======
   const fetchById = useCallback(
     async (id: string | number): Promise<T | null> => {
       if (!basePath || !id) return null;
@@ -228,10 +214,9 @@ export function useApi<T = any>(
     [basePath]
   );
   
-  // ===== Trả về toàn bộ API methods =====
   return {
     data,
-    totalCount, // <-- Trả về state mới
+    totalCount, 
     loading,
     error,
     success,

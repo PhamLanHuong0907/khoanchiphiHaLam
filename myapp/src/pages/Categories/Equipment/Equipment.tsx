@@ -7,12 +7,14 @@ import EquipmentInput from "./EquipmentInput";
 import EquipmentEdit from "./EquipmentEdit";
 import { useApi } from "../../../hooks/useFetchData";
 
+// SỬA ĐỔI: Cập nhật Interface theo API
 interface EquipmentItem {
   id: string;
   code: string;
   name: string;
   unitOfMeasureId: string;
-  unitOfMeasureName: string; // giả định API trả về
+  unitOfMeasureName: string; 
+  currentPrice: number; // Thêm trường này
 }
 
 const Equipment: React.FC = () => {
@@ -20,14 +22,6 @@ const Equipment: React.FC = () => {
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
   // SỬA ĐỔI: Lấy 'refresh' trực tiếp, bỏ 'fetchData'
   const { data, loading, error, refresh } = useApi<EquipmentItem>(fetchPath);
-
-  // SỬA ĐỔI: Bỏ hàm 'refresh' thủ công
-  // const refresh = () => fetchData();
-
-  // SỬA ĐỔI: Bỏ 'useEffect'
-  // useEffect(() => {
-  //   fetchData();
-  // }, [fetchData]);
 
   // ====== Cột bảng ======
   const columns = [
@@ -41,10 +35,16 @@ const Equipment: React.FC = () => {
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
     "ĐVT",
+    // SỬA ĐỔI: Thêm cột Đơn giá
+    <div className="flex items-center gap-1" key="price">
+      <span>Đơn giá</span>
+      <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
+    </div>,
     "Sửa",
   ];
 
-  const columnWidths = [6, 20, 60, 9, 5];
+  // SỬA ĐỔI: Cân đối lại độ rộng cột (Tổng = 100%)
+  const columnWidths = [6, 15, 45, 10, 19, 5];
 
   // ====== Dữ liệu bảng ======
   const tableData =
@@ -53,6 +53,8 @@ const Equipment: React.FC = () => {
       row.code || "",
       row.name || "",
       row.unitOfMeasureName || "",
+      // SỬA ĐỔI: Thêm dữ liệu Đơn giá (định dạng số vi-VN)
+      row.currentPrice?.toLocaleString('vi-VN') || "0", 
       <PencilButton
         key={row.id}
         id={row.id}
@@ -60,6 +62,10 @@ const Equipment: React.FC = () => {
         editElement={<EquipmentEdit id={row.id} onSuccess={refresh} />}
       />,
     ]) || [];
+
+  // SỬA ĐỔI: Cập nhật columnLefts cho khớp số lượng cột (6 cột)
+  // Cột ĐVT và Đơn giá có thể cần căn chỉnh, ở đây để undefined theo mặc định
+  const columnLefts = ['undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined'];
 
   return (
     <Layout>
@@ -96,7 +102,7 @@ const Equipment: React.FC = () => {
             basePath={basePath}
             // 'refresh' này là từ hook
             onDeleted={refresh}
-            columnLefts={['undefined','undefined','undefined',6,'undefined' ]}
+            columnLefts={columnLefts}
           />
         )}
         

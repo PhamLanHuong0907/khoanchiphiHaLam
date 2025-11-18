@@ -177,7 +177,7 @@ useEffect(() => {
 
     // Gửi dữ liệu
     await putData(payload, () => {
-      console.log("✅ Cập nhật sản phẩm thành công!");
+      alert("✅ Cập nhật sản phẩm thành công!");
       onSuccess?.();
       onClose?.();
     });

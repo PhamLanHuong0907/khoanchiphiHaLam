@@ -27,7 +27,7 @@ const ProductionStepGroupInput: React.FC<ProductionStepGroupInputProps> = ({
     }
 
     await postData({ code, name }, () => {
-      console.log("✅ Tạo nhóm công đoạn sản xuất thành công!");
+      alert("✅ Tạo nhóm công đoạn sản xuất thành công!");
       onSuccess?.(); // refresh bảng ngoài
       onClose?.();   // đóng form
     });

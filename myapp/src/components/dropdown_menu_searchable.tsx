@@ -50,6 +50,7 @@ const DropdownMenuSearchable: React.FC<DropdownMenuSearchableProps> = ({
             "&:hover": { borderColor: "#999" },
             minHeight: "34.6px",
             zIndex: 2000,
+            backgroundColor: "white",
           }),
           
           // ==================

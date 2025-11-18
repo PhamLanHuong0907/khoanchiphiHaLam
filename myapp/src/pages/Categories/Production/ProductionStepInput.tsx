@@ -66,7 +66,7 @@ const ProductionStepInput: React.FC<ProductionStepInputProps> = ({
     console.log("📤 POST:", payload);
 
     await postData(payload, () => {
-      console.log("✅ Tạo công đoạn sản xuất thành công!");
+      alert("✅ Tạo công đoạn sản xuất thành công!");
       onSuccess?.(); // refresh bảng ngoài
       onClose?.();   // đóng popup
     });

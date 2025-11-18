@@ -66,7 +66,7 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
 
     // Gửi dữ liệu
     await putData(payload, () => {
-      console.log("✅ Cập nhật Tỷ lệ đá kẹp thành công!");
+      alert("✅ Cập nhật Tỷ lệ đá kẹp thành công!");
       onSuccess?.();
       onClose?.();
     });

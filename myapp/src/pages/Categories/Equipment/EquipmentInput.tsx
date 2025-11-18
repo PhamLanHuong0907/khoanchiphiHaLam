@@ -131,7 +131,7 @@ const EquipmentInput: React.FC<EquipmentInputProps> = ({
 
     // 5. Gọi API
     await postData(payload, () => {
-      console.log("✅ Tạo thiết bị thành công!");
+      alert("✅ Tạo thiết bị thành công!");
       onSuccess?.();
       onClose?.();
     });

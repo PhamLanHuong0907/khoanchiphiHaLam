@@ -127,7 +127,7 @@ amount: parseFloat(row.amount || "0"), // Chuyển đổi amount sang số
 console.log("📤 POST payload:", payload);
 
 await postData(payload, () => {
-console.log("✅ Tạo vật tư thành công!");
+alert("✅ Tạo vật tư thành công!");
 onSuccess?.();
 onClose?.();
 });

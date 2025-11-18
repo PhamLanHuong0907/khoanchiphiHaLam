@@ -292,7 +292,7 @@ export default function Materials_Ingredient_Input({
     console.log("📤 POST payload:", payload);
 
     await postData(payload, () => {
-      console.log("✅ Tạo đơn giá vật liệu thành công!");
+      alert("✅ Tạo đơn giá vật liệu thành công!");
       onSuccess?.();
       onClose?.();
     });

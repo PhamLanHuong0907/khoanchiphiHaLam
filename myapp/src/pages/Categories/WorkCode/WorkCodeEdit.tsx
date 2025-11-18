@@ -95,11 +95,10 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
 
     const payload = { id, code, name, unitOfMeasureId };
     console.log("📤 PUT:", payload);
-
     await putData(
       payload,
       () => {
-        console.log("✅ Cập nhật mã giao khoán thành công!");
+        alert("✅ Cập nhật mã giao khoán thành công!");
         onSuccess?.(); // refresh bảng ngoài
         onClose?.();   // đóng popup
       },
@@ -149,6 +148,7 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
             isDisabled={loadingUnits}
           />
         </div>
+
 
         {/* Trạng thái tải & lỗi (ĐÃ XÓA KHỎI ĐÂY) */}
       </LayoutInput>

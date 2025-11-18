@@ -19,7 +19,7 @@ export default function AdjustmentFactor01Input({ onClose, onSuccess }: Adjustme
     if (!name) return alert("⚠️ Vui lòng nhập Tên hệ số điều chỉnh!");
     const payload = { code, name };
     await postData(payload, () => {
-      console.log("✅ Tạo hệ số thành công!");
+      alert("✅ Tạo hệ số thành công!");
       onSuccess?.();
       onClose?.();
     });

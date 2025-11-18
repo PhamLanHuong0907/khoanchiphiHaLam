@@ -175,7 +175,7 @@ amount: parseFloat(row.amount || "0"),
 console.log("📤 PUT payload:", payload);
 
 await putData( payload, () => {
-console.log("✅ Cập nhật thiết bị thành công!");
+alert("✅ Cập nhật thiết bị thành công!");
 onSuccess?.();
 onClose?.();
 });

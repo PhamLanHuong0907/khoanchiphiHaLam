@@ -271,7 +271,7 @@ export default function RepairsInput({
     console.log("📤 POST payload:", payload);
 
     await postData(payload, () => {
-      console.log("✅ Tạo đơn giá máng trượt thành công!");
+      alert("✅ Tạo đơn giá máng trượt thành công!");
       onSuccess?.();
       onClose?.();
     });

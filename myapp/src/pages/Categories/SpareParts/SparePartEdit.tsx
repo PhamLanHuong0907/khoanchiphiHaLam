@@ -196,7 +196,7 @@ try {
 // Call putData WITHOUT the first 'id' parameter
 await putData(payload as any); // Use 'as any' to bypass type mismatch if needed
 
-console.log("✅ Cập nhật phụ tùng thành công!");
+alert("✅ Cập nhật phụ tùng thành công!");
 onSuccess?.(); // Refresh table
 onClose?.(); // Close popup
 } catch (err) {

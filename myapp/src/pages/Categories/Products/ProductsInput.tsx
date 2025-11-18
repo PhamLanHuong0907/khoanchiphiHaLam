@@ -136,7 +136,7 @@ useEffect(() => {
 
     // Gửi dữ liệu
     await postData(payload, () => {
-      console.log("✅ Tạo sản phẩm thành công!");
+      alert("✅ Tạo sản phẩm thành công!");
       onSuccess?.();
       onClose?.();
     });

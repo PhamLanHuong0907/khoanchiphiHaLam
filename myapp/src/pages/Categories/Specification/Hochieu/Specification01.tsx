@@ -8,7 +8,7 @@ import { ChevronsUpDown } from "lucide-react"; // Thêm
 import Specification01Edit from "./Specification01Edit";
 import Specification01Input from "./Specification01Input";
 import { useApi } from "../../../../hooks/useFetchData"; // Thêm
-import { base } from "framer-motion/client";
+
 
 // 1. Định nghĩa Interface dựa trên JSON
 interface Passport {

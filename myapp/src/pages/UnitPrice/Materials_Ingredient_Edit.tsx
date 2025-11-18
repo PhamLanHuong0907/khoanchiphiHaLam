@@ -376,7 +376,7 @@ export default function Materials_Ingredient_Edit({
 
     console.log("📤 PUT payload:", payload);
     await putData(payload, () => {
-      console.log("✅ Cập nhật thành công!");
+      alert("✅ Cập nhật thành công!");
       onSuccess?.();
       onClose?.();
     });

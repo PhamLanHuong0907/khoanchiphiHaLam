@@ -163,7 +163,7 @@ useEffect(() => {
 
   // Call API to post data
   await postData(payload, () => {
-   console.log("✅ Tạo phụ tùng thành công!");
+   alert("✅ Tạo phụ tùng thành công!");
    onSuccess?.(); // Refresh table
    onClose?.();  // Close popup
   });

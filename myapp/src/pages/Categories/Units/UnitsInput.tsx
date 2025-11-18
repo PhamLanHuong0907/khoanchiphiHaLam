@@ -5,34 +5,41 @@ import { useApi } from "../../../hooks/useFetchData";
 
 interface UnitsInputProps {
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void;
 }
 
 const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
-  // ====== Base API ======
   const basePath = `/api/catalog/unitofmeasure`;
-  const { postData, loading: saving, error: saveError } = useApi(basePath);
+  // autoFetch: false vì đây là form input, không cần load danh sách của chính nó
+  const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
 
-  // ====== State ======
   const [formData, setFormData] = useState({
     name: "",
   });
 
-  // ====== Submit form ======
   const handleSubmit = async (data: Record<string, string>) => {
     const name = data["Đơn vị tính"]?.trim();
     if (!name) return alert("⚠️ Vui lòng nhập đơn vị tính!");
 
-    console.log("📤 POST:", { name });
+    // Gọi postData và truyền callback xử lý sau khi post thành công
+    await postData({ name }, async () => {
+      // 1. Chờ reload dữ liệu bảng cha
+      // Lúc này useApi ở cha sẽ fetch lại và set state data mới
+      if (onSuccess) {
+        await onSuccess(); 
+      }
 
-    await postData({ name }, () => {
-      console.log("✅ Tạo đơn vị tính thành công!");
-      onSuccess?.(); // refresh bảng ngoài
-      onClose?.();   // đóng form
+      // 2. Dùng setTimeout để nhường 1 nhịp cho React vẽ lại UI (Re-render bảng cha)
+      // Nếu không có cái này, alert sẽ chặn việc vẽ lại bảng
+      setTimeout(() => {
+        alert("✅ Tạo đơn vị tính thành công!");
+        
+        // 3. Đóng form sau khi alert tắt
+        onClose?.();
+      }, 300); 
     });
   };
 
-  // ====== Fields ======
   const fields = [
     {
       label: "Đơn vị tính",
@@ -53,7 +60,6 @@ const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
         "Đơn vị tính": formData.name,
       }}
     >
-      {/* Trạng thái xử lý */}
       {saving && <p className="text-blue-500 mt-3">Đang lưu...</p>}
       {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError}</p>}
     </LayoutInput>

@@ -33,7 +33,7 @@ export default function Specification04Input({ onClose, onSuccess }: Specificati
 
     // Gửi dữ liệu
     await postData(payload, () => {
-      console.log("✅ Tạo Chèn thành công!");
+      alert("✅ Tạo Chèn thành công!");
       onSuccess?.();
       onClose?.();
     });

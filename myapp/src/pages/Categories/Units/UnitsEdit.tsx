@@ -6,7 +6,7 @@ import { useApi } from "../../../hooks/useFetchData";
 interface UnitsEditProps {
   id: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Cho phép async để await reload
 }
 
 interface UnitData {
@@ -42,14 +42,21 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
     if (!name) return alert("⚠️ Vui lòng nhập đơn vị tính!");
 
     const payload = { id, name };
-    console.log("📤 PUT:", payload);
-
+    
+    // Gọi putData và chờ xử lý callback
     await putData(
       payload,
-      () => {
-        console.log("✅ Cập nhật đơn vị tính thành công!");
-        onSuccess?.(); // refresh bảng ngoài
-        onClose?.();   // đóng form
+      async () => {
+        // 1. Chờ reload dữ liệu bảng cha
+        if (onSuccess) {
+            await onSuccess();
+        }
+
+        // 2. Dùng setTimeout 200ms để bảng kịp vẽ lại dữ liệu mới trước khi alert hiện lên
+        setTimeout(() => {
+            alert("✅ Cập nhật đơn vị tính thành công!");
+            onClose?.(); // Đóng form sau khi alert xong
+        }, 300);
       }
     );
   };
@@ -74,10 +81,10 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
       initialData={{
         "Đơn vị tính": unit?.name || "",
       }}
-      shouldSyncInitialData={true} // ✅ đảm bảo sync khi fetch xong
+      shouldSyncInitialData={true}
     >
       {/* Trạng thái tải và lỗi */}
-      {loading && <p className="text-blue-500 mt-3">Đang tải hoặc lưu dữ liệu...</p>}
+      {loading && <p className="text-blue-500 mt-3">Đang lưu dữ liệu...</p>}
       {error && <p className="text-red-500 mt-3">Lỗi: {error}</p>}
     </LayoutInput>
   );

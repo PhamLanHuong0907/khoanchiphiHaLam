@@ -71,7 +71,7 @@ export default function AdjustmentFactor01Edit({ id, onClose, onSuccess }: Adjus
 
     // Gửi dữ liệu
     await putData(payload, () => {
-      console.log("✅ Cập nhật hệ số thành công!");
+      alert("✅ Cập nhật hệ số thành công!");
       onSuccess?.();
       onClose?.();
     });

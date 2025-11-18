@@ -95,7 +95,7 @@ const Specification02: React.FC = () => {
             // Dùng 'refresh' lấy từ hook
             createElement={<Specification02Input onSuccess={refresh} />} 
             navbarMiniItems={items}
-            basePath={fetchPath}
+            basePath={basePath}
             // Dùng 'refresh' lấy từ hook
             onDeleted={refresh} 
             columnLefts={['undefined','undefined','undefined','undefined']} 

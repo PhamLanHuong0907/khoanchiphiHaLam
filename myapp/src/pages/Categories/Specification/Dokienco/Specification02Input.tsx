@@ -32,7 +32,7 @@ export default function Specification02Input({ onClose, onSuccess }: Specificati
 
     // Gửi dữ liệu
     await postData(payload, () => {
-      console.log("✅ Tạo Độ kiên cố thành công!");
+      alert("✅ Tạo Độ kiên cố thành công!");
       onSuccess?.();
       onClose?.();
     });
