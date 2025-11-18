@@ -118,18 +118,12 @@ useEffect(() => {
     if (!selectedProcessGroup) return alert("⚠️ Vui lòng chọn Nhóm công đoạn sản xuất!");
     if (!code) return alert("⚠️ Vui lòng nhập Mã sản phẩm!");
     if (!name) return alert("⚠️ Vui lòng nhập Tên sản phẩm!");
-    if (!selectedHardness) return alert("⚠️ Vui lòng chọn Độ kiên cố than đá!");
-    if (!selectedStoneClamp) return alert("⚠️ Vui lòng chọn Tỷ lệ đá kẹp!");
-    if (!selectedInsertItem) return alert("⚠️ Vui lòng chọn Chèn!");
 
     // Tạo payload
     const payload = {
       code,
       name,
       processGroupId: selectedProcessGroup,
-      hardnessId: selectedHardness,
-      stoneClampRatioId: selectedStoneClamp,
-      insertItemId: selectedInsertItem,
     };
 
     console.log("📤 POST payload:", payload);

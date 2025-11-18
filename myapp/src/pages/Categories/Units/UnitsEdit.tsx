@@ -6,7 +6,7 @@ import { useApi } from "../../../hooks/useFetchData";
 interface UnitsEditProps {
   id: string;
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Async để await reload
+  onSuccess?: () => Promise<void> | void; 
 }
 
 interface UnitData {
@@ -40,18 +40,31 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
 
     const payload = { id, name };
     
-    await putData(payload, async () => {
-      // 1. Chờ reload dữ liệu bảng cha
+    // Khởi tạo Promise API, truyền logic reload vào callback thành công
+    const apiPromise = putData(payload, async () => {
       if (onSuccess) {
-          await onSuccess();
+          await onSuccess(); // Chờ reload dữ liệu bảng cha
       }
-
-      // 2. Đợi 300ms để UI update xong mới hiện Alert
-      setTimeout(() => {
-          alert("✅ Cập nhật đơn vị tính thành công!");
-          onClose?.(); 
-      }, 300);
     });
+
+    // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Optimistic Close)
+    onClose?.();
+
+    try {
+        // 2. CHỜ API VÀ RELOAD HOÀN TẤT
+        await apiPromise; 
+
+        // 3. ✅ CHỜ NEXT RENDER TICK (Thay thế setTimeout cố định)
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // 4. HIỆN ALERT (Sau khi UI đã cập nhật xong)
+        alert("✅ Cập nhật đơn vị tính thành công!");
+        
+    } catch (e) {
+        // 5. Bắt lỗi (Vì form đã đóng, ta alert lỗi ra ngoài)
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
+    }
   };
 
   const fields = [
@@ -75,6 +88,7 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
       }}
       shouldSyncInitialData={true}
     >
+      {/* Loading và Error hiển thị trong một khoảnh khắc ngắn hoặc chỉ dùng cho trường hợp lỗi */}
       {loading && <p className="text-blue-500 mt-3">Đang lưu dữ liệu...</p>}
       {error && <p className="text-red-500 mt-3">Lỗi: {error}</p>}
     </LayoutInput>

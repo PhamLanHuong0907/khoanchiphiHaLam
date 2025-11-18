@@ -10,7 +10,6 @@ interface UnitsInputProps {
 
 const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
   const basePath = `/api/catalog/unitofmeasure`;
-  // autoFetch: false vì form input không cần load danh sách của chính nó
   const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
 
   const [formData] = useState({
@@ -21,19 +20,34 @@ const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
     const name = data["Đơn vị tính"]?.trim();
     if (!name) return alert("⚠️ Vui lòng nhập đơn vị tính!");
 
-    // Gọi postData
-    await postData({ name }, async () => {
-      // 1. Chờ reload dữ liệu bảng cha (Parent)
-      if (onSuccess) {
-        await onSuccess(); 
-      }
-
-      // 2. Dùng setTimeout 300ms để nhường thời gian cho React vẽ lại bảng dữ liệu mới
-      setTimeout(() => {
-        alert("✅ Tạo đơn vị tính thành công!");
-        onClose?.(); // Đóng form sau khi alert tắt
-      }, 300); 
+    const payload = { name };
+    
+    // Khởi tạo Promise API, truyền logic reload vào callback thành công
+    const apiPromise = postData(payload, async () => {
+        if (onSuccess) {
+            await onSuccess(); // Trigger Parent Refresh (loading state)
+        }
     });
+
+    // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Kích hoạt màn hình tối/overlay của Parent)
+    onClose?.(); 
+
+    try {
+        // 2. CHỜ API VÀ RELOAD HOÀN TẤT (Loading overlay ở Parent đã hiện rồi ẩn)
+        await apiPromise; 
+
+        // 3. ✅ CHỜ NEXT RENDER TICK: Loại bỏ dependency 300ms cố định
+        // Đây là cách đáng tin cậy nhất để chờ React hoàn thành việc vẽ lại UI (re-paint).
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // 4. HIỆN ALERT (Đã reload xong, không phụ thuộc vào thời gian)
+        alert("✅ Tạo đơn vị tính thành công!");
+
+    } catch (e) {
+        // 5. Bắt lỗi (Vì form đã đóng)
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
+    }
   };
 
   const fields = [
