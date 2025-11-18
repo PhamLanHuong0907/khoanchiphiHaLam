@@ -1,4 +1,4 @@
-import React from "react"; // Bỏ 'useEffect' vì không cần nữa
+import React from "react";
 import Layout from "../../../../layout/layout_filter";
 import AdvancedTable from "../../../../components/bodytable";
 import PencilButton from "../../../../components/PencilButtons";
@@ -7,23 +7,22 @@ import Specification02Input from "./Specification02Input";
 import { ChevronsUpDown } from "lucide-react";
 import { useApi } from "../../../../hooks/useFetchData";
 
-// 1. Định nghĩa Interface
 interface Hardness {
   id: string;
   value: string;
 }
 
 const Specification02: React.FC = () => {
-  // 2. Khai báo API (Giống cấu trúc file Unit)
   const basePath = `/api/product/hardness`;
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
-  // Thay đổi ở đây: Bỏ 'fetchData', dùng 'refresh'
+  
   const { data, loading, error, refresh } = useApi<Hardness>(fetchPath);
 
-  // 3. Bỏ 'useEffect' và 'refresh' thủ công
-  // (useApi sẽ tự động fetch lần đầu)
+  // ✅ Wrapper Async để đảm bảo việc await hoạt động đúng
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
-  // 4. Cập nhật Columns (giữ nguyên)
   const columns = [
     "STT",
     <div className="flex items-center gap-1" key="value">
@@ -32,10 +31,9 @@ const Specification02: React.FC = () => {
     </div>,
     "Sửa",
   ];
-  // 5. Cập nhật columnWidths (giữ nguyên)
+
   const columnWidths = [6, 84, 10];
 
-  // Navbar mini (giữ nguyên)
   const items = [
     { label: "Hộ chiếu, Sđ, Sc", path: "/Specification01" },
     { label: "Độ kiên cố than, đá (f)", path: "/Specification02" },
@@ -44,7 +42,6 @@ const Specification02: React.FC = () => {
     { label: "Bước chống", path: "/Specification05" },
   ];
 
-  // 6. Map dữ liệu từ API (giữ nguyên)
   const tableData =
     data?.map((row, index) => [
       index + 1,
@@ -52,19 +49,14 @@ const Specification02: React.FC = () => {
       <PencilButton
         key={row.id}
         id={row.id}
-        // Dùng 'refresh' lấy từ hook
-        editElement={<Specification02Edit id={row.id} onSuccess={refresh} />}
+        // ✅ Truyền handleRefresh
+        editElement={<Specification02Edit id={row.id} onSuccess={handleRefresh} />}
       />,
     ]) || [];
 
-  // 7. Biến loading/error (đổi tên cho nhất quán)
-  const isLoading = loading;
-  const anyError = error;
-
   return (
     <Layout>
-      <div className="p-6">
-        {/* Thêm style cho header (giữ nguyên) */}
+      <div className="p-6 relative min-h-[500px]">
         <style>{`
           th > div {
             display: inline-flex;
@@ -77,43 +69,44 @@ const Specification02: React.FC = () => {
           }
         `}</style>
         
-        {/* 8. Xử lý UI (giữ nguyên logic từ lần sửa trước) */}
-        
-        {/* 1. Ưu tiên hiển thị lỗi */}
-        {anyError ? (
+        {error ? (
           <div className="text-center text-red-500 py-10">
-            Lỗi: {anyError.toString()}
+            Lỗi: {error.toString()}
           </div>
         ) : (
-          /* 2. Luôn hiển thị bảng (ngay cả khi đang tải) */
           <AdvancedTable
             title01="Danh mục / Thông số / Độ kiên cố than, đá"
             title="Thông số"
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}
-            // Dùng 'refresh' lấy từ hook
-            createElement={<Specification02Input onSuccess={refresh} />} 
+            // ✅ Truyền handleRefresh
+            createElement={<Specification02Input onSuccess={handleRefresh} />} 
             navbarMiniItems={items}
             basePath={basePath}
-            // Dùng 'refresh' lấy từ hook
-            onDeleted={refresh} 
+            // ✅ Truyền handleRefresh
+            onDeleted={handleRefresh} 
             columnLefts={['undefined','undefined','undefined','undefined']} 
           />
         )}
         
-        {/* 3. Hiển thị loading overlay riêng biệt */}
-        {isLoading && (
+        {/* Loading Overlay */}
+        {loading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
+            top: 0, 
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
             borderRadius: '8px',
-            zIndex: 100
+            backdropFilter: 'blur(2px)'
           }}>
+            <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>

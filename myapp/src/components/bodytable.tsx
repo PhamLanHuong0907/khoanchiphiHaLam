@@ -81,7 +81,8 @@ interface AdvancedTableProps {
   createElement?: React.ReactElement;
   navbarMiniItems?: NavItem[];
   basePath?: string;
-  onDeleted?: () => void;
+  // 👇 CẬP NHẬT: Cho phép trả về Promise để await được việc reload
+  onDeleted?: () => void | Promise<void>;
   lefts?: (number | string)[];
   columnLefts?: (string | number)[];
   variant?: "default" | "cost" | "advance-cost";
@@ -305,30 +306,27 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
     );
   };
 
+  // 👇 CẬP NHẬT LOGIC XÓA TẠI ĐÂY
   const handleDelete = async () => {
     if (selectedRows.length === 0) return;
 
     setPendingDelete(() => async () => {
       try {
-        // 1. Xử lý xóa qua API nếu có basePath
+        // 1. Gọi API xóa
         if (basePath) {
+          // Lấy danh sách ID
+          // (Logic lấy ID giữ nguyên như file gốc của bạn)
           const idsToDelete = selectedRows
             .map((i) => {
-              const row = sortedData[i];
+              const row = sortedData[i]; // Note: sortedData cần được define trong component
               if (!row) return null;
-
-              // Logic lấy ID từ nút sửa (Pencil)
               const pencilButton = row.find(
-                (cell): cell is React.ReactElement<EditButtonProps> =>
-                  React.isValidElement(cell) &&
-                  typeof (cell.props as EditButtonProps).id !== "undefined"
+                (cell): cell is React.ReactElement<any> =>
+                  React.isValidElement(cell) && typeof (cell.props as any).id !== "undefined"
               );
-
               return pencilButton ? pencilButton.props.id : null;
             })
-            .filter(
-              (id): id is string | number => id !== null && id !== undefined
-            );
+            .filter((id) => id !== null && id !== undefined);
 
           for (const id of idsToDelete) {
             const res = await fetch(`${basePath}/${id}`, {
@@ -339,37 +337,34 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
           }
         }
 
-        // 2. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Local State Update)
-        // Bất kể là xóa API hay xóa thường, ta đều xóa dòng khỏi state tableData
-        // để người dùng thấy kết quả ngay mà không cần chờ API fetch lại.
+        // 2. Cập nhật UI (Optimistic Update - Xóa ngay lập tức trên Client)
+        // Giúp UI mượt mà, nhưng vẫn cần await reload thật
         const rowsInSortedData = selectedRows.map((i) => sortedData[i]);
-        const updated = tableData.filter(
-          (row) => !rowsInSortedData.includes(row)
-        );
-        
-        // Đánh lại số thứ tự nếu cần (tuỳ logic dữ liệu của bạn, ở đây giữ nguyên logic cũ)
-        // Nếu cột đầu tiên là STT thì uncomment dòng dưới:
-        // const reordered = updated.map((row, idx) => { const newRow = [...row]; newRow[0] = idx + 1; return newRow; });
-        
-        setTableData(updated); // Cập nhật bảng ngay lập tức
+        const updated = tableData.filter((row) => !rowsInSortedData.includes(row));
+        setTableData(updated);
+        setSelectedRows([]);
 
-        // 3. Gọi callback onDeleted để Parent component biết và refresh dữ liệu từ server
+        // 3. CHỜ RELOAD DỮ LIỆU TỪ SERVER (Quan trọng nhất)
         if (onDeleted) {
-           onDeleted();
+           await onDeleted();
         }
+
+        // 4. HIỆN ALERT SAU KHI RELOAD XONG (Delay 300ms cho Paint)
+        setTimeout(() => {
+            alert("Xóa thành công");
+            setShowDeleteModal(false);
+        }, 300);
 
       } catch (err) {
         console.error("❌ Lỗi khi xoá dữ liệu:", err);
-        alert("Có lỗi xảy ra khi xóa dữ liệu!"); // Thêm thông báo lỗi cơ bản
-      } finally {
+        alert("Có lỗi xảy ra khi xóa dữ liệu!");
         setShowDeleteModal(false);
-        setSelectedRows([]);
-        alert("Xóa thành công");
       }
     });
 
     setShowDeleteModal(true);
   };
+
   const toggleRowLevel1 = (index: number) => {
     if (expandedRowLevel1 === index) {
       setExpandedRowLevel1(null);
@@ -1444,19 +1439,15 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
         </div>
       </div>
 
-      <ConfirmDeleteModal
+      {/* Confirm Modal */}
+       <ConfirmDeleteModal
         isOpen={showDeleteModal}
-        message={`Bạn có chắc chắn muốn xóa ${selectedRows.length} mục không? Hành động này không thể hoàn tác.`}
+        message={`Bạn có chắc chắn muốn xóa ${selectedRows.length} mục không?`}
         onCancel={() => setShowDeleteModal(false)}
         onConfirm={async () => {
-          try {
-            await pendingDelete();
-          } catch (err) {
-            console.error("Lỗi khi confirm xóa:", err);
-          }
+          await pendingDelete();
         }}
-      />
-
+        />
       {showCreate && createElement && (
         <div className="overlay-create" onClick={() => setShowCreate(false)}>
           <div className="overlay-body" onClick={(e) => e.stopPropagation()}>

@@ -1,61 +1,66 @@
-import React from "react"; // 1. Thêm React
+import  { useState } from "react";
 import PATHS from "../../../../hooks/path";
 import LayoutInput from "../../../../layout/layout_input";
-import { useApi } from "../../../../hooks/useFetchData"; // 2. Import useApi
+import { useApi } from "../../../../hooks/useFetchData";
 
-// 3. Cập nhật props
 interface Specification04InputProps {
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Async
 }
 
 export default function Specification04Input({ onClose, onSuccess }: Specification04InputProps) {
-  // 4. Khai báo API
-  // (BasePath được suy ra từ file Specification04.tsx)
   const basePath = `/api/product/insertitem`; 
-  // (Mẫu JSON post được suy ra từ các file Specification 02, 03)
-  const { postData, loading: saving, error: saveError } = useApi(basePath);
+  
+  // ✅ autoFetch: false
+  const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
 
-  // 5. Cập nhật handleSubmit
+  // State để bind dữ liệu (nếu cần)
+  const [formData] = useState({
+    value: "",
+  });
+
   const handleSubmit = async (data: Record<string, string>) => {
-    // Lấy giá trị từ label của field
     const value = data["Chèn"]?.trim();
 
-    // Validation
     if (!value) return alert("⚠️ Vui lòng nhập Chèn!");
 
-    // Payload (dựa theo mẫu JSON { "value": "string" })
-    const payload = {
-      value,
-    };
-
+    const payload = { value };
     console.log("📤 POST payload:", payload);
 
-    // Gửi dữ liệu
-    await postData(payload, () => {
-      alert("✅ Tạo Chèn thành công!");
-      onSuccess?.();
-      onClose?.();
+    // Gọi API -> Chờ xử lý
+    await postData(payload, async () => {
+      // 1. Chờ reload dữ liệu bảng cha
+      if (onSuccess) {
+        await onSuccess();
+      }
+
+      // 2. Chờ 300ms UI vẽ xong
+      setTimeout(() => {
+        alert("✅ Tạo Chèn thành công!");
+        onClose?.();
+      }, 300);
     });
   };
 
-  // Fields (giữ nguyên)
   const fields = [
     { label: "Chèn", type: "text" as const, placeholder: "Nhập thông số chèn" },
   ];
 
   return (
-      <LayoutInput
-        title01="Danh mục / Thông số / Chèn"
-        title="Tạo mới Chèn"
-        fields={fields}
-        onSubmit={handleSubmit}
-        closePath={PATHS.SPECIFICATION_04.LIST}
-        onClose={onClose}
-        // 7. Thêm initialData
-        initialData={{
-          "Chèn": "",
-        }}
-      />
+    <LayoutInput
+      title01="Danh mục / Thông số / Chèn"
+      title="Tạo mới Chèn"
+      fields={fields}
+      onSubmit={handleSubmit}
+      closePath={PATHS.SPECIFICATION_04.LIST}
+      onClose={onClose}
+      initialData={{
+        "Chèn": formData.value,
+      }}
+    >
+      {/* Hiển thị trạng thái */}
+      {saving && <p className="text-blue-500 mt-3">Đang xử lý...</p>}
+      {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError.toString()}</p>}
+    </LayoutInput>
   );
 }

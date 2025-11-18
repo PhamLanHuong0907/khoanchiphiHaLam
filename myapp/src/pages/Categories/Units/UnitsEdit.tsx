@@ -6,7 +6,7 @@ import { useApi } from "../../../hooks/useFetchData";
 interface UnitsEditProps {
   id: string;
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Cho phép async để await reload
+  onSuccess?: () => Promise<void> | void; // ✅ Async để await reload
 }
 
 interface UnitData {
@@ -15,16 +15,14 @@ interface UnitData {
 }
 
 const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
-  // ====== Base API ======
   const basePath = `/api/catalog/unitofmeasure`;
-
-  // ====== Hooks API ======
+  
+  // Hook API riêng cho modal edit (để fetch detail và put)
   const { fetchById, putData, loading, error } = useApi<UnitData>(basePath);
 
-  // ====== State ======
   const [unit, setUnit] = useState<UnitData | null>(null);
 
-  // ====== Fetch dữ liệu theo ID ======
+  // Fetch dữ liệu chi tiết
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -34,7 +32,6 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
     loadData();
   }, [id, fetchById]);
 
-  // ====== Submit cập nhật ======
   const handleSubmit = async (data: Record<string, string>) => {
     const name = data["Đơn vị tính"]?.trim();
 
@@ -43,25 +40,20 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
 
     const payload = { id, name };
     
-    // Gọi putData và chờ xử lý callback
-    await putData(
-      payload,
-      async () => {
-        // 1. Chờ reload dữ liệu bảng cha
-        if (onSuccess) {
-            await onSuccess();
-        }
-
-        // 2. Dùng setTimeout 200ms để bảng kịp vẽ lại dữ liệu mới trước khi alert hiện lên
-        setTimeout(() => {
-            alert("✅ Cập nhật đơn vị tính thành công!");
-            onClose?.(); // Đóng form sau khi alert xong
-        }, 300);
+    await putData(payload, async () => {
+      // 1. Chờ reload dữ liệu bảng cha
+      if (onSuccess) {
+          await onSuccess();
       }
-    );
+
+      // 2. Đợi 300ms để UI update xong mới hiện Alert
+      setTimeout(() => {
+          alert("✅ Cập nhật đơn vị tính thành công!");
+          onClose?.(); 
+      }, 300);
+    });
   };
 
-  // ====== Fields ======
   const fields = [
     {
       label: "Đơn vị tính",
@@ -83,7 +75,6 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
       }}
       shouldSyncInitialData={true}
     >
-      {/* Trạng thái tải và lỗi */}
       {loading && <p className="text-blue-500 mt-3">Đang lưu dữ liệu...</p>}
       {error && <p className="text-red-500 mt-3">Lỗi: {error}</p>}
     </LayoutInput>

@@ -8,10 +8,12 @@ import UnitsInput from "./UnitsInput";
 import { useApi } from "../../../hooks/useFetchData";
 
 const Unit: React.FC = () => {
-  // ✅ tách riêng URL: (Đã tối ưu)
-  const basePath = `/api/catalog/unitofmeasure`; // dùng cho POST / PUT / DELETE
-  const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`; // dùng cho GET
+  // ✅ URL cơ sở cho các hành động CRUD
+  const basePath = `/api/catalog/unitofmeasure`; 
+  // ✅ URL đầy đủ để fetch list (GET)
+  const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`; 
   
+  // Hook useApi trả về data và hàm refresh (đã được sửa để trả Promise)
   const { data, loading, error, refresh } = useApi<any>(fetchPath);
 
   const columns = [
@@ -22,25 +24,31 @@ const Unit: React.FC = () => {
     </div>,
     "Sửa",
   ];
-  const columnWidths = [6, 90, 4]; // (Giữ nguyên)
+  const columnWidths = [6, 90, 4];
+
+  // ✅ Helper async để đảm bảo việc await hoạt động đúng
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
   const tableData =
     data && Array.isArray(data)
-      
       ? data.map((row: any, index: number) => [
           index + 1,
           row.name,
           <PencilButton
             key={row.id}
             id={row.id}
-            editElement={<UnitsEdit id={row.id} onSuccess={refresh} />}
+            // ✅ Truyền handleRefresh vào onSuccess của form Edit
+            // Logic: Sửa -> Chờ refresh() -> Table update -> 300ms -> Alert
+            editElement={<UnitsEdit id={row.id} onSuccess={handleRefresh} />}
           />,
         ])
       : [];
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="p-6 relative min-h-[500px]">
         <style>{`
           th > div {
             display: inline-flex;
@@ -49,38 +57,29 @@ const Unit: React.FC = () => {
           }
         `}</style>
 
-        {/* SỬA ĐỔI: Cập nhật logic return */}
-
-        {/* 1. Ưu tiên hiển thị lỗi */}
         {error ? (
           <div className="text-center text-red-500 py-10">Lỗi: {error}</div>
         ) : (
-          /* 2. Luôn hiển thị bảng (ngay cả khi đang tải) */
           <AdvancedTable
             title01="Danh mục / Đơn vị tính"
             title="Đơn vị tính"
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}
-            createElement={<UnitsInput onSuccess={refresh} />}
-            basePath={basePath}   // ✅ dùng basePath "sạch" cho PUT / DELETE / POST
-            onDeleted={refresh}   // ✅ tự refresh sau khi xóa
-            columnLefts={['undefined', 'undefined', 'undefined']}
+            // ✅ Truyền handleRefresh vào form Create
+            createElement={<UnitsInput onSuccess={handleRefresh} />}
+            basePath={basePath}
+            // ✅ Truyền handleRefresh vào hành động Delete
+            // Logic: Xóa API -> await handleRefresh() -> 300ms -> Alert
+            onDeleted={handleRefresh}
+            columnLefts={[]} 
           />
         )}
         
-        {/* 3. Hiển thị loading overlay riêng biệt */}
+        {/* Overlay Loading khi đang refresh dữ liệu */}
         {loading && (
-          <div style={{
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            zIndex: 100
-          }}>
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-50 rounded-lg backdrop-blur-[2px]">
+            <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>

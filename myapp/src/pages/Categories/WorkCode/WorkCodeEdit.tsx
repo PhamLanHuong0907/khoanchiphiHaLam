@@ -7,7 +7,7 @@ import { useApi } from "../../../hooks/useFetchData";
 interface WorkCodeEditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Async
 }
 
 interface WorkCode {
@@ -22,11 +22,10 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
   onClose,
   onSuccess,
 }) => {
-  // ====== API setup ======
   const workCodePath = `/api/catalog/assignmentcode`;
   const unitPath = `/api/catalog/unitofmeasure`;
 
-  // useApi cho WorkCode (GET theo id + PUT)
+  // useApi cho WorkCode
   const {
     fetchById,
     putData,
@@ -38,11 +37,8 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
   const {
     fetchData: fetchUnits,
     data: units,
-    loading: loadingUnits,
-    error: errorUnits,
   } = useApi<{ id: string; name: string }>(unitPath);
 
-  // ====== State ======
   const [currentWorkCode, setCurrentWorkCode] = useState<WorkCode | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
   const [formData, setFormData] = useState({
@@ -50,17 +46,17 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
     name: "",
   });
 
-  // ====== Fetch dữ liệu WorkCode theo ID ======
+  // Fetch dữ liệu theo ID
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
-      const res = await fetchById(id); // GET: /api/catalog/assignmentcode/{id}
+      const res = await fetchById(id);
       if (res) setCurrentWorkCode(res as WorkCode);
     };
     loadData();
   }, [id, fetchById]);
 
-  // ====== Gán dữ liệu vào form ======
+  // Gán dữ liệu
   useEffect(() => {
     if (currentWorkCode) {
       setFormData({
@@ -71,16 +67,14 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
     }
   }, [currentWorkCode]);
 
-  // ====== Load danh sách đơn vị tính ======
+  // Load danh sách đơn vị tính
   useEffect(() => {
     fetchUnits();
   }, [fetchUnits]);
 
-  const unitOptions =
-    units?.map((u) => ({
-      value: u.id,
-      label: u.name,
-    })) || [];
+  const unitOptions = Array.isArray(units) 
+    ? units.map((u) => ({ value: u.id, label: u.name })) 
+    : [];
 
   // ====== PUT cập nhật dữ liệu ======
   const handleSubmit = async (data: Record<string, string>) => {
@@ -94,20 +88,25 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
     if (!name) return alert("⚠️ Vui lòng nhập tên mã giao khoán!");
 
     const payload = { id, code, name, unitOfMeasureId };
-    console.log("📤 PUT:", payload);
+    
     await putData(
       payload,
-      () => {
-        alert("✅ Cập nhật mã giao khoán thành công!");
-        onSuccess?.(); // refresh bảng ngoài
-        onClose?.();   // đóng popup
+      async () => {
+        // 1. Chờ reload dữ liệu
+        if (onSuccess) {
+            await onSuccess();
+        }
+        
+        // 2. Chờ 300ms UI vẽ xong
+        setTimeout(() => {
+            alert("✅ Cập nhật mã giao khoán thành công!");
+            onClose?.();
+        }, 300);
       },
     );
   };
 
-  // ====== Fields ======
   const fields = [
-    // custom slot cho dropdown
     {
       label: "Mã giao khoán",
       type: "text" as const,
@@ -118,11 +117,10 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
       type: "text" as const,
       placeholder: "Nhập tên mã giao khoán",
     },
-    { type: "custom" as const }, // Đặt slot custom ở cuối
+    { type: "custom" as const },
   ];
 
   return (
-    // SỬA ĐỔI: Bọc bằng Fragment
       <LayoutInput
         title01="Danh mục / Mã giao khoán"
         title="Chỉnh sửa Mã giao khoán"
@@ -134,10 +132,8 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
           "Mã giao khoán": formData.code,
           "Tên mã giao khoán": formData.name,
         }}
-        shouldSyncInitialData={true} // đồng bộ dữ liệu sau khi fetch
+        shouldSyncInitialData={true}
       >
-        {/* Dropdown Đơn vị tính */}
-        {/* SỬA ĐỔI: Thêm className="custom" để khớp với type */}
         <div className="custom" key={1}>
           <DropdownMenuSearchable
             label="Đơn vị tính"
@@ -145,12 +141,11 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
             value={selectedUnitId}
             onChange={(value) => setSelectedUnitId(value)}
             placeholder="Chọn đơn vị tính..."
-            isDisabled={loadingUnits}
           />
         </div>
 
-
-        {/* Trạng thái tải & lỗi (ĐÃ XÓA KHỎI ĐÂY) */}
+        {loadingWorkCode && <p className="text-blue-500 mt-3">Đang lưu dữ liệu...</p>}
+        {errorWorkCode && <p className="text-red-500 mt-3">Lỗi: {errorWorkCode}</p>}
       </LayoutInput>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react"; // Bỏ useEffect
+import React from "react";
 import Layout from "../../../layout/layout_filter";
 import AdvancedTable from "../../../components/bodytable";
 import PencilButton from "../../../components/PencilButtons";
@@ -9,9 +9,8 @@ import { useApi } from "../../../hooks/useFetchData";
 
 const WorkCode: React.FC = () => {
   const basePath = `/api/catalog/assignmentcode`;
-  
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
-  // ✅ Sửa đổi: Lấy 'refresh' trực tiếp từ useApi
+  
   const { data, loading, error, refresh } = useApi<{
     id: string;
     code: string;
@@ -19,11 +18,10 @@ const WorkCode: React.FC = () => {
     unitOfMeasureName: string;
   }>(fetchPath);
 
-  // ✅ Bỏ hàm refresh thủ công
-  // const refresh = () => { ... };
-
-  // ✅ Bỏ useEffect load lần đầu
-  // useEffect(() => { ... }, [fetchData]);
+  // ✅ Helper Async để đảm bảo các component con await đúng
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
   const columns = [
     "STT",
@@ -53,48 +51,52 @@ const WorkCode: React.FC = () => {
       <PencilButton
         key={row.id}
         id={row.id}
-        // ✅ Sửa đổi: Dùng 'refresh' từ hook
-        editElement={<WorkCodeEdit id={row.id} onSuccess={refresh} />}
+        // ✅ Truyền handleRefresh
+        editElement={<WorkCodeEdit id={row.id} onSuccess={handleRefresh} />}
       />,
     ]) || [];
 
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="p-6 relative min-h-[500px]">
         
-        {/* 1. Ưu tiên hiển thị lỗi (Logic này đã đúng) */}
         {error ? (
           <div className="text-center text-red-500 py-10">Lỗi: {error}</div>
         ) : (
-          /* 2. Luôn hiển thị bảng (Logic này đã đúng) */
           <AdvancedTable
             title01="Danh mục / Mã giao khoán"
             title="Mã giao khoán"
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}
-            // ✅ Sửa đổi: Dùng 'refresh' từ hook
-            createElement={<WorkCodeInput onSuccess={refresh} />}
+            // ✅ Truyền handleRefresh cho Create
+            createElement={<WorkCodeInput onSuccess={handleRefresh} />}
             basePath={basePath}
-            // ✅ Sửa đổi: Dùng 'refresh' từ hook
-            onDeleted={refresh}
+            // ✅ Truyền handleRefresh cho Delete
+            onDeleted={handleRefresh}
+            // Giữ nguyên config columnLefts của bạn
             columnLefts={['undefined', 'undefined', 'undefined', 6, 'undefined']}
           />
         )}
         
-        {/* 3. Hiển thị loading overlay (Logic này đã đúng) */}
+        {/* Loading Overlay */}
         {loading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
+            top: 0, 
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
             borderRadius: '8px',
-            zIndex: 100
+            backdropFilter: 'blur(2px)'
           }}>
+            <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>
