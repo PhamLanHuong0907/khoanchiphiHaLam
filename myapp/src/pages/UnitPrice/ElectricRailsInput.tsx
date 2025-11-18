@@ -6,7 +6,7 @@ import "../../components/transactionselector.css"; // Import CSS (NƠI CHỨA TO
 import PATHS from "../../hooks/path"; // Import PATHS
 import { useApi } from "../../hooks/useFetchData"; // Import hook API
 import "../../layout/layout_input.css";
-
+import FormRow from "../../components/formRow";
 // === Định nghĩa interface cho dữ liệu ===
 
 // Interface cho API GET /api/catalog/equipment (CHỈ LẤY DANH SÁCH)
@@ -208,7 +208,29 @@ export default function ElectricRailsInput({
   const selectedOptions = equipmentOptions.filter((opt) =>
     selectedEquipmentIds.includes(opt.value)
   );
-
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const dateRowData = useMemo(
+    () => [
+      [
+        {
+          type: "date" as const, // 'as const' giúp TS suy luận kiểu hẹp
+          label: "Ngày bắt đầu",
+          value: startDate,
+          onChange: setStartDate,
+          placeholder: "Chọn ngày bắt đầu",
+        },
+        {
+          type: "date" as const,
+          label: "Ngày kết thúc",
+          value: endDate,
+          onChange: setEndDate,
+          placeholder: "Chọn ngày kết thúc",
+        },
+      ],
+    ],
+    [startDate, endDate]
+  ); // Phụ thuộc vào state ngày tháng
   return (
     <div
       className="layout-input-container"
@@ -228,11 +250,15 @@ export default function ElectricRailsInput({
 
       <div className="layout-input-body">
         {/* Field Mã thiết bị (REACT-SELECT) */}
+        <div className="header2" style={{ position: "fixed", zIndex:9999999 , backgroundColor:"#f1f2f5", width: "755px"}}>
+        <div className="custom7" key="c7" >
+        <div className="date-row-slot" >
+        <FormRow rows={dateRowData} />
+        </div>
         <div
           className="input-row"
-          style={{ position: "fixed", zIndex: 9999999 }}
         >
-          <label>Mã thiết bị</label>
+          <label style={{marginTop: "20px"}}>Mã thiết bị</label>
           <Select
             isMulti
             options={equipmentOptions}
@@ -247,12 +273,13 @@ export default function ElectricRailsInput({
             }}
           />
         </div>
+        </div>
+        </div>
         <div
           style={{
-            marginTop: "80px",
+            marginTop: "180px",
             width: "100%",
             maxHeight: "400px",
-            overflowY: "auto",
             minHeight: "100px",
           }}
         >

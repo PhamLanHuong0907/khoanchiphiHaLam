@@ -2,17 +2,14 @@
 // BẮT ĐẦU: File formrow.tsx (Đã sửa)
 // ------------------------------------
 import React, { useRef } from "react";
+import { createPortal } from "react-dom"; // <--- BỔ SUNG 1: Import createPortal
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./formrow.css";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import plusIcon from "../../assets/icon_plus.png";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import calendarIcon from "../../assets/icon_calendar.png";
 import X from "../../assets/X.png";
 import { Calendar } from "lucide-react";
 import { PlusCircle } from "lucide-react";
-
+import { offset } from "@floating-ui/dom";
 // CẬP NHẬT: Sử dụng Discriminated Unions để loại bỏ 'any'
 
 // 1. Interface cơ sở cho các trường chung
@@ -49,6 +46,13 @@ interface FormRowProps {
   onRemove?: (rowIndex: number) => void; // Prop mới để báo cho cha biết cần xóa hàng
 }
 
+// <--- BỔ SUNG 2: Component container để "dịch chuyển" lịch ra <body>
+//     Component này dùng "cổng dịch chuyển" (portal) để render children vào <body>
+const PopperContainer = ({ children }: { children: React.ReactNode }) => {
+  return createPortal(children, document.body);
+};
+// -------------------------------------------------------------------
+
 const FormRow: React.FC<FormRowProps> = ({
   title,
   title1,
@@ -82,11 +86,16 @@ const FormRow: React.FC<FormRowProps> = ({
                           datePickerRefs.current[rowIndex] = [];
                         datePickerRefs.current[rowIndex][fieldIndex] = el;
                       }}
-                      selected={field.value} // 👈 Bỏ 'as Date | null'
-                      onChange={(date) => field.onChange(date)} // 👈 'date' là Date | null, khớp hoàn hảo
+                      selected={field.value}
+                      onChange={(date) => field.onChange(date)}
                       dateFormat="dd/MM/yyyy"
                       placeholderText={field.placeholder}
                       className="datepicker-input"
+                      popperModifiers={[
+                        offset({ crossAxis: 30, mainAxis: 0 }),
+                      ]}
+                      // <--- SỬA LẠI 3: Dùng component PopperContainer đã tạo
+                      popperContainer={PopperContainer}
                     />
                     <Calendar
                       alt="calendar"

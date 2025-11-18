@@ -346,7 +346,7 @@ export default function ExecutionMaterialInput({
                 value={startDate ? startDate.toLocaleDateString("vi-VN") : ""}
                 readOnly
                 disabled
-                style={{ backgroundColor: "#f1f2f5" }}
+                style={{ backgroundColor: "#f1f2f5", width: "" }}
               />
               <Calendar
                 size={16}

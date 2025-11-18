@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 20px;
+  padding-top: 0px;
+  z-index: 99999;
 }
 
 .form-row-title {
@@ -139,6 +140,7 @@ img{
 .datepicker-input {
   width: 100%;
   padding: 8px 32px 8px 0px; /* chừa chỗ cho icon */
+  
 }
 
 .calendar-overlay-icon {
@@ -196,4 +198,13 @@ img{
   position: absolute;
   inset: 0;
   pointer-events: none; /* chắc chắn pseudo không chặn */
+}
+/* Thêm vào file CSS của component Materials_Ingredient_Input */
+.date-row-slot .form-field,
+.date-row-slot .input-wrapper {
+  /* (720px tổng - 24px gap) / 2 trường = 348px */
+  width: 348px;
+}
+.react-datepicker-popper {
+  z-index: 9999999999999999999;
 }

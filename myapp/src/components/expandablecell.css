@@ -3,7 +3,7 @@
 /* Căn trái cho cột mã vật tư */
 .advanced-table th:nth-child(2),
 .advanced-table td:nth-child(2) {
-  text-align: left !important;
+  text-align: center;
   padding-left: 16px;
 }
 

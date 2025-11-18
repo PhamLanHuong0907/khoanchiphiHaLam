@@ -21,7 +21,7 @@ const Unified_Cost: React.FC = () => {
     "Thời gian",
     "Sửa",
   ];
-  const columnWidths = [6, 11, 60, 10, 11, 15, 15, 5];
+  const columnWidths = [6, 11, 55, 15, 11, 15, 15, 5];
 
   const dataRows = [
     {

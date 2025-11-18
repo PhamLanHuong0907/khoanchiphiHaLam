@@ -1,11 +1,12 @@
+import { useState, useMemo, useEffect } from "react"; // SỬA: Thêm useEffect
 import { X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react"; // SỬA: Thêm useEffect
 import { useNavigate } from "react-router-dom";
 import Select from "react-select"; // Import react-select
-import "../../components/transactionselector.css"; // Import CSS
-import PATHS from "../../hooks/path"; // Import PATHS
 import { useApi } from "../../hooks/useFetchData"; // Import hook API
+import PATHS from "../../hooks/path"; // Import PATHS
 import "../../layout/layout_input.css";
+import "../../components/transactionselector.css"; // Import CSS
+import FormRow from "../../components/formRow";
 
 // === Định nghĩa interface cho dữ liệu ===
 // ... (Interfaces của bạn giữ nguyên) ...
@@ -32,9 +33,9 @@ interface PartRowData {
   tenPhuTung: string;
   donGiaVatTu: number; // Sẽ lưu SỐ THÔ (number)
   donViTinh: string;
-  dinhMucThoiGian: string; // Sẽ lưu chuỗi (vd: "123,4")
-  soLuongVatTu: string; // Sẽ lưu chuỗi (vd: "123,4")
-  sanLuongMetLo: string; // Sẽ lưu chuỗi (vd: "123,4")
+  dinhMucThoiGian: string; // Sẽ lưu chuỗi (vd: "1234,5") - SẠCH, KHÔNG CÓ DẤU CHẤM
+  soLuongVatTu: string; // Sẽ lưu chuỗi (vd: "1234,5") - SẠCH, KHÔNG CÓ DẤU CHẤM
+  sanLuongMetLo: string; // Sẽ lưu chuỗi (vd: "1234,5") - SẠCH, KHÔNG CÓ DẤU CHẤM
   dinhMucVatTuSCTX: string; // Sẽ lưu chuỗi định dạng (vd: "123,45")
   chiPhiVatTuSCTX: string; // Sẽ lưu chuỗi định dạng (vd: "100.000")
 }
@@ -55,10 +56,7 @@ interface RepairsInputProps {
   onSuccess?: () => void;
 }
 
-export default function RepairsInput({
-  onClose,
-  onSuccess,
-}: RepairsInputProps) {
+export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProps) {
   // SỬA TÊN
   const navigate = useNavigate();
   const closePath = PATHS.SLIDE_RAILS.LIST;
@@ -98,6 +96,36 @@ export default function RepairsInput({
       maximumFractionDigits: 4, // Giữ nguyên logic cũ
     }).format(value);
   };
+
+  // ====== THÊM MỚI: HÀM ĐỊNH DẠNG INPUT KHI NHẬP ======
+  /**
+   * (INPUT DISPLAY) Định dạng chuỗi "thô" từ state (vd: "12345,6")
+   * thành chuỗi hiển thị trong input (vd: "12.345,6")
+   */
+  const formatInputDisplay = (value: string | undefined | null): string => {
+    if (!value) return "";
+
+    // Tách phần nguyên và phần thập phân (luôn dùng dấu phẩy)
+    const parts = value.split(",");
+    const integerPart = parts[0];
+    const decimalPart = parts[1];
+
+    // Chỉ định dạng phần nguyên bằng dấu chấm
+    // Ví dụ: "1234567" -> "1.234.567"
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    // Ghép lại
+    if (value.endsWith(",")) {
+      // Nếu người dùng vừa gõ xong dấu phẩy (vd: "12.345,")
+      return formattedInteger + ",";
+    }
+    if (decimalPart !== undefined) {
+      // Nếu có cả phần thập phân (vd: "12.345,6")
+      return formattedInteger + "," + decimalPart;
+    }
+    // Nếu chỉ có phần nguyên (vd: "12.345")
+    return formattedInteger;
+  };
   // ====== KẾT THÚC SỬA ĐỔI 1 ======
 
   // === Gọi API ===
@@ -113,9 +141,7 @@ export default function RepairsInput({
   );
 
   // === State ===
-  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>(
-    []
-  );
+  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
   const [partRows, setPartRows] = useState<PartRowData[]>([]);
 
   // === Memoized Options cho Dropdown ===
@@ -126,8 +152,6 @@ export default function RepairsInput({
     }));
   }, [equipmentData]);
 
-  // SỬA: Xóa Promise.allSettled vì không cần thiết trong file này
-  // (File này không có nhiều API như file trước)
   // 7. ====== Load dropdowns (Đã sửa) ======
   useEffect(() => {
     // Không cần fetchAllData phức tạp ở đây
@@ -140,30 +164,51 @@ export default function RepairsInput({
     if (!onClose && closePath) navigate(closePath);
   };
 
-  // (Hàm này không thay đổi, nó lưu SỐ THÔ (number) vào state)
   const handleSelectChange = (selected: any) => {
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
-    setSelectedEquipmentIds(newSelectedIds);
+
+    // 1. Lấy state CŨ (dữ liệu người dùng đã nhập) ra trước
+    const oldRowsMap = new Map<string, PartRowData>();
+    partRows.forEach((row) => {
+      oldRowsMap.set(row.partId, row);
+    });
+
+    // 2. Tạo danh sách hàng mới dựa trên các ID vừa chọn
     const newRows = allPartsData
       .filter((part) => newSelectedIds.includes(part.equipmentId))
       .map(
-        (part): PartRowData => ({
-          partId: part.id,
-          equipmentId: part.equipmentId,
-          tenPhuTung: part.name,
-          donGiaVatTu: part.costAmmount || 0, // <-- Lưu SỐ THÔ (number)
-          donViTinh: part.unitOfMeasureName || "Cái",
-          dinhMucThoiGian: "", // <-- Lưu CHUỖI
-          soLuongVatTu: "", // <-- Lưu CHUỖI
-          sanLuongMetLo: "", // <-- Lưu CHUỖI
-          dinhMucVatTuSCTX: "0", // <-- Lưu CHUỖI (đã định dạng)
-          chiPhiVatTuSCTX: "0", // <-- Lưu CHUỖI (đã định dạng)
-        })
+        (part): PartRowData => {
+          // 3. KIỂM TRA: Hàng này (partId) đã có trong state cũ chưa?
+          const existingRowData = oldRowsMap.get(part.id);
+
+          // 4. NẾU CÓ: Trả về object cũ (chứa dữ liệu người dùng đã nhập)
+          if (existingRowData) {
+            return existingRowData;
+          }
+
+          // 5. NẾU KHÔNG (Đây là hàng mới): Tạo hàng mặc định
+          return {
+            partId: part.id,
+            equipmentId: part.equipmentId,
+            tenPhuTung: part.name,
+            donGiaVatTu: part.costAmmount || 0,
+            donViTinh: part.unitOfMeasureName || "Cái",
+            dinhMucThoiGian: "", // <-- Mặc định
+            soLuongVatTu: "", // <-- Mặc định
+            sanLuongMetLo: "", // <-- Mặc định
+            dinhMucVatTuSCTX: "0",
+            chiPhiVatTuSCTX: "0",
+          };
+        }
       );
+
+    // 6. Cập nhật state ID và state Hàng
+    setSelectedEquipmentIds(newSelectedIds);
     setPartRows(newRows);
   };
 
   // ====== BẮT ĐẦU SỬA ĐỔI 2: Cập nhật handleRowChange (cho Định mức) ======
+  // (HÀM NÀY GIỮ NGUYÊN - NÓ ĐÃ HOẠT ĐỘNG ĐÚNG)
   const handleRowChange = (
     index: number,
     field: keyof PartRowData,
@@ -179,6 +224,7 @@ export default function RepairsInput({
       field === "sanLuongMetLo"
     ) {
       // 1a. CHẶN DẤU CHẤM: Xóa tất cả dấu chấm ('.')
+      // (Người dùng có thể gõ "1.000,5" -> state lưu "1000,5")
       cleanValue = value.replace(/\./g, "");
 
       // 1b. KIỂM TRA HỢP LỆ: Chỉ cho phép số và 1 dấu phẩy
@@ -217,6 +263,7 @@ export default function RepairsInput({
   // ====== KẾT THÚC SỬA ĐỔI 2 ======
 
   // ====== BẮT ĐẦU SỬA ĐỔI 3: Cập nhật handleSubmit (dùng parseLocalFloat) ======
+  // (HÀM NÀY GIỮ NGUYÊN - NÓ ĐÃ HOẠT ĐỘNG ĐÚNG)
   const handleSubmit = async () => {
     const costItems: CostItem[] = partRows.map((row) => ({
       equipmentId: row.equipmentId,
@@ -252,6 +299,29 @@ export default function RepairsInput({
   const selectedOptions = equipmentOptions.filter((opt) =>
     selectedEquipmentIds.includes(opt.value)
   );
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const dateRowData = useMemo(
+    () => [
+      [
+        {
+          type: "date" as const, // 'as const' giúp TS suy luận kiểu hẹp
+          label: "Ngày bắt đầu",
+          value: startDate,
+          onChange: setStartDate,
+          placeholder: "Chọn ngày bắt đầu",
+        },
+        {
+          type: "date" as const,
+          label: "Ngày kết thúc",
+          value: endDate,
+          onChange: setEndDate,
+          placeholder: "Chọn ngày kết thúc",
+        },
+      ],
+    ],
+    [startDate, endDate]
+  ); // Phụ thuộc vào state ngày tháng
 
   return (
     <div
@@ -271,8 +341,10 @@ export default function RepairsInput({
       </div>
 
       <div className="layout-input-body">
-        <div className="input-row" style={{ position: "fixed" }}>
-          <label>Mã thiết bị</label>
+        <div className="layout-input-header1" style={{ position: "fixed", zIndex:9999999 , backgroundColor:"#f1f2f5", width: "755px"}}>
+          
+        <div className="input-row" >
+          <label style={{marginTop: "20px"}}>Mã thiết bị</label>
           <Select
             isMulti
             options={equipmentOptions}
@@ -287,13 +359,12 @@ export default function RepairsInput({
             }}
           />
         </div>
-
+        </div>
         <div
           style={{
-            marginTop: "80px",
+            marginTop: "180px",
             width: "100%",
             maxHeight: "400px",
-            overflowY: "auto",
           }}
         >
           {partRows.map((row, index) => (
@@ -309,7 +380,9 @@ export default function RepairsInput({
                 borderBottom: "1px dashed #ccc",
               }}
             >
-              {[{ label: "Tên phụ tùng", name: "tenPhuTung" }].map((item) => (
+              {[
+                { label: "Tên phụ tùng", name: "tenPhuTung" },
+              ].map((item) => (
                 <div
                   key={item.name}
                   className="input-row"
@@ -345,6 +418,7 @@ export default function RepairsInput({
               ))}
 
               {/* ====== BẮT ĐẦU SỬA ĐỔI 4: Định dạng Đơn giá vật tư ====== */}
+              {/* (KHÔNG THAY ĐỔI, VẪN GIỮ NGUYÊN) */}
               <div
                 className="input-row"
                 style={{ width: "100px", marginBottom: "21px" }}
@@ -380,7 +454,9 @@ export default function RepairsInput({
               </div>
               {/* ====== KẾT THÚC SỬA ĐỔI 4 ====== */}
 
-              {[{ label: "ĐVT", name: "donViTinh" }].map((item) => (
+              {[
+                { label: "ĐVT", name: "donViTinh" },
+              ].map((item) => (
                 <div
                   key={item.name}
                   className="input-row"
@@ -415,7 +491,7 @@ export default function RepairsInput({
                 </div>
               ))}
 
-              {/* ====== BẮT ĐẦU SỬA ĐỔI 5: Đổi type="number" -> "text" ====== */}
+              {/* ====== BẮT ĐẦU SỬA ĐỔI 5: SỬ DỤNG HÀM FORMAT MỚI ====== */}
               <div className="input-row" style={{ width: "120px" }}>
                 <label
                   htmlFor={`dinhMucThoiGian-${index}`}
@@ -425,19 +501,21 @@ export default function RepairsInput({
                 </label>
                 <div className="tooltip-wrapper">
                   <input
-                    type="text" // SỬA: number -> text
+                    type="text" // (Giữ nguyên type="text")
                     id={`dinhMucThoiGian-${index}`}
                     name="dinhMucThoiGian"
                     placeholder="Nhập định mức"
                     className="input-text"
-                    value={row.dinhMucThoiGian} // State (string "123,4")
+                    // ====== SỬA: Dùng hàm formatInputDisplay ======
+                    value={formatInputDisplay(row.dinhMucThoiGian)}
                     onChange={(e) =>
                       handleRowChange(index, "dinhMucThoiGian", e.target.value)
                     }
                     autoComplete="off"
                   />
                   <span className="tooltip-text">
-                    {row.dinhMucThoiGian || "Chưa nhập"}
+                    {/* Sửa tooltip để hiển thị đẹp hơn */}
+                    {formatInputDisplay(row.dinhMucThoiGian) || "Chưa nhập"}
                   </span>
                 </div>
               </div>
@@ -450,19 +528,21 @@ export default function RepairsInput({
                 </label>
                 <div className="tooltip-wrapper">
                   <input
-                    type="text" // SỬA: number -> text
+                    type="text" // (Giữ nguyên type="text")
                     id={`soLuongVatTu-${index}`}
                     name="soLuongVatTu"
                     placeholder="Nhập số lượng"
                     className="input-text"
-                    value={row.soLuongVatTu} // State (string "123,4")
+                    // ====== SỬA: Dùng hàm formatInputDisplay ======
+                    value={formatInputDisplay(row.soLuongVatTu)}
                     onChange={(e) =>
                       handleRowChange(index, "soLuongVatTu", e.target.value)
                     }
                     autoComplete="off"
                   />
                   <span className="tooltip-text">
-                    {row.soLuongVatTu || "Chưa nhập"}
+                    {/* Sửa tooltip để hiển thị đẹp hơn */}
+                    {formatInputDisplay(row.soLuongVatTu) || "Chưa nhập"}
                   </span>
                 </div>
               </div>
@@ -475,19 +555,21 @@ export default function RepairsInput({
                 </label>
                 <div className="tooltip-wrapper">
                   <input
-                    type="text" // SỬA: number -> text
+                    type="text" // (Giữ nguyên type="text")
                     id={`sanLuongMetLo-${index}`}
                     name="sanLuongMetLo"
                     placeholder="Nhập sản lượng"
                     className="input-text"
-                    value={row.sanLuongMetLo} // State (string "123,4")
+                    // ====== SỬA: Dùng hàm formatInputDisplay ======
+                    value={formatInputDisplay(row.sanLuongMetLo)}
                     onChange={(e) =>
                       handleRowChange(index, "sanLuongMetLo", e.target.value)
                     }
                     autoComplete="off"
                   />
                   <span className="tooltip-text">
-                    {row.sanLuongMetLo || "Chưa nhập"}
+                    {/* Sửa tooltip để hiển thị đẹp hơn */}
+                    {formatInputDisplay(row.sanLuongMetLo) || "Chưa nhập"}
                   </span>
                 </div>
               </div>

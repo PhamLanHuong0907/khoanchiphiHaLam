@@ -1,7 +1,7 @@
 import { Calendar, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Select from "react-select";
+import Select, { type MultiValue } from "react-select";
 import "../../components/dropdown_menu_searchable.css";
 import "../../components/transactionselector.css";
 import PATHS from "../../hooks/path";
@@ -12,6 +12,7 @@ import "../../layout/layout_input.css";
 // === NGUỒN MOCK (Chỉ cho plan info) ===
 // ==================
 const MOCK_DATA = {
+  // ... (Dữ liệu mock plans, products, editDetails, materialDetails giữ nguyên)
   plans: [
     {
       id: 1,
@@ -124,11 +125,18 @@ const MOCK_DATA = {
 
 const MOCK_K_OPTIONS = [0.9, 0.6, 0.5, 1];
 
+// **THAY ĐỔI**: Định nghĩa các kiểu (type) cho key của MOCK_DATA
+type ProductCode = keyof typeof MOCK_DATA.products;
+type DetailKey = keyof typeof MOCK_DATA.editDetails;
+type MaterialDetailKey = keyof typeof MOCK_DATA.materialDetails;
+
 // ==================
 // === INTERFACES ===
 // ==================
 interface ProductData {
   id: string;
+  // **THAY ĐỔI**: Thêm productCode vào state
+  productCode: ProductCode | "";
   maNhom: string;
   tenNhom: string;
   donViTinh: string;
@@ -137,12 +145,15 @@ interface ProductData {
 
 const DEFAULT_EMPTY_PRODUCT: ProductData = {
   id: "",
+  // **THAY ĐỔI**: Khởi tạo
+  productCode: "",
   maNhom: "",
   tenNhom: "",
   donViTinh: "",
   sanLuong: "",
 };
 
+// ... (Các interface khác giữ nguyên)
 // Interface cho API GET /api/catalog/equipment (danh sách)
 interface EquipmentListItem {
   id: string;
@@ -167,6 +178,15 @@ interface EquipmentDetail {
   costs: EquipmentCost[];
 }
 
+// Interface cho dữ liệu mock 'costs'
+interface MockSavedCost {
+  equipmentId: string;
+  soLuongVatTu: number;
+  k1: number;
+  k2: number;
+  k3: number;
+}
+
 interface EquipmentRowData {
   equipmentId: string;
   tenThietBi: string;
@@ -176,7 +196,7 @@ interface EquipmentRowData {
   k1: number | null;
   k2: number | null;
   k3: number | null;
-  chiPhiDienNangKeHoach: number | null;
+  chiPhiDienNangKeHoach: number;
 }
 
 interface CostItem {
@@ -197,6 +217,15 @@ interface Props {
   onSuccess?: () => void;
 }
 
+// Thêm kiểu dữ liệu cho react-select
+type EquipmentOptionType = {
+  value: string;
+  label: string;
+};
+
+// Thêm kiểu dữ liệu cho các trường số trong bảng
+type NumericEquipmentRowKeys = "soLuongVatTu" | "k1" | "k2" | "k3";
+
 export default function InitialElectricityPlanInput({
   onClose,
   selectedId,
@@ -216,7 +245,7 @@ export default function InitialElectricityPlanInput({
   };
 
   // API hooks
-  const { data: equipmentListData = [] } = useApi<EquipmentListItem[]>(
+  const { data: equipmentListData = [] } = useApi<EquipmentListItem>(
     "/api/catalog/equipment?pageIndex=1&pageSize=10000"
   );
   const { fetchById: getEquipmentDetail, loading: isLoadingRows } =
@@ -237,7 +266,7 @@ export default function InitialElectricityPlanInput({
   const [endDate, setEndDate] = useState<Date | null>(null);
 
   const equipmentOptions = useMemo(
-    () =>
+    (): EquipmentOptionType[] =>
       equipmentListData.map((eq) => ({
         value: eq.id,
         label: eq.code,
@@ -246,59 +275,92 @@ export default function InitialElectricityPlanInput({
   );
 
   // Load plan info
+  // Load plan info
+  // Load plan info
   useEffect(() => {
     if (selectedId) {
       const row = MOCK_DATA.plans.find((r) => r.id === selectedId);
       if (row) {
-        const product = MOCK_DATA.products[row.productCode];
-        if (product) {
+        // --- 1. Product Logic ---
+        const productCode = row.productCode as ProductCode;
+        if (productCode in MOCK_DATA.products) {
+          const product = MOCK_DATA.products[productCode];
           setProductData({
             id: product.id,
+            productCode: productCode,
             maNhom: row.maNhom,
             tenNhom: product.tenNhom,
             donViTinh: product.donViTinh,
             sanLuong: row.sanluong.toString(),
           });
         }
-        const saved = MOCK_DATA.materialDetails?.[subRowId];
-        if (saved) {
-          setStartDate(
-            new Date(saved.thoigianbatdau.split("/").reverse().join("-"))
+
+        // --- 2. Date Logic (Đã sửa Lỗi 2538) ---
+        let foundStartDate: Date | null = null;
+        let foundEndDate: Date | null = null;
+
+        // Ưu tiên 1: Thử lấy từ 'materialDetails'
+        // KIỂM TRA QUAN TRỌNG: "if (subRowId && ...)"
+        // Lỗi 2538 của bạn là do thiếu kiểm tra "subRowId" ở đây.
+        if (subRowId && subRowId in MOCK_DATA.materialDetails) {
+          const saved =
+            MOCK_DATA.materialDetails[subRowId as MaterialDetailKey];
+          foundStartDate = new Date(
+            saved.thoigianbatdau.split("/").reverse().join("-")
           );
-          setEndDate(
-            new Date(saved.thoigianketthuc.split("/").reverse().join("-"))
+          foundEndDate = new Date(
+            saved.thoigianketthuc.split("/").reverse().join("-")
           );
         }
+        // Ưu tiên 2: Nếu không có, lấy từ 'plans.thoigian' (fallback)
+        else if (row.thoigian) {
+          const parts = row.thoigian.split("-");
+          if (parts.length === 2) {
+            const startDateStr = parts[0]; // "1/1/2025"
+            const endDateStr = parts[1]; // "30/1/2025"
+            foundStartDate = new Date(
+              startDateStr.split("/").reverse().join("-")
+            );
+            foundEndDate = new Date(
+              endDateStr.split("/").reverse().join("-")
+            );
+          }
+        }
+
+        // Set state một lần
+        setStartDate(foundStartDate);
+        setEndDate(foundEndDate);
       }
     }
-  }, [selectedId]);
-
+  }, [selectedId, subRowId]); // <-- Phải có cả selectedId và subRowId
   const editLoadedRef = useRef<Record<string, boolean>>({});
   // Edit mode: load saved data
   useEffect(() => {
     if (!isEditMode || !subRowId) return;
 
-    // Nếu đã load cho subRowId này thì không load lại
     if (editLoadedRef.current[subRowId]) return;
 
-    const editData = MOCK_DATA.editDetails[subRowId];
-    if (!editData) return;
+    // **THAY ĐỔI**: Dùng type guard 'in'
+    if (subRowId in MOCK_DATA.editDetails) {
+      const editData = MOCK_DATA.editDetails[subRowId as DetailKey];
 
-    // Đánh dấu đã load cho subRowId này
-    editLoadedRef.current[subRowId] = true;
+      // Đánh dấu đã load cho subRowId này
+      editLoadedRef.current[subRowId] = true;
 
-    setSelectedEquipmentIds(editData.equipmentIds);
+      setSelectedEquipmentIds(editData.equipmentIds);
 
-    // gọi load (hàm này dùng getEquipmentDetail bên ngoài)
-    loadEquipmentDetailsForIds(editData.equipmentIds, editData.costs);
+      // gọi load (hàm này dùng getEquipmentDetail bên ngoài)
+      loadEquipmentDetailsForIds(editData.equipmentIds, editData.costs);
+    }
 
     // Chỉ phụ thuộc vào isEditMode và subRowId để chạy khi 2 giá trị này thay đổi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, subRowId]);
 
   // Helper to load details for equipment IDs
   const loadEquipmentDetailsForIds = async (
     ids: string[],
-    savedCosts: any[]
+    savedCosts: MockSavedCost[]
   ) => {
     try {
       const detailPromises = ids.map((id) => getEquipmentDetail(id));
@@ -307,7 +369,7 @@ export default function InitialElectricityPlanInput({
         (eq): eq is EquipmentDetail => eq !== null
       );
 
-      const loadedRows: EquipmentRowData[] = validDetails.map((eq, index) => {
+      const loadedRows: EquipmentRowData[] = validDetails.map((eq) => {
         const saved = savedCosts.find((c) => c.equipmentId === eq.id);
         const electricCostObj = eq.costs?.find((c) => c.costType === 2);
         const donGia = electricCostObj ? electricCostObj.amount : 0;
@@ -321,7 +383,7 @@ export default function InitialElectricityPlanInput({
           k1: saved?.k1 ?? null,
           k2: saved?.k2 ?? null,
           k3: saved?.k3 ?? null,
-          chiPhiDienNangKeHoach: null,
+          chiPhiDienNangKeHoach: 0,
         };
         row.chiPhiDienNangKeHoach = computeRowCost(row);
         return row;
@@ -337,14 +399,14 @@ export default function InitialElectricityPlanInput({
     if (!onClose && closePath) navigate(closePath);
   };
 
-  const computeRowCost = (r: EquipmentRowData): number | null => {
-    if (!r.soLuongVatTu || r.soLuongVatTu <= 0) return null;
-    const ks = [r.k1, r.k2, r.k3];
-    if (ks.some((v) => v === null || v === undefined)) return null;
-    if (!r.donGiaDienNang || r.donGiaDienNang <= 0) return null;
-
-    const productK = ks.reduce((acc, cur) => acc * (cur as number), 1);
-    const rawCost = r.soLuongVatTu * productK * r.donGiaDienNang;
+  const computeRowCost = (r: EquipmentRowData): number => {
+    const sl = r.soLuongVatTu ?? 0;
+    const dg = r.donGiaDienNang ?? 0;
+    const k1_val = r.k1 ?? 0;
+    const k2_val = r.k2 ?? 0;
+    const k3_val = r.k3 ?? 0;
+    const productK = k1_val * k2_val * k3_val;
+    const rawCost = sl * productK * dg;
     return Math.round(rawCost);
   };
 
@@ -352,9 +414,9 @@ export default function InitialElectricityPlanInput({
     const costItems: CostItem[] = equipmentRows.map((row) => ({
       equipmentId: row.equipmentId,
       quantity: row.soLuongVatTu,
-      k1: row.k1 ?? undefined,
-      k2: row.k2 ?? undefined,
-      k3: row.k3 ?? undefined,
+      k1: row.k1 ?? 0,
+      k2: row.k2 ?? 0,
+      k3: row.k3 ?? 0,
     }));
 
     const payload: PostPayload = { costs: costItems };
@@ -368,10 +430,10 @@ export default function InitialElectricityPlanInput({
     }
   };
 
-  const handleSelectChange = async (selected: any) => {
-    const newSelectedIds: string[] = selected
-      ? selected.map((s: any) => s.value)
-      : [];
+  const handleSelectChange = async (
+    selected: MultiValue<EquipmentOptionType>
+  ) => {
+    const newSelectedIds: string[] = selected ? selected.map((s) => s.value) : [];
 
     const previousIds = selectedEquipmentIds;
     const newlyAddedIds = newSelectedIds.filter(
@@ -395,10 +457,12 @@ export default function InitialElectricityPlanInput({
         (eq): eq is EquipmentDetail => eq !== null
       );
 
-      // Ưu tiên dữ liệu cũ nếu đang edit
-      const savedCosts =
-        isEditMode && subRowId && MOCK_DATA.editDetails[subRowId]
-          ? MOCK_DATA.editDetails[subRowId].costs
+      // **THAY ĐỔI**: Dùng type guard 'in'
+      const savedCosts: MockSavedCost[] =
+        isEditMode &&
+        subRowId &&
+        subRowId in MOCK_DATA.editDetails
+          ? MOCK_DATA.editDetails[subRowId as DetailKey].costs
           : [];
 
       const newRows = validDetails
@@ -420,7 +484,7 @@ export default function InitialElectricityPlanInput({
             k1: saved?.k1 ?? null,
             k2: saved?.k2 ?? null,
             k3: saved?.k3 ?? null,
-            chiPhiDienNangKeHoach: null,
+            chiPhiDienNangKeHoach: 0,
           };
           row.chiPhiDienNangKeHoach = computeRowCost(row);
           return row;
@@ -441,13 +505,19 @@ export default function InitialElectricityPlanInput({
 
   const handleRowNumberChange = (
     index: number,
-    field: keyof EquipmentRowData,
+    field: NumericEquipmentRowKeys,
     value: number | null
   ) => {
     setEquipmentRows((prev) => {
       const newRows = [...prev];
       const row = { ...newRows[index] };
-      (row as any)[field] = value;
+
+      if (field === "soLuongVatTu") {
+        row.soLuongVatTu = value ?? 0;
+      } else {
+        row[field] = value;
+      }
+
       row.chiPhiDienNangKeHoach = computeRowCost(row);
       newRows[index] = row;
       return newRows;
@@ -479,7 +549,7 @@ export default function InitialElectricityPlanInput({
       </div>
 
       <div className="layout-input-body">
-        {/* Thời gian */}
+        {/* ... (Phần Thời gian không đổi) */}
         <div
           style={{
             display: "flex",
@@ -559,15 +629,11 @@ export default function InitialElectricityPlanInput({
               <input
                 type="text"
                 className="input-text"
+                // **THAY ĐỔI**: Đọc từ productData.productCode
                 value={
-                  productData.id
-                    ? MOCK_DATA.products[
-                        productData.id === "sp1"
-                          ? "TN01"
-                          : productData.id === "sp2"
-                            ? "KD01"
-                            : "EBH52"
-                      ]?.code || ""
+                  productData.productCode &&
+                  productData.productCode in MOCK_DATA.products
+                    ? MOCK_DATA.products[productData.productCode].code
                     : ""
                 }
                 disabled
@@ -580,15 +646,11 @@ export default function InitialElectricityPlanInput({
               <input
                 type="text"
                 className="input-text"
+                // **THAY ĐỔI**: Đọc từ productData.productCode
                 value={
-                  productData.id
-                    ? MOCK_DATA.products[
-                        productData.id === "sp1"
-                          ? "TN01"
-                          : productData.id === "sp2"
-                            ? "KD01"
-                            : "EBH52"
-                      ]?.tensp || ""
+                  productData.productCode &&
+                  productData.productCode in MOCK_DATA.products
+                    ? MOCK_DATA.products[productData.productCode].tensp
                     : ""
                 }
                 disabled
@@ -596,6 +658,7 @@ export default function InitialElectricityPlanInput({
               />
             </div>
           </div>
+          {/* ... (Các input Mã nhóm, Nhóm CĐSX, Sản lượng, ĐVT không đổi) */}
           <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
             <div className="input-row" style={{ width: 150 }}>
               <label>Mã nhóm CĐSX</label>
@@ -639,7 +702,7 @@ export default function InitialElectricityPlanInput({
             </div>
           </div>
 
-          {/* Select thiết bị */}
+          {/* ... (Select thiết bị không đổi) */}
           <div className="input-row" style={{ zIndex: 9999, marginBottom: 20 }}>
             <label>Mã thiết bị</label>
             <Select
@@ -656,7 +719,7 @@ export default function InitialElectricityPlanInput({
             />
           </div>
 
-          {/* Danh sách thiết bị */}
+          {/* ... (Danh sách thiết bị không đổi) */}
           <div style={{ width: "97%", maxHeight: 400, overflowY: "auto" }}>
             {isLoadingRows && (
               <div style={{ textAlign: "center", padding: "20px" }}>
@@ -777,7 +840,7 @@ export default function InitialElectricityPlanInput({
                           onChange={(e) =>
                             handleRowNumberChange(
                               index,
-                              kKey as keyof EquipmentRowData,
+                              kKey as NumericEquipmentRowKeys,
                               e.target.value === ""
                                 ? null
                                 : parseFloat(e.target.value)

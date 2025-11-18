@@ -260,7 +260,6 @@
 .advanced-table td:last-child {
   text-align: center;
 }
-
 .advanced-table th:not(:first-child):not(:nth-child(2)):not(:last-child),
 .advanced-table td:not(:first-child):not(:nth-child(2)):not(:last-child) {
   text-align: left;
