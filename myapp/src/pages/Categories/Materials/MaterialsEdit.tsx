@@ -85,13 +85,13 @@ amount: parseFloat(row.amount || "0"),
 };
 
 // 1. ĐÓNG FORM NGAY LẬP TỨC
-onClose?.();
+
 
 try {
   // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
   await Promise.all([
     putData(payload, undefined),
-    onSuccess?.()
+   
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -120,6 +120,8 @@ await new Promise(r => setTimeout(r, 0));
   
   alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
 }
+onClose?.();
+onSuccess?.()
 };
 
 // ====== Cost Row Management Logic (Giữ nguyên) ======

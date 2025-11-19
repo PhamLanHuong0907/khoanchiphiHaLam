@@ -86,13 +86,13 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
     const payload = { id, code, name, processGroupId };
     
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.();
+ 
 
     try {
         // 2. CHẠY API và CHỜ THÀNH CÔNG (Gọi trực tiếp putData)
         await Promise.all([
     putData(payload, undefined),
-    onSuccess?.()
+
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -122,6 +122,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   // ====== Fields ======

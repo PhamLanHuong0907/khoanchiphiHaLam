@@ -43,26 +43,29 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
   const handleSubmit = async (data: Record<string, string>) => {
     const code = data["Mã giao khoán"]?.trim();
     const name = data["Tên mã giao khoán"]?.trim();
-    const unitOfMeasureId = selectedUnitId;
+    
+    // ✅ CHỈNH SỬA: Nếu selectedUnitId là rỗng thì gán là null
+    // Backend thường yêu cầu null thay vì chuỗi rỗng "" đối với trường ID
+    const unitOfMeasureId = selectedUnitId || null;
 
     if (!code) return alert("⚠️ Vui lòng nhập mã giao khoán!");
     if (!name) return alert("⚠️ Vui lòng nhập tên mã giao khoán!");
-    if (!unitOfMeasureId) return alert("⚠️ Vui lòng chọn đơn vị tính!");
+    
+    // Không check unitOfMeasureId nữa để cho phép rỗng
 
     const payload = { code, name, unitOfMeasureId };
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.(); 
+    
 
     try {
-        // 2. CHỜ API HOÀN TẤT (Nếu thất bại, lỗi sẽ được ném ra)
-        // ✅ TRUYỀN UNDEFINED VÀ CHẠY LOGIC RELOAD TUẦN TỰ BÊN DƯỚI
+        // 2. CHỜ API HOÀN TẤT
         await Promise.all([
-    postData(payload, undefined),
-    onSuccess?.()
-]);
+            postData(payload, undefined)
+        ]);
 
-await new Promise(r => setTimeout(r, 0));
+        await new Promise(r => setTimeout(r, 0));
+        
         // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Tạo mã giao khoán thành công!");
 
@@ -87,6 +90,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỂN THỊ ALERT THẤT BẠI CHI TIẾT
         alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   const fields = [

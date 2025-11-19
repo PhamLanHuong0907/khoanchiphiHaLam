@@ -74,13 +74,13 @@ const EquipmentInput: React.FC<EquipmentInputProps> = ({ onClose, onSuccess }) =
     };
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.(); 
+    
 
     try {
         // 2. CHẠY API VÀ CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
         await Promise.all([
     postData(payload, undefined),
-    onSuccess?.()
+
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -109,6 +109,8 @@ await new Promise(r => setTimeout(r, 0));
         
         alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   // ====== Logic quản lý FormRow (Giữ nguyên) ======

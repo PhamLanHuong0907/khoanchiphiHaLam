@@ -53,13 +53,11 @@ export default function Specification04Edit({ id, onClose, onSuccess }: Specific
     console.log("📤 PUT payload:", payload);
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.();
 
     try {
         // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
         await Promise.all([
     putData(payload, undefined),
-    onSuccess?.()
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -88,6 +86,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   const fields = [

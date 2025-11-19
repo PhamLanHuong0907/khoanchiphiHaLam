@@ -14,7 +14,7 @@ interface Specification03EditProps {
 interface StoneClampRatio {
   id: string;
   value: string;
-  adjustmentFactor: number; // Trường mới
+  coefficientValue: number; // Trường mới
 }
 
 export default function Specification03Edit({ id, onClose, onSuccess }: Specification03EditProps) {
@@ -27,7 +27,7 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
   const [currentData, setCurrentData] = useState<StoneClampRatio | null>(null);
   const [formData, setFormData] = useState({
     value: "",
-    adjustmentFactor: "", // Trường mới
+    coefficientValue: "", // Trường mới
   });
 
   // 7. Load data by ID (giữ nguyên)
@@ -45,7 +45,7 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
     if (currentData) {
       setFormData({
         value: currentData.value,
-        adjustmentFactor: currentData.adjustmentFactor?.toString() || "",
+        coefficientValue: currentData.coefficientValue?.toString() || "",
       });
     }
   }, [currentData]);
@@ -55,31 +55,29 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
     if (!id) return alert("❌ Thiếu ID để cập nhật!");
 
     const value = data["Tỷ lệ đá kẹp (Ckep)"]?.trim();
-    const adjustmentFactorStr = data["Hệ số điều chỉnh định mức"]?.trim(); // Trường mới
+    const coefficientValueStr = data["Hệ số điều chỉnh định mức"]?.trim(); // Trường mới
 
     // Validation
     if (!value) return alert("⚠️ Vui lòng nhập Tỷ lệ đá kẹp!");
-    if (!adjustmentFactorStr) return alert("⚠️ Vui lòng nhập Hệ số điều chỉnh định mức!");
+    if (!coefficientValueStr) return alert("⚠️ Vui lòng nhập Hệ số điều chỉnh định mức!");
 
     // Chuyển đổi an toàn
-    const adjustmentFactor = parseFloat(adjustmentFactorStr);
-    if (isNaN(adjustmentFactor)) return alert("⚠️ Hệ số điều chỉnh định mức phải là một con số!");
+    const coefficientValue = parseFloat(coefficientValueStr);
+    if (isNaN(coefficientValue)) return alert("⚠️ Hệ số điều chỉnh định mức phải là một con số!");
 
     // Payload (Thêm trường mới)
     const payload = {
       id,
       value,
-      adjustmentFactor,
+      coefficientValue,
     };
     
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.();
 
     try {
         // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
       await Promise.all([
     putData(payload, undefined),
-    onSuccess?.()
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -109,6 +107,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   // Fields (Thêm trường mới)
@@ -128,7 +128,7 @@ await new Promise(r => setTimeout(r, 0));
         // 11. Thêm initialData và shouldSync
         initialData={{
           "Tỷ lệ đá kẹp (Ckep)": formData.value,
-          "Hệ số điều chỉnh định mức": formData.adjustmentFactor,
+          "Hệ số điều chỉnh định mức": formData.coefficientValue,
         }}
         shouldSyncInitialData={true}
       >

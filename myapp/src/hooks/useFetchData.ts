@@ -88,12 +88,12 @@ export function useApi<T = any>(
       safeSetState(setError, null);
       safeSetState(setSuccess, false);
       try {
-        const res = await fetch(basePath.split("?")[0], { 
+        const res = await fetch(basePath, { 
           method: "POST",
           headers: { "Content-Type": "application/json", "accept": "application/json" },
           body: JSON.stringify(body),
         });
-        
+
         if (!res.ok) {
            const errText = await res.text();
            throw new Error(`HTTP error! status: ${res.status} - ${errText}`);
@@ -104,9 +104,9 @@ export function useApi<T = any>(
         
         // Chỉ reload nội bộ hook này NẾU nó đang chế độ autoFetch (đang hiển thị list)
         // Giúp form input (autoFetch=false) không bị fetch thừa
-        if (options.autoFetch !== false) {
-            await fetchData();
-        }
+        
+            fetchData();
+        
 
         // QUAN TRỌNG: Chờ Parent reload xong
         if (onSuccess) await onSuccess(); 

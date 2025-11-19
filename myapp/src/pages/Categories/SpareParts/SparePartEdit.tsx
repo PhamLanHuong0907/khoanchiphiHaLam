@@ -157,13 +157,13 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
     };
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC (Giống file Input)
-    onClose?.();
+
 
     try {
       // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
       await Promise.all([
         putData(payload, undefined),
-        onSuccess?.()
+
       ]);
 
       // Đợi 1 tick để đảm bảo UI update
@@ -192,6 +192,8 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
 
       alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   // ====== Cost Row Logic (Giữ nguyên logic Input) ======

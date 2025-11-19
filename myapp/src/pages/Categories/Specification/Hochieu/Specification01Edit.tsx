@@ -103,6 +103,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   const fields = [

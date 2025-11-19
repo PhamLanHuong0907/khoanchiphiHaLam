@@ -103,13 +103,12 @@ const SparePartsInput: React.FC<SparePartsInputProps> = ({ onClose, onSuccess })
   };
 
   // 1. ĐÓNG FORM NGAY LẬP TỨC
-  onClose?.(); 
+
 
   try {
     // 2. CHẠY API VÀ CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
     await Promise.all([
     postData(payload, undefined),
-    onSuccess?.()
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -137,6 +136,8 @@ await new Promise(r => setTimeout(r, 0));
     
     alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
   }
+  onClose?.();
+  onSuccess?.()
  };
 
  // ====== Cost Row Management Logic (Giữ nguyên) ======

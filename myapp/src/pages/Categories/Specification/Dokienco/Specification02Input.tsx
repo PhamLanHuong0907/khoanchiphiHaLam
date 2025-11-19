@@ -25,14 +25,12 @@ export default function Specification02Input({ onClose, onSuccess }: Specificati
     const payload = { value };
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.(); 
 
     try {
         // 2. CHẠY API và CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
         
         await Promise.all([
     postData(payload, undefined),
-    onSuccess?.()
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -61,6 +59,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   const fields = [

@@ -43,13 +43,13 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
     // Khởi tạo Promise API, truyền logic reload vào callback thành công
     
     // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Optimistic Close)
-    onClose?.();
+ 
 
     try {
         // 2. CHỜ API VÀ RELOAD HOÀN TẤT
         await Promise.all([
     putData(payload, undefined),
-    onSuccess?.()
+
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -62,6 +62,8 @@ await new Promise(r => setTimeout(r, 0));
         console.error("Lỗi giao dịch sau khi đóng form:", e);
         alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   const fields = [

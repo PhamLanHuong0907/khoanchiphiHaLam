@@ -58,13 +58,13 @@ export default function AdjustmentFactor01Edit({ id, onClose, onSuccess }: Adjus
     const payload = { id, code, name };
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.();
+
     
     try {
         // 2. CHẠY API và CHỜ THÀNH CÔNG
         await Promise.all([
     putData(payload, undefined),
-    onSuccess?.()
+
 ]);
 
 await new Promise(r => setTimeout(r, 0));
@@ -94,6 +94,8 @@ await new Promise(r => setTimeout(r, 0));
         // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
+    onClose?.();
+    onSuccess?.()
   };
 
   // Fields (giữ nguyên)
