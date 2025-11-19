@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import PATHS from "../../../../hooks/path";
 import { useApi } from "../../../../hooks/useFetchData";
 import LayoutInput from "../../../../layout/layout_input";
+import DropdownMenuSearchable from "../../../../components/dropdown_menu_searchable"; // 👈 THÊM IMPORT
 
+// Định nghĩa cấu trúc cho data từ API (ProcessGroup và Hardness)
+interface ApiOption {
+  id: string | number;
+  name: string;
+}
+interface HardOptions{
+  id: string;
+  value: string;
+}
 // 3. Cập nhật props
 interface Specification03InputProps {
   onClose?: () => void;
@@ -13,9 +23,34 @@ export default function Specification03Input({
   onClose,
   onSuccess,
 }: Specification03InputProps) {
-  // 4. Khai báo API
+  // 3. Khai báo state cho giá trị dropdown
+  const [processGroupId, setProcessGroupId] = useState<string>("");
+  const [hardnessId, setHardnessId] = useState<string>("");
+
+  // 4. Khai báo API POST
   const basePath = `/api/product/stoneclampratio`;
   const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
+
+  // 5. Khai báo API GET cho Công đoạn sản xuất
+  const { data: processGroups, loading: loadingProcess } = useApi<ApiOption>(
+    `/api/process/productionprocess?pageIndex=1&pageSize=1000`
+  );
+
+  // 6. Khai báo API GET cho Độ kiên cố than/đá (f)
+  const { data: hardnesses, loading: loadingHardness } = useApi<HardOptions>(
+    `/api/product/hardness?pageIndex=1&pageSize=1000`
+  );
+
+  // 7. Chuyển đổi data API sang định dạng options cho Dropdown
+  const processGroupOptions = processGroups.map((p) => ({
+    value: p.id.toString(), // Chuyển ID sang string
+    label: p.name,
+  }));
+
+  const hardnessOptions = hardnesses.map((h) => ({
+    value: h.id.toString(), // Chuyển ID sang string
+    label: h.value,
+  }));
 
   // --- HÀM MỚI: Chặn nhập dấu phẩy (,) ---
   // Người dùng bắt buộc phải dùng dấu chấm (.)
@@ -34,10 +69,13 @@ export default function Specification03Input({
     // Validation cơ bản
     if (!rawValue) return alert("⚠️ Vui lòng nhập Tỷ lệ đá kẹp!");
     if (!rawCoefficient) return alert("⚠️ Vui lòng nhập Hệ số điều chỉnh định mức!");
+    // Validation mới cho dropdown
+    if (!processGroupId) return alert("⚠️ Vui lòng chọn Công đoạn sản xuất!");
+    if (!hardnessId) return alert("⚠️ Vui lòng chọn Độ kiên cố than/đá (f)!");
 
     // --- XỬ LÝ FORMAT (Safety) ---
     // Dù đã chặn phím ',', ta vẫn replace để phòng trường hợp user copy-paste văn bản chứa dấu ',' vào.
-    const formattedValue = rawValue.replace(/,/g, '.');          // "1,98 <=Ckep<8" -> "1.98 <=Ckep<8"
+    const formattedValue = rawValue.replace(/,/g, '.');          // "1,98 <=Ckep<8" -> "1.98 <=Ckep<8"
     const formattedCoefficient = rawCoefficient.replace(/,/g, '.'); // "1,98" -> "1.98"
 
     // Validation số cho Hệ số (Vì hệ số bắt buộc là số)
@@ -51,7 +89,7 @@ export default function Specification03Input({
       value: formattedValue, 
       
       // Hệ số chuyển sang NUMBER (float) trước khi post
-      coefficientValue: parseFloat(formattedCoefficient) 
+      coefficientValue: parseFloat(formattedCoefficient),
     };
 
     // 1. Gọi API
@@ -84,13 +122,15 @@ export default function Specification03Input({
     }
   };
 
-  // Fields
+  // Fields (Chỉ giữ lại các trường text input được handle bởi LayoutInput)
   const fields = [
+    { type: "custom1" as const },
+    { type: "custom2" as const },
     {
       label: "Tỷ lệ đá kẹp (Ckep)",
       type: "text" as const,
       // Placeholder hướng dẫn đúng định dạng dấu chấm
-      placeholder: "Nhập tỷ lệ đá kẹp, ví dụ: 2<=Ckep<3", 
+      placeholder: "Nhập tỷ lệ đá kẹp, ví dụ: 2.0<=Ckep<3.0", 
       enableCompare: true,
       // Chặn dấu phẩy, ép dùng dấu chấm
       onKeyDown: blockCommaInput,
@@ -98,7 +138,7 @@ export default function Specification03Input({
     {
       label: "Hệ số điều chỉnh định mức",
       type: "text" as const,
-      placeholder: "Nhập hệ só điều chỉnh định mức, ví dụ: 1,2",
+      placeholder: "Nhập hệ số điều chỉnh định mức, ví dụ: 1.2",
       // Chặn dấu phẩy
       onKeyDown: blockCommaInput,
     },
@@ -117,6 +157,31 @@ export default function Specification03Input({
         "Hệ số điều chỉnh định mức": "",
       }}
     >
+      {/* ================== THAY ĐỔI MỚI: Thêm 2 dropdown ================== */}
+      <div className="custom1">
+        {/* Dropdown Công đoạn sản xuất */}
+        <DropdownMenuSearchable
+          label="Công đoạn sản xuất"
+          placeholder={"Chọn công đoạn"}
+          options={processGroupOptions}
+          value={processGroupId}
+          onChange={setProcessGroupId}
+          isDisabled={loadingProcess || saving}
+        />
+        </div>
+        {/* Dropdown Độ kiên cố than/đá (f) */}
+        <div className="custom2">
+        <DropdownMenuSearchable
+          label="Độ kiên cố than/đá (f)"
+          placeholder={"Chọn độ kiên cố"}
+          options={hardnessOptions}
+          value={hardnessId}
+          onChange={setHardnessId}
+          isDisabled={loadingHardness || saving}
+        />
+      </div>
+      {/* ================================================================= */}
+
       {saving && <p className="text-blue-500 mt-3">Đang xử lý...</p>}
       {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError.toString()}</p>}
     </LayoutInput>
