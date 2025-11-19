@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-// 1. Import component của bạn (tên file là SCTX)
-import SlideRailGroupTable from './SCTX';
-// 2. Import hook API (Giả sử file hook nằm ở thư mục hooks)
+import SlideRailGroupTable from './SCTX'; // Giả định SCTX là component render bảng
 import { useApi } from '../hooks/useFetchData'; 
 
-// === 3. Định nghĩa Interface cho dữ liệu API trả về ===
+// === Định nghĩa Interface cho dữ liệu API trả về ===
 interface ApiPartItem {
   id: string; // ID của bản ghi (unit price item)
   equipmentId: string;
@@ -28,11 +26,9 @@ interface ApiResponse {
   maintainUnitPriceEquipment: ApiPartItem[];
 }
 
-// === 4. Định nghĩa Interface cho UI (giống như mock data) ===
+// === Định nghĩa Interface cho UI (giống như mock data) ===
 interface SlideRailItem {
-  // === THAY ĐỔI: ID giờ sẽ là số thứ tự ===
   id: number; 
-  // === KẾT THÚC THAY ĐỔI ===
   name: string;
   unit: string;
   price: string;
@@ -47,33 +43,30 @@ interface SlideRailGroup {
   items: SlideRailItem[];
 }
 
-// === 5. Hàm trợ giúp để định dạng số ===
+// === Hàm trợ giúp để định dạng số ===
 const formatNumber = (num: number, digits: number = 2): string => {
     if (num === null || num === undefined) return "0";
     return num.toLocaleString("vi-VN", { maximumFractionDigits: digits });
 }
 
-// === 6. Hàm chuyển đổi dữ liệu API sang dữ liệu cho UI ===
+// === Hàm chuyển đổi dữ liệu API sang dữ liệu cho UI ===
 const transformData = (apiData: ApiResponse): SlideRailGroup[] => {
   if (!apiData || !apiData.maintainUnitPriceEquipment) {
     return [];
   }
 
-  // === THAY ĐỔI: Thêm `index` vào hàm map ===
   const items: SlideRailItem[] = apiData.maintainUnitPriceEquipment.map((part, index) => ({
-    id: index + 1, // Gán ID là index + 1 (để bắt đầu từ 1)
-    // === KẾT THÚC THAY ĐỔI ===
+    id: index + 1, 
     name: part.partName,
     unit: part.unitOfMeasureName,
-    price: formatNumber(part.partCost),
+    price: formatNumber(part.partCost, 0), 
     time: formatNumber(part.replacementTimeStandard, 0),
     number_vt: formatNumber(part.quantity, 0),
     number_sl: formatNumber(part.averageMonthlyTunnelProduction, 0),
-    dinhmuc: formatNumber(part.materialRatePerMetres, 6), 
-    total: formatNumber(part.materialCostPerMetres),
+    dinhmuc: formatNumber(part.materialRatePerMetres, 4), 
+    total: formatNumber(part.materialCostPerMetres, 0), 
   }));
 
-  // API trả về 1 nhóm thiết bị, UI mong đợi 1 mảng các nhóm
   return [
     {
       items: items,
@@ -82,19 +75,16 @@ const transformData = (apiData: ApiResponse): SlideRailGroup[] => {
 };
 
 
-// === 7. Component chính (đã cập nhật) ===
-// Component này giờ sẽ nhận 'id' của thiết bị
+// === Component chính (SlideRailExample.tsx) ===
 const SlideRailExample: React.FC<{ id: string }> = ({ id }) => {
-  // Khởi tạo hook useApi với base path
   const { fetchById, loading } = useApi<ApiResponse>(
     "/api/pricing/maintainunitpriceequipment"
   );
   
-  // State để lưu trữ dữ liệu đã chuyển đổi cho bảng
   const [tableData, setTableData] = useState<SlideRailGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Dùng useEffect để gọi API khi 'id' thay đổi
+  // Dùng useEffect để gọi API khi 'id' thay đổi HOẶC khi component bị re-mount (do key thay đổi)
   useEffect(() => {
     if (!id) {
       setTableData([]); 
@@ -114,12 +104,15 @@ const SlideRailExample: React.FC<{ id: string }> = ({ id }) => {
           setTableData([]);
         }
       } catch (err: any) {
-        setError(err.message || "Lỗi khi tải dữ liệu.");
+        // Kiểm tra lỗi 404/not found để hiển thị message rõ ràng hơn
+        const errorMsg = err.message || "Lỗi khi tải dữ liệu.";
+        setError(errorMsg.includes('404') ? "Dữ liệu chi tiết không tồn tại." : errorMsg);
         setTableData([]);
       }
     };
 
     loadData();
+    // Dependency array: [id, fetchById]
   }, [id, fetchById]); 
 
   // --- Render logic ---

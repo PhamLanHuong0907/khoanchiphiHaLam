@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
@@ -8,9 +8,7 @@ import "../../layout/layout_input.css";
 import "../../components/transactionselector.css";
 import FormRow from "../../components/formRow";
 
-// === Định nghĩa interface cho dữ liệu ===
-
-// Dữ liệu từ API /api/catalog/equipment
+// === Định nghĩa interface cho dữ liệu (Giữ nguyên) ===
 interface Equipment {
   id: string;
   code: string;
@@ -19,7 +17,6 @@ interface Equipment {
   unitOfMeasureName: string;
 }
 
-// Dữ liệu từ API /api/catalog/part
 interface Part {
   id: string;
   code: string;
@@ -31,7 +28,6 @@ interface Part {
   costAmmount: number;
 }
 
-// Dữ liệu cho mỗi hàng phụ tùng hiển thị trên UI
 interface PartRowData {
   id: string | null;
   partId: string;
@@ -46,7 +42,6 @@ interface PartRowData {
   chiPhiVatTuSCTX: string;
 }
 
-// === Interface cho payload (PUT) ===
 interface PartUnitPriceItem {
   partId: string;
   quantity: number;
@@ -56,12 +51,11 @@ interface PartUnitPriceItem {
 
 interface PutPayload {
   equipmentId: string;
-  startDate: string; // BỔ SUNG
-  endDate: string;   // BỔ SUNG
+  startDate: string;
+  endDate: string;
   partUnitPrices: PartUnitPriceItem[];
 }
 
-// === Interface cho API GET /id ===
 interface ApiPartItem {
   id: string;
   partId: string;
@@ -73,79 +67,89 @@ interface ApiPartItem {
 interface ApiResponseGetById {
   equipmentId: string;
   equipmentCode: string;
-  startDate?: string; // BỔ SUNG: Date từ API Get
-  endDate?: string;   // BỔ SUNG: Date từ API Get
+  startDate?: string;
+  endDate?: string;
   maintainUnitPriceEquipment: ApiPartItem[];
 }
+
+// Interface cho state dropdown
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+// ====== CÁC HÀM TIỆN ÍCH (Giữ nguyên) ======
+const parseLocalFloat = (str: string | undefined | null): number => {
+  if (!str) return 0;
+  const cleanStr = str.replace(/\./g, "").replace(",", ".");
+  return parseFloat(cleanStr || "0");
+};
+
+const formatNumberForDisplay = (value: number | undefined | null): string => {
+  if (value === null || value === undefined) return "0";
+  return new Intl.NumberFormat("de-DE", {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatLocalFloat = (value: number | undefined | null): string => {
+  if (value === null || value === undefined) return "0";
+  return new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits: 4,
+  }).format(value);
+};
+
+const formatInputDisplay = (value: string | undefined | null): string => {
+  if (!value) return "";
+  const parts = value.split(",");
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  if (value.endsWith(",")) {
+    return formattedInteger + ",";
+  }
+  if (decimalPart !== undefined) {
+    return formattedInteger + "," + decimalPart;
+  }
+  return formattedInteger;
+};
+
+// === Hàm helper tính toán (Giữ nguyên) ===
+const calculateRowCosts = (row: PartRowData): PartRowData => {
+  const donGia = row.donGiaVatTu || 0;
+  const dinhMucThoiGian = parseLocalFloat(row.dinhMucThoiGian);
+  const soLuongVatTu = parseLocalFloat(row.soLuongVatTu);
+  const sanLuongMetLo = parseLocalFloat(row.sanLuongMetLo);
+
+  let dinhMucVatTu = 0;
+  if (sanLuongMetLo !== 0 && dinhMucThoiGian !== 0) {
+    dinhMucVatTu = (soLuongVatTu / dinhMucThoiGian) / sanLuongMetLo;
+  }
+
+  const chiPhiVatTu = dinhMucVatTu * donGia;
+
+  return {
+    ...row,
+    dinhMucVatTuSCTX: formatLocalFloat(dinhMucVatTu),
+    chiPhiVatTuSCTX: formatNumberForDisplay(chiPhiVatTu),
+  };
+};
 
 // === Component EDIT ===
 export default function SlideRailsEdit({
   id,
   onClose,
+  onSuccess
 }: {
   id: string;
   onClose?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Cập nhật type
 }) {
   const navigate = useNavigate();
   const closePath = PATHS.SLIDE_RAILS.LIST;
   const basePath = "/api/pricing/maintainunitpriceequipment";
-
-  // ====== CÁC HÀM TIỆN ÍCH ======
-  const parseLocalFloat = (str: string | undefined | null): number => {
-    if (!str) return 0;
-    const cleanStr = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(cleanStr || "0");
-  };
-
-  const formatNumberForDisplay = (value: number | undefined | null): string => {
-    if (value === null || value === undefined) return "0";
-    return new Intl.NumberFormat("de-DE", {
-      maximumFractionDigits: 0,
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatLocalFloat = (value: number | undefined | null): string => {
-    if (value === null || value === undefined) return "";
-    return new Intl.NumberFormat("vi-VN", {
-      maximumFractionDigits: 4,
-    }).format(value);
-  };
-
-  const formatInputDisplay = (value: string | undefined | null): string => {
-    if (!value) return "";
-    const parts = value.split(",");
-    const integerPart = parts[0];
-    const decimalPart = parts[1];
-    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    if (value.endsWith(",")) {
-      return formattedInteger + ",";
-    }
-    if (decimalPart !== undefined) {
-      return formattedInteger + "," + decimalPart;
-    }
-    return formattedInteger;
-  };
-
-  // === Hàm helper tính toán ===
-  const calculateRowCosts = (row: PartRowData): PartRowData => {
-    const donGia = row.donGiaVatTu || 0;
-    const dinhMucThoiGian = parseLocalFloat(row.dinhMucThoiGian);
-    const soLuongVatTu = parseLocalFloat(row.soLuongVatTu);
-    const sanLuongMetLo = parseLocalFloat(row.sanLuongMetLo);
-
-    let dinhMucVatTu = 0;
-    if (sanLuongMetLo !== 0)
-      dinhMucVatTu = (dinhMucThoiGian * soLuongVatTu) / sanLuongMetLo;
-    const chiPhiVatTu = dinhMucVatTu * donGia;
-
-    return {
-      ...row,
-      dinhMucVatTuSCTX: formatLocalFloat(dinhMucVatTu),
-      chiPhiVatTuSCTX: formatNumberForDisplay(chiPhiVatTu),
-    };
-  };
 
   // === Gọi API ===
   const { data: equipmentData = [] } = useApi<Equipment>(
@@ -167,7 +171,7 @@ export default function SlideRailsEdit({
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
   const [partRows, setPartRows] = useState<PartRowData[]>([]);
   
-  // BỔ SUNG: State ngày tháng
+  // State ngày tháng
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
@@ -181,6 +185,7 @@ export default function SlideRailsEdit({
 
   // === Tải dữ liệu ===
   useEffect(() => {
+    // ... (Logic tải dữ liệu giữ nguyên)
     if (!id || allPartsData.length === 0 || equipmentData.length === 0) {
       return;
     }
@@ -278,11 +283,11 @@ export default function SlideRailsEdit({
     setPartRows(newRows);
   };
 
-  // ====== CẬP NHẬT: handleSubmit (Thêm date vào payload) ======
+  // ====== CẬP NHẬT: handleSubmit (LOGIC SỬA ĐÚNG) ======
   const handleSubmit = async () => {
     const equipmentId = selectedEquipmentIds[0];
     if (!equipmentId) {
-      console.error("Không có equipmentId được chọn!");
+      alert("⚠️ Vui lòng chọn Mã thiết bị!");
       return;
     }
 
@@ -290,11 +295,11 @@ export default function SlideRailsEdit({
     if (!startDate) return alert("⚠️ Vui lòng chọn Ngày bắt đầu!");
     if (!endDate) return alert("⚠️ Vui lòng chọn Ngày kết thúc!");
     if (startDate > endDate) return alert("⚠️ Ngày kết thúc không được nhỏ hơn Ngày bắt đầu!");
+    if (partRows.length === 0) return alert("⚠️ Vui lòng chọn ít nhất một phụ tùng!");
 
     const partUnitPrices: PartUnitPriceItem[] = partRows
-      .filter((row) => row.id !== null)
+      .filter((row) => row.id !== null) // Chỉ gửi hàng đã lưu
       .map((row) => ({
-        // id: row.id!, // <-- LƯU Ý: Mẫu JSON PUT bạn đưa KHÔNG có trường 'id' trong partUnitPrices, chỉ có partId. Nếu cần id thì uncomment.
         partId: row.partId,
         quantity: parseLocalFloat(row.soLuongVatTu),
         replacementTimeStandard: parseLocalFloat(row.dinhMucThoiGian),
@@ -303,18 +308,48 @@ export default function SlideRailsEdit({
 
     const payload: PutPayload = {
       equipmentId: equipmentId,
-      startDate: startDate.toISOString(), // BỔ SUNG
-      endDate: endDate.toISOString(),     // BỔ SUNG
+      startDate: startDate.toISOString(), 
+      endDate: endDate.toISOString(),     
       partUnitPrices: partUnitPrices,
     };
 
+    console.log("📤 PUT payload:", payload);
+    
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    handleClose(); // Sử dụng handleClose để đóng form (unmount)
+
     try {
-      await putData(payload, () => {
-        alert("✅ Cập nhật thành công");
-        handleClose();
-      });
-    } catch (error) {
-      alert("Lỗi khi cập nhật dữ liệu");
+        // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
+        await putData(payload, undefined); 
+
+        // 3. RELOAD DỮ LIỆU VÀ CHỜ NEXT TICK
+        if (onSuccess) {
+            await onSuccess(); // Chờ reload dữ liệu bảng cha
+        }
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // 4. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Cập nhật đơn giá và định mức thành công!");
+
+    } catch (e: any) {
+        // 5. BẮT LỖI và alert thất bại
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Dữ liệu đơn giá đã tồn tại trong khoảng thời gian này!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại. Vui lòng kiểm tra kết nối mạng.";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
   };
 
@@ -384,7 +419,7 @@ export default function SlideRailsEdit({
         <div className="layout-input-header1" style={{ position: "fixed", zIndex: 9999999, backgroundColor: "#f1f2f5", width: "755px" }}>
           
           {/* Hàng chọn ngày tháng */}
-          <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+          <div className="date-row-slot" style={{ marginTop: "0px", marginBottom: "10px" }}>
             <FormRow rows={dateRowData} />
           </div>
 
@@ -408,7 +443,7 @@ export default function SlideRailsEdit({
 
         <div
           style={{
-            marginTop: "250px", // Tăng margin top để tránh bị che
+            marginTop: "180px", // Tăng margin top để tránh bị che
             width: "100%",
             maxHeight: "400px",
             overflowY: "auto",

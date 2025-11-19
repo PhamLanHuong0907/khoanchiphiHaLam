@@ -649,6 +649,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                               {React.cloneElement(
                                 cell as React.ReactElement<EyeToggleProps>,
                                 {
+                                  isVisible: isExpanded,
                                   onToggle: (visible: boolean) => {
                                     if (visible) {
                                       setExpandedRowLevel1(globalIndex);

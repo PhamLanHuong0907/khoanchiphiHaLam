@@ -10,20 +10,20 @@ import PATHS from "../../hooks/path";
 import { useApi } from "../../hooks/useFetchData";
 import DropdownMenuSearchable from "../../components/dropdown_menu_searchable";
 
-// 1. Cập nhật Props
+// 1. Cập nhật Props (Đảm bảo onSuccess có thể là Promise<void> | void)
 interface Materials_Ingredient_InputProps {
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // SỬA: Thêm Promise<void> | void
 }
 
-// 2. Interface (Chung)
+// ... (Các Interfaces, Hàm tiện ích giữ nguyên) ...
+
 interface DropdownOption {
   value: string;
   label: string;
   data?: any;
 }
 
-// 3. Interfaces (API Payloads)
 interface Process {
   id: string;
   name: string;
@@ -57,7 +57,6 @@ interface Material {
   costAmmount: number;
 }
 
-// 4. Interface (State nội bộ)
 interface LocalTransactionRow extends ImportedTransactionRow {
   materialId: string;
   assignmentCodeId: string;
@@ -102,16 +101,17 @@ export default function Materials_Ingredient_Input({
     postData,
     loading: saving,
     error: saveError,
-  } = useApi(postPath);
+  } = useApi(postPath, { autoFetch: false }); // SỬA: Đặt autoFetch = false để kiểm soát việc post
 
   // API GET Dropdowns
-  const { fetchData: fetchProcesses, data: processes, loading: ld2 } = useApi<Process>("/api/process/productionprocess?pageIndex=1&pageSize=1000");
-  const { fetchData: fetchPassports, data: passports, loading: ld3 } = useApi<Passport>("/api/product/passport?pageIndex=1&pageSize=1000");
-  const { fetchData: fetchHardness, data: hardness, loading: ld4 } = useApi<Hardness>("/api/product/hardness?pageIndex=1&pageSize=1000");
-  const { fetchData: fetchInsertItems, data: insertItems, loading: ld5 } = useApi<InsertItem>("/api/product/insertitem?pageIndex=1&pageSize=1000");
-  const { fetchData: fetchSupportSteps, data: supportSteps, loading: ld6 } = useApi<SupportStep>("/api/product/supportstep?pageIndex=1&pageSize=1000");
-  const { fetchData: fetchAssignmentCodes, data: assignmentData, loading: ld7 } = useApi<any>("/api/catalog/assignmentcode?pageIndex=1&pageSize=1000");
-  const { fetchData: fetchMaterials, data: materialsData, loading: ld8 } = useApi<any>("/api/catalog/material?pageIndex=1&pageSize=1000");
+  const { fetchData: fetchProcesses, data: processes, loading: ld2 } = useApi<Process>("/api/process/productionprocess?pageIndex=1&pageSize=1000", { autoFetch: false });
+  const { fetchData: fetchPassports, data: passports, loading: ld3 } = useApi<Passport>("/api/product/passport?pageIndex=1&pageSize=1000", { autoFetch: false });
+  const { fetchData: fetchHardness, data: hardness, loading: ld4 } = useApi<Hardness>("/api/product/hardness?pageIndex=1&pageSize=1000", { autoFetch: false });
+  const { fetchData: fetchInsertItems, data: insertItems, loading: ld5 } = useApi<InsertItem>("/api/product/insertitem?pageIndex=1&pageSize=1000", { autoFetch: false });
+  const { fetchData: fetchSupportSteps, data: supportSteps, loading: ld6 } = useApi<SupportStep>("/api/product/supportstep?pageIndex=1&pageSize=1000", { autoFetch: false });
+  const { fetchData: fetchAssignmentCodes, data: assignmentData, loading: ld7 } = useApi<any>("/api/catalog/assignmentcode?pageIndex=1&pageSize=1000", { autoFetch: false });
+  const { fetchData: fetchMaterials, data: materialsData, loading: ld8 } = useApi<any>("/api/catalog/material?pageIndex=1&pageSize=1000", { autoFetch: false });
+
 
   // 6. ====== State ======
   const [selectedProcess, setSelectedProcess] = useState<string>("");
@@ -177,7 +177,7 @@ export default function Materials_Ingredient_Input({
     return [];
   }, [assignmentData]);
 
-  // 9. ====== TransactionSelector Handlers ======
+  // 9. ====== TransactionSelector Handlers (Giữ nguyên) ======
   const handleSelectChange = (newSelectedIds: string[]) => {
     setSelectedCodes(newSelectedIds);
 
@@ -246,7 +246,7 @@ export default function Materials_Ingredient_Input({
     setRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
 
-  // 10. ====== Handle Submit (SỬA ĐỔI: THÊM DATE VÀO PAYLOAD) ======
+  // 10. ====== Handle Submit (Áp dụng logic UnitsInput.tsx) ======
   const handleSubmit = async (data: Record<string, string>) => {
     const code = data["Mã định mức vật liệu"]?.trim() || "";
 
@@ -271,7 +271,7 @@ export default function Materials_Ingredient_Input({
       }
     }
 
-    // ====== CẬP NHẬT PAYLOAD ======
+    // Tạo payload
     const payload = {
       code,
       processId: selectedProcess,
@@ -279,7 +279,6 @@ export default function Materials_Ingredient_Input({
       hardnessId: selectedHardness,
       insertItemId: selectedInsertItem,
       supportStepId: selectedSupportStep,
-      // Bổ sung startDate và endDate (format ISO string)
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       costs: rows.map((row) => ({
@@ -290,12 +289,27 @@ export default function Materials_Ingredient_Input({
     };
 
     console.log("📤 POST payload:", payload);
+    
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.();
 
-    await postData(payload, () => {
-      alert("✅ Tạo đơn giá vật liệu thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+    try {
+        // 2. CHỜ API VÀ RELOAD HOÀN TẤT
+        await Promise.all([
+            postData(payload, undefined),
+        ]);
+        // Thêm một độ trễ nhỏ để đảm bảo UI kịp cập nhật
+        await new Promise(r => setTimeout(r, 0));
+        await onSuccess?.();
+        
+        // 4. HIỆN ALERT
+        alert("✅ Tạo đơn giá vật liệu thành công!");
+
+    } catch (e) {
+        // 5. Bắt lỗi (Vì form đã đóng, alert lỗi ra ngoài)
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
+    }
   };
 
   // 11. ====== Fields ======
@@ -314,7 +328,7 @@ export default function Materials_Ingredient_Input({
     { label: "", type: "customTransactionSelector" as const },
   ];
 
-  const isLoading = ld2 || ld3 || ld4 || ld5 || ld6 || ld7 || ld8 || saving;
+  const isLoading = ld2 || ld3 || ld4 || ld5 || ld6 || ld7 || ld8 || saving || isInitialLoading; // THÊM isInitialLoading
   const anyError = saveError;
 
   const displayRows = useMemo(() => {
@@ -360,6 +374,7 @@ export default function Materials_Ingredient_Input({
       initialData={{
         "Mã định mức vật liệu": "",
       }}
+      // Loại bỏ hiển thị loading/error nội bộ vì form đóng ngay lập tức
     >
       {/* Render Custom Fields */}
       
@@ -377,7 +392,7 @@ export default function Materials_Ingredient_Input({
           value={selectedProcess}
           onChange={setSelectedProcess}
           placeholder="Chọn công đoạn"
-          isDisabled={ld2}
+          isDisabled={ld2 || isInitialLoading}
         />
       </div>
       <div className="custom3" key="c3">
@@ -387,7 +402,7 @@ export default function Materials_Ingredient_Input({
           value={selectedPassport}
           onChange={setSelectedPassport}
           placeholder="Chọn hộ chiếu"
-          isDisabled={ld3}
+          isDisabled={ld3 || isInitialLoading}
         />
       </div>
       <div className="custom4" key="c4">
@@ -397,7 +412,7 @@ export default function Materials_Ingredient_Input({
           value={selectedHardness}
           onChange={setSelectedHardness}
           placeholder="Chọn độ kiên cố"
-          isDisabled={ld4}
+          isDisabled={ld4 || isInitialLoading}
         />
       </div>
       <div className="custom5" key="c5">
@@ -407,7 +422,7 @@ export default function Materials_Ingredient_Input({
           value={selectedInsertItem}
           onChange={setSelectedInsertItem}
           placeholder="Chọn chèn..."
-          isDisabled={ld5}
+          isDisabled={ld5 || isInitialLoading}
         />
       </div>
       <div className="custom6" key="c6">
@@ -417,7 +432,7 @@ export default function Materials_Ingredient_Input({
           value={selectedSupportStep}
           onChange={setSelectedSupportStep}
           placeholder="Chọn bước chống"
-          isDisabled={ld6}
+          isDisabled={ld6 || isInitialLoading}
         />
       </div>
 

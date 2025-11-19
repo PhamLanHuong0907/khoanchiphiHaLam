@@ -1,16 +1,16 @@
-import React from "react";
+import React, { useState } from "react"; // ✅ THÊM useState
 // 1. Import hook useApi (giả sử vị trí file)
-import { useApi } from "../../hooks/useFetchData"; // Sửa lại: Giả sử đường dẫn đúng là useFetchData
+import { useApi } from "../../hooks/useFetchData"; 
 import Layout from "../../layout/layout_filter";
 import AdvancedTable from "../../components/bodytable";
 import PencilButton from "../../components/PencilButtons";
 import SlideRailsInput from "./SlideRailInput";
-import SlideRailsEdit from "./SlideRailEdit";
+import SlideRailsEdit from "./SlideRailEdit"; 
 import EyeToggle from "../../components/eye";
-import SlideRailExample from "../../layout/SCTX_test";
+import SlideRailExample from "../../layout/SCTX_test"; // Đổi tên thành SlideRailExample.tsx sau
+import { ChevronsUpDown } from "lucide-react"; 
 
 // === 2. Định nghĩa Interface cho dữ liệu API ===
-// ====== BẮT ĐẦU THAY ĐỔI (1/3): Cập nhật Interface ======
 interface MaintainUnitPrice {
  id: string; // Thêm ID
  equipmentId: string;
@@ -18,10 +18,7 @@ interface MaintainUnitPrice {
  totalPrice: number;
  startDate: string; // Thêm ngày bắt đầu
  endDate: string; // Thêm ngày kết thúc
- // Chúng ta không cần 'maintainUnitPriceEquipment' cho bảng này
 }
-// ====== KẾT THÚC THAY ĐỔI (1/3) ======
-
 
 // === 3. Hàm trợ giúp định dạng số ===
 const formatNumber = (num: number, digits: number = 2): string => {
@@ -29,15 +26,11 @@ const formatNumber = (num: number, digits: number = 2): string => {
   return num.toLocaleString("vi-VN", { maximumFractionDigits: digits });
 }
 
-// ====== BẮT ĐẦU THAY ĐỔI (2/3): Thêm hàm định dạng ngày ======
-/**
- * 4. Định dạng chuỗi ISO Date (hoặc Date) thành "dd/MM/yyyy"
- */
+// === 4. Thêm hàm định dạng ngày ===
 const formatDate = (dateStr: string | Date | undefined | null): string => {
- if (!dateStr) return "N/A"; // Trả về "N/A" nếu ngày không tồn tại
+ if (!dateStr) return "N/A";
  try {
   const date = new Date(dateStr);
-  // 'vi-VN' đã mặc định dùng format dd/MM/yyyy
   return new Intl.DateTimeFormat('vi-VN', {
    day: '2-digit',
    month: '2-digit',
@@ -49,79 +42,83 @@ const formatDate = (dateStr: string | Date | undefined | null): string => {
   return "Lỗi";
  }
 };
-// ====== KẾT THÚC THAY ĐỔI (2/3) ======
 
 
 const SlideRails: React.FC = () => {
- // === 4. Cập nhật cột ===
+ // === 5. Khai báo API ===
+ const basePath = "/api/pricing/maintainunitpriceequipment?pageIndex=1&pageSize=1000";
+ const { data: apiData, loading, error, refresh } = useApi<MaintainUnitPrice>(
+  basePath
+ );
+ 
+ // ✅ 1. STATE TRIGGER RELOAD
+ const [detailReloadKey, setDetailReloadKey] = useState(0);
+
+  // ✅ 2. CẬP NHẬT handleRefresh
+  const handleRefresh = async () => {
+    // 1. Refresh bảng cha
+    await refresh(); 
+    // 2. Tăng key để buộc bảng con re-render
+    setDetailReloadKey(prev => prev + 1); 
+  };
+
+
+ // === 6. Cập nhật cột ===
  const columns = [
   "STT",
   "Mã thiết bị",
   "Thời gian",
-  "Tổng tiền", // Thêm cột mới
+  "Tổng tiền",
   "Xem",
   "Sửa",
  ];
 
- // === 5. Cập nhật độ rộng cột ===
- const columnWidths = [
-  6, // STT
-  20.5, // Mã thiết bị (giảm bớt)
-  56,
-  10.5, // Tổng tiền (cột mới)
-  3, // Xem
-  4  // Sửa
- ];
+ // === 7. Cập nhật độ rộng cột ===
+ const columnWidths = [6, 20.5, 56, 10.5, 3, 4];
 
- // ✅ Navbar mini (giữ nguyên)
+ // Navbar mini (giữ nguyên)
  const items = [
   { label: "Đào lò", path: "/SlideRails" },
   { label: "Lò chợ", path: "/MarketRails" },
  ];
 
- // === 6. Gọi API (SỬA ĐỔI) ===
- const basePath = "/api/pricing/maintainunitpriceequipment?pageIndex=1&pageSize=1000";
- // SỬA ĐỔI: Lấy 'apiData', 'loading', 'error', 'refresh'
- const { data: apiData, loading, error, refresh } = useApi<MaintainUnitPrice>(
-  basePath
- );
-
- // === 7. Map dữ liệu API sang định dạng cho bảng ===
+ // === 8. Map dữ liệu API sang định dạng cho bảng ===
  const tableData =
   apiData?.map((row, index) => [
    index + 1, // STT là index
    row.equipmentCode, // Mã thiết bị
-// ====== BẮT ĐẦU THAY ĐỔI (3/3): Cập nhật hiển thị ngày tháng ======
-   `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`,
-// ====== KẾT THÚC THAY ĐỔI (3/3) ======
+   `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`, // Hiển thị ngày tháng
    formatNumber(row.totalPrice), // Tổng tiền đã định dạng
    
    // Pass equipmentId cho component con
     <EyeToggle
-    key={`${row.id}-eye`} 
-    detailComponent={<SlideRailExample id={row.id} />}
+    key={`${row.id}-eye`} // Key động
+    // ✅ 3. TRUYỀN KEY ĐỘNG (Bắt buộc re-render khi detailReloadKey thay đổi)
+    detailComponent={<SlideRailExample key={`${row.id}-${detailReloadKey}`} id={row.id} />} 
    />,
    <PencilButton
-    key={`${row.id}-pencil`} // Thêm key
+    key={`${row.id}-pencil`} // Key động
     id={row.id}
-    // SỬA ĐỔI: Thêm onSuccess={refresh}
-    editElement={<SlideRailsEdit id={row.id} onSuccess={refresh} />}
+    // ✅ Truyền handleRefresh đã được cập nhật
+    editElement={<SlideRailsEdit id={row.id} onSuccess={handleRefresh} />}
    />,
-  ]) || []; // Thêm fallback || []
+  ]) || [];
 
- // === 8. Cập nhật columnLefts ===
+ // === 9. Cập nhật columnLefts ===
  const columnLefts = ['undefined','undefined','undefined',10,'undefined','undefined','undefined','undefined','undefined'];
 
- // === 9. Xử lý trạng thái loading (SỬA ĐỔI) ===
- // Bỏ khối `if (loading)`
+ // === 10. Xử lý trạng thái loading ===
  const isLoading = loading;
  const anyError = error;
 
  return (
   <Layout>
-   <div className="p-6">
+   <div className="p-6 relative min-h-[500px]">
     
-    {/* SỬA ĐỔI: Cập nhật logic return */}
+    <style>{`
+          th > div { display: inline-flex; align-items: center; gap: 3px; }
+          th > div span:last-child { font-size: 5px; color: gray; }
+        `}</style>
 
     {/* 1. Ưu tiên hiển thị lỗi */}
     {anyError ? (
@@ -137,11 +134,12 @@ const SlideRails: React.FC = () => {
       columnWidths={columnWidths}
       data={tableData} // Sử dụng dữ liệu từ API
       
-      // SỬA ĐỔI: Thêm các prop cần thiết
-      createElement={<SlideRailsInput onSuccess={refresh} />}
+      // ✅ Truyền handleRefresh cho Input
+      createElement={<SlideRailsInput onSuccess={handleRefresh} />}
       navbarMiniItems={items}
-      basePath={basePath}
-      onDeleted={refresh}
+      basePath={"/api/pricing/maintainunitpriceequipment"} // Cần basePath cho DELETE
+      // ✅ Truyền handleRefresh cho Delete
+      onDeleted={handleRefresh}
       
       columnLefts={columnLefts} // Sử dụng columnLefts đã cập nhật
      />
@@ -151,14 +149,19 @@ const SlideRails: React.FC = () => {
     {isLoading && (
      <div style={{
       position: 'absolute', 
-      top: '50%', 
-      left: '50%', 
-      transform: 'translate(-50%, -50%)',
-      background: 'rgba(255, 255, 255, 0.7)',
-      padding: '10px 20px',
+      top: 0, 
+      left: 0, 
+      right: 0, 
+      bottom: 0,
+      background: 'rgba(255, 255, 255, 0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
       borderRadius: '8px',
-      zIndex: 100
+      backdropFilter: 'blur(2px)'
      }}>
+        <span className="text-blue-600 font-medium">Đang tải dữ liệu</span>
      </div>
     )}
    </div>

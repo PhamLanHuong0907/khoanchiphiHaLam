@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react"; // Thêm useState, useMemo
+import React, { useEffect, useState, useMemo } from "react";
 import Layout from "../../layout/layout_filter";
 import AdvancedTable from "../../components/bodytable";
 import EyeToggle from "../../components/eye";
@@ -7,6 +7,7 @@ import Materials_Ingredient_Grouped from "../../layout/test";
 import { useApi } from "../../hooks/useFetchData";
 import { ChevronsUpDown } from "lucide-react";
 import PencilButton from "../../components/PencilButtons";
+// SỬA: Import Materials_Ingredient_Edit (đã có)
 import Materials_Ingredient_Edit from "./Materials_Ingredient_Edit";
 
 // ====== BẮT ĐẦU THAY ĐỔI (1/5): Cập nhật Interface ======
@@ -22,8 +23,8 @@ interface MaterialUnitPrice {
  supportStepId: string;
  processName: string;
  totalPrice: number;
- startDate: string; // Thêm ngày bắt đầu
- endDate: string; // Thêm ngày kết thúc
+ startDate: string;
+ endDate: string;
 }
 // ====== KẾT THÚC THAY ĐỔI (1/5) ======
 
@@ -112,11 +113,14 @@ const Materials_Ingredient: React.FC = () => {
 
  // 3. Gọi API
  // Hook useApi sẽ tự động fetch lại khi 'apiPath' thay đổi
+ // SỬA: Thêm hàm refresh
  const { data, totalCount, fetchData, loading, error } =
   useApi<MaterialUnitPrice>(apiPath);
 
- // 4. Hàm refresh
- const refresh = () => fetchData();
+ // 4. Hàm refresh (SỬA: Bọc fetchData trong async để có thể await)
+ const handleRefresh = async () => {
+   await fetchData();
+ };
 
  // 5. Cập nhật Columns
  // ====== BẮT ĐẦU THAY ĐỔI (4/5): Thêm sort cho cột Thời gian ======
@@ -167,9 +171,10 @@ const Materials_Ingredient: React.FC = () => {
       detailComponent={<Materials_Ingredient_Grouped id={row.id} />}
      />,
      <PencilButton
+      key={row.id} // THÊM KEY
       id={row.id}
-      // 👈 TỐI ƯU LAZY LOAD (Giả sử PencilButton hỗ trợ)
-      editElement={<Materials_Ingredient_Edit onSuccess={refresh} />}
+      // SỬA: Truyền handleRefresh vào onSuccess của form Edit
+      editElement={<Materials_Ingredient_Edit id={row.id} onSuccess={handleRefresh} />}
      />,
     ];
    }) || []
@@ -180,7 +185,7 @@ const Materials_Ingredient: React.FC = () => {
 
  return (
   <Layout>
-   <div className="p-6">
+   <div className="p-6 relative min-h-[500px]"> {/* THÊM relative min-h */}
     {/* ... (style của bạn giữ nguyên) ... */}
     <style>{`
      th > div {
@@ -206,38 +211,32 @@ const Materials_Ingredient: React.FC = () => {
       columns={columns}
       columnWidths={columnWidths}
       data={tableData} // Dữ liệu của trang này (chỉ 10 dòng)
-      createElement={<Materials_Ingredient_Input onSuccess={refresh} />}
+      // SỬA: Truyền handleRefresh vào form Create
+      createElement={<Materials_Ingredient_Input onSuccess={handleRefresh} />}
       basePath={basePath} // basePath gốc (để Xóa)
-      onDeleted={refresh}
+      // SỬA: Truyền handleRefresh vào hành động Delete
+      onDeleted={handleRefresh}
       columnLefts={['undefined','undefined','undefined','undefined','undefined', 'undefined']}
       
       // --- TRUYỀN PROPS XUỐNG BẢNG ---
       totalItems={totalCount}
       itemsPerPage={pageSize}
       currentPage={pageIndex}
-      onPageChange={setPageIndex} // 👈 Giao quyền
+      onPageChange={setPageIndex}
       
       searchValue={searchValue}
-      onSearchChange={setSearchValue} // 👈 Giao quyền
+      onSearchChange={setSearchValue}
       
       sortConfig={sortConfig}
-      onSortChange={setSortConfig} // 👈 Giao quyền
+      onSortChange={setSortConfig}
      />
     )}
     
-    {/* Hiển thị loading riêng, không làm ẩn bảng */}
+    {/* SỬA: Hiển thị loading overlay như Unit.tsx */}
     {isLoading && (
-      <div style={{
-        position: 'absolute', 
-        top: '50%', 
-        left: '50%', 
-        transform: 'translate(-50%, -50%)',
-        background: 'rgba(255, 255, 255, 0.7)',
-        padding: '10px 20px',
-        borderRadius: '8px',
-     zIndex: 100
-      }}>
-      </div>
+       <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-500000000000000000 rounded-lg backdrop-blur-[2px]">
+         <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
+       </div>
     )}
    </div>
   </Layout>

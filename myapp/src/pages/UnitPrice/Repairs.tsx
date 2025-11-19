@@ -1,4 +1,4 @@
-import React from "react"; // 1. Bỏ useEffect
+import React from "react"; 
 import Layout from "../../layout/layout_filter";
 import AdvancedTable from "../../components/bodytable";
 import EyeToggle from "../../components/eye";
@@ -9,22 +9,22 @@ import { ChevronsUpDown } from "lucide-react";
 import RepairsEdit from "./Repairs_Edit";
 import PencilButton from "../../components/PencilButtons";
 
-// ====== BẮT ĐẦU THAY ĐỔI (1/3): Cập nhật Interface ======
+// ====== BẮT ĐẦU THAY ĐỔI (1/3): Cập nhật Interface (Giữ nguyên) ======
 // 1. Định nghĩa Interface
 interface SlideUnitPrice {
  id: string;
- code: string; // "Đơn giá và định mức máng trượt"
+ code: string; 
  processGroupId: string;
- processGroupName: string; // "Nhóm công đoạn sản xuất"
+ processGroupName: string; 
  passportId: string;
  hardnessId: string;
- totalPrice: number; // "Thành tiền"
- startDate: string; // Thêm ngày bắt đầu
- endDate: string; // Thêm ngày kết thúc
+ totalPrice: number; 
+ startDate: string; 
+ endDate: string; 
 }
 // ====== KẾT THÚC THAY ĐỔI (1/3) ======
 
-// ====== BẮT ĐẦU THAY ĐỔI (2/3): Thêm hàm định dạng ngày ======
+// ====== BẮT ĐẦU THAY ĐỔI (2/3): Thêm hàm định dạng ngày (Giữ nguyên) ======
 /**
 * Định dạng chuỗi ISO Date (hoặc Date) thành "dd/MM/yyyy"
 */
@@ -48,17 +48,19 @@ const Repairs: React.FC = () => {
  // 2. Khai báo API (SỬA ĐỔI)
  const basePath = `/api/pricing/slideunitprice?pageIndex=1&pageSize=1000`; 
  // Lấy 'refresh' trực tiếp, bỏ 'fetchData'
- const { data, loading, error, refresh } = useApi<SlideUnitPrice>(basePath);
+ // SỬA: Đổi tên refresh thành fetchData và bọc lại
+ const { data, loading, error, fetchData } = useApi<SlideUnitPrice>(basePath);
 
- // 3. SỬA ĐỔI: Bỏ 'useEffect' và 'refresh' thủ công
- // const refresh = () => fetchData();
- // useEffect(() => { ... }, [fetchData]);
+ // 3. THÊM: Hàm refresh async để truyền xuống form (tương tự Units.tsx)
+ const handleRefresh = async () => {
+   await fetchData();
+ };
+
 
  // 4. Cập nhật Columns (Giữ nguyên)
  const columns = [
   "STT",
   <div className="flex items-center gap-1" key="processGroupName">
-   {/* SỬA: Đổi tên theo yêu cầu */}
    <span>Nhóm công đoạn sản xuất</span> 
    <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
   </div>,
@@ -78,27 +80,25 @@ const Repairs: React.FC = () => {
  // Chiều rộng từng cột (Giữ nguyên)
  const columnWidths = [6, 18.2, 41,18, 9.8, 3, 4];
 
- // 5. Map dữ liệu từ API
+ // 5. Map dữ liệu từ API (SỬA: Dùng handleRefresh)
  const tableData =
   data?.map((row, index) => [
    index + 1,
-   row.processGroupName || "", // SỬA: Dùng processGroupName
+   row.processGroupName || "", 
    row.code || "", 
-   // ====== BẮT ĐẦU THAY ĐỔI (3/3): Cập nhật hiển thị ngày tháng ======
+   // ====== BẮT ĐẦU THAY ĐỔI (3/3): Cập nhật hiển thị ngày tháng (Giữ nguyên) ======
    `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`,
    // ====== KẾT THÚC THAY ĐỔI (3/3) ======
    row.totalPrice?.toLocaleString() || "0", 
    <EyeToggle
-    key={`${row.id}-eye`} // Thêm key
-    // Giả định component "test" (Materials_Ingredient_Grouped)
-    // có thể xử lý ID từ slideunitprice
+    key={`${row.id}-eye`}
     detailComponent={<Repairs_Grouped id={row.id} />}
    />,
    <PencilButton
-    key={`${row.id}-pencil`} // Thêm key
+    key={`${row.id}-pencil`} 
     id={row.id}
-    // SỬA ĐỔI: Thêm id và onSuccess vào editElement
-    editElement={<RepairsEdit id={row.id} onSuccess={refresh} />}
+    // SỬA ĐỔI: Truyền handleRefresh vào onSuccess của form Edit
+    editElement={<RepairsEdit id={row.id} onSuccess={handleRefresh} />}
    />,
   ]) || [];
 
@@ -108,7 +108,7 @@ const Repairs: React.FC = () => {
 
  return (
   <Layout>
-   <div className="p-6">
+   <div className="p-6 relative min-h-[500px]"> {/* THÊM relative min-h */}
     {/* Thêm style (giữ nguyên) */}
     <style>{`
      th > div {
@@ -122,7 +122,7 @@ const Repairs: React.FC = () => {
      }
     `}</style>
     
-    {/* 7. Xử lý UI - Đã cập nhật */}
+    {/* 7. Xử lý UI - Áp dụng logic Units.tsx */}
     
     {/* 1. Ưu tiên hiển thị lỗi */}
     {anyError ? (
@@ -136,27 +136,20 @@ const Repairs: React.FC = () => {
     title="Đơn giá và định mức máng trượt"
       columns={columns}
       columnWidths={columnWidths}
-      data={tableData} // Dùng dữ liệu động
-      // 'refresh' này là từ hook
-      createElement={<RepairsInput onSuccess={refresh} />} 
-      basePath={basePath} // Thêm basePath
-      // 'refresh' này là từ hook
-      onDeleted={refresh} 
+      data={tableData} 
+      // SỬA: Truyền handleRefresh vào form Create
+      createElement={<RepairsInput onSuccess={handleRefresh} />} 
+      basePath={basePath} 
+      // SỬA: Truyền handleRefresh vào hành động Delete
+      onDeleted={handleRefresh} 
       columnLefts={['undefined','undefined','undefined','undefined','undefined']}
- />
+     />
     )}
     
+  {/* SỬA: Hiển thị loading overlay như Unit.tsx */}
   {isLoading && (
-     <div style={{
-      position: 'absolute', 
-      top: '50%', 
-     left: '50%', 
-      transform: 'translate(-50%, -50%)',
-      background: 'rgba(255, 255, 255, 0.7)',
-      padding: '10px 20px',
-      borderRadius: '8px',
-      zIndex: 100
-     }}>
+     <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-500000000000000000 rounded-lg backdrop-blur-[2px]">
+       <span className="text-blue-600 font-medium">Đang tải dữ liệu</span>
      </div>
     )}
    </div>

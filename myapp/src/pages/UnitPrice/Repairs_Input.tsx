@@ -10,10 +10,10 @@ import { useApi } from "../../hooks/useFetchData";
 import DropdownMenuSearchable from "../../components/dropdown_menu_searchable";
 import FormRow from "../../components/formRow";
 
-// 1. Cập nhật Props
+// 1. Cập nhật Props (Đảm bảo onSuccess có thể là Promise<void> | void)
 interface RepairsInputProps {
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // SỬA: Thêm Promise<void> | void
 }
 
 // 2. Interface (Chung)
@@ -60,7 +60,7 @@ export default function RepairsInput({
   onSuccess,
 }: RepairsInputProps) {
 
-  // ====== CÁC HÀM TIỆN ÍCH ======
+  // ====== CÁC HÀM TIỆN ÍCH (Giữ nguyên) ======
   const formatLocalFloat = (num: number | undefined | null): string => {
     if (num === null || num === undefined) return "0";
     return new Intl.NumberFormat("vi-VN", {
@@ -92,14 +92,15 @@ export default function RepairsInput({
 
   // 5. ====== API setup ======
   const postPath = "/api/pricing/slideunitprice";
-  const { postData, loading: saving, error: saveError } = useApi(postPath);
+  // SỬA: Đặt autoFetch=false để kiểm soát việc post
+  const { postData, loading: saving, error: saveError } = useApi(postPath, { autoFetch: false });
 
-  // API GET Dropdowns
-  const { fetchData: fetchProcesses, data: processes, loading: ld2 } = useApi<Process>("/api/process/processgroup?pageIndex=1&pageSize=10000");
-  const { fetchData: fetchPassports, data: passports, loading: ld3 } = useApi<Passport>("/api/product/passport?pageIndex=1&pageSize=10000");
-  const { fetchData: fetchHardness, data: hardness, loading: ld4 } = useApi<Hardness>("/api/product/hardness?pageIndex=1&pageSize=10000");
-  const { fetchData: fetchAssignmentCodes, data: assignmentData, loading: ld7 } = useApi<any>("/api/catalog/assignmentcode?pageIndex=1&pageSize=10000");
-  const { fetchData: fetchMaterials, data: materialsData, loading: ld8 } = useApi<any>("/api/catalog/material?pageIndex=1&pageSize=10000");
+  // API GET Dropdowns (SỬA: Đặt autoFetch=false)
+  const { fetchData: fetchProcesses, data: processes, loading: ld2 } = useApi<Process>("/api/process/processgroup?pageIndex=1&pageSize=10000", { autoFetch: false });
+  const { fetchData: fetchPassports, data: passports, loading: ld3 } = useApi<Passport>("/api/product/passport?pageIndex=1&pageSize=10000", { autoFetch: false });
+  const { fetchData: fetchHardness, data: hardness, loading: ld4 } = useApi<Hardness>("/api/product/hardness?pageIndex=1&pageSize=10000", { autoFetch: false });
+  const { fetchData: fetchAssignmentCodes, data: assignmentData, loading: ld7 } = useApi<any>("/api/catalog/assignmentcode?pageIndex=1&pageSize=10000", { autoFetch: false });
+  const { fetchData: fetchMaterials, data: materialsData, loading: ld8 } = useApi<any>("/api/catalog/material?pageIndex=1&pageSize=10000", { autoFetch: false });
 
   // 6. ====== State ======
   const [selectedProcess, setSelectedProcess] = useState<string>("");
@@ -113,8 +114,10 @@ export default function RepairsInput({
   const [endDate, setEndDate] = useState<Date | null>(null);
 
   // 7. ====== Load dropdowns ======
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // THÊM state loading
   useEffect(() => {
     const fetchAllData = async () => {
+      setIsInitialLoading(true); // START
       try {
         await Promise.allSettled([
           fetchProcesses(),
@@ -125,6 +128,8 @@ export default function RepairsInput({
         ]);
       } catch (error) {
         console.error("Lỗi không mong đợi:", error);
+      } finally {
+        setIsInitialLoading(false); // END
       }
     };
     fetchAllData();
@@ -140,7 +145,7 @@ export default function RepairsInput({
     return [];
   }, [materialsData]);
 
-  // 8. ====== Map options ======
+  // 8. ====== Map options (Giữ nguyên) ======
   const processOptions: DropdownOption[] = processes?.map((p) => ({ value: p.id, label: p.name })) || [];
   const passportOptions: DropdownOption[] = passports?.map((p) => ({ value: p.id, label: p.name })) || [];
   const hardnessOptions: DropdownOption[] = hardness?.map((h) => ({ value: h.id, label: h.value })) || [];
@@ -156,7 +161,7 @@ export default function RepairsInput({
     return [];
   }, [assignmentData]);
 
-  // 9. ====== TransactionSelector Handlers ======
+  // 9. ====== TransactionSelector Handlers (Giữ nguyên) ======
   const handleSelectChange = (newSelectedIds: string[]) => {
     setSelectedCodes(newSelectedIds);
 
@@ -228,7 +233,7 @@ export default function RepairsInput({
     setRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
 
-  // 10. ====== Handle Submit (CẬP NHẬT) ======
+  // 10. ====== Handle Submit (Áp dụng logic UnitsInput.tsx) ======
   const handleSubmit = async (data: Record<string, string>) => {
     const code = data["Mã định mức máng trượt"]?.trim() || "";
 
@@ -270,11 +275,26 @@ export default function RepairsInput({
 
     console.log("📤 POST payload:", payload);
 
-    await postData(payload, () => {
-      alert("✅ Tạo đơn giá máng trượt thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.();
+
+    try {
+        // 2. CHỜ API VÀ RELOAD HOÀN TẤT
+        await Promise.all([
+            postData(payload, undefined),
+        ]);
+        // Thêm một độ trễ nhỏ để đảm bảo UI kịp cập nhật
+        await new Promise(r => setTimeout(r, 0));
+        await onSuccess?.();
+        
+        // 4. HIỆN ALERT
+        alert("✅ Tạo đơn giá máng trượt thành công!");
+
+    } catch (e) {
+        // 5. Bắt lỗi (Vì form đã đóng, alert lỗi ra ngoài)
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
+    }
   };
 
   // 11. ====== Fields ======
@@ -291,7 +311,7 @@ export default function RepairsInput({
     { label: "", type: "customTransactionSelector" as const },
   ];
 
-  const isLoading = ld2 || ld3 || ld4 || ld7 || ld8 || saving;
+  const isLoading = ld2 || ld3 || ld4 || ld7 || ld8 || saving || isInitialLoading; // THÊM isInitialLoading
   const anyError = saveError;
 
   // Data hiển thị cho bảng
@@ -338,6 +358,7 @@ export default function RepairsInput({
       initialData={{
         "Mã định mức máng trượt": "",
       }}
+      // Loại bỏ hiển thị loading/error nội bộ vì form đóng ngay lập tức
     >
       {/* 12. Render Custom Fields */}
       
@@ -355,7 +376,7 @@ export default function RepairsInput({
           value={selectedProcess}
           onChange={setSelectedProcess}
           placeholder="Chọn nhóm công đoạn sản xuất"
-          isDisabled={ld2}
+          isDisabled={ld2 || isInitialLoading} // Dùng isInitialLoading
         />
       </div>
       <div className="custom3" key="c3">
@@ -365,7 +386,7 @@ export default function RepairsInput({
           value={selectedPassport}
           onChange={setSelectedPassport}
           placeholder="Chọn hộ chiếu"
-          isDisabled={ld3}
+          isDisabled={ld3 || isInitialLoading}
         />
       </div>
       <div className="custom4" key="c4">
@@ -375,7 +396,7 @@ export default function RepairsInput({
           value={selectedHardness}
           onChange={setSelectedHardness}
           placeholder="Chọn độ kiên cố"
-          isDisabled={ld4}
+          isDisabled={ld4 || isInitialLoading}
         />
       </div>
 

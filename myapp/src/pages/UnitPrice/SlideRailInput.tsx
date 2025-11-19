@@ -1,14 +1,14 @@
-import { useState, useMemo, useEffect } from "react"; // SỬA: Thêm useEffect
+import { useState, useMemo, useEffect } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Select from "react-select"; // Import react-select
-import { useApi } from "../../hooks/useFetchData"; // Import hook API
-import PATHS from "../../hooks/path"; // Import PATHS
+import Select from "react-select";
+import { useApi } from "../../hooks/useFetchData";
+import PATHS from "../../hooks/path";
 import "../../layout/layout_input.css";
-import "../../components/transactionselector.css"; // Import CSS
+import "../../components/transactionselector.css";
 import FormRow from "../../components/formRow";
 
-// === Định nghĩa interface cho dữ liệu ===
+// === Định nghĩa interface cho dữ liệu (Giữ nguyên) ===
 interface Equipment {
   id: string;
   code: string;
@@ -58,50 +58,70 @@ interface EquipmentPayload {
 // 1. Cập nhật Props
 interface RepairsInputProps {
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Sửa type
 }
+
+// ====== CÁC HÀM TIỆN ÍCH (DI CHUYỂN LÊN ĐÂY) ======
+const parseLocalFloat = (str: string | undefined | null): number => {
+  if (!str) return 0;
+  const cleanStr = str.replace(/\./g, "").replace(",", ".");
+  return parseFloat(cleanStr || "0");
+};
+
+const formatNumberForDisplay = (value: number | undefined | null): string => {
+  if (value === null || value === undefined) return "0";
+  return new Intl.NumberFormat("de-DE", {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatLocalFloat = (value: number | undefined | null): string => {
+  if (value === null || value === undefined) return "0";
+  return new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits: 4,
+  }).format(value);
+};
+
+const formatInputDisplay = (value: string | undefined | null): string => {
+  if (!value) return "";
+  const parts = value.split(",");
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  if (value.endsWith(",")) {
+    return formattedInteger + ",";
+  }
+  if (decimalPart !== undefined) {
+    return formattedInteger + "," + decimalPart;
+  }
+  return formattedInteger;
+};
+// === Hàm helper tính toán ===
+const calculateRowCosts = (row: PartRowData): PartRowData => {
+  const donGia = row.donGiaVatTu || 0;
+  const dinhMucThoiGian = parseLocalFloat(row.dinhMucThoiGian);
+  const soLuongVatTu = parseLocalFloat(row.soLuongVatTu);
+  const sanLuongMetLo = parseLocalFloat(row.sanLuongMetLo);
+
+  let dinhMucVatTu = 0;
+  if (sanLuongMetLo !== 0 && dinhMucThoiGian !== 0) {
+    dinhMucVatTu = (soLuongVatTu / dinhMucThoiGian) / sanLuongMetLo;
+  }
+
+  const chiPhiVatTu = dinhMucVatTu * donGia;
+
+  return {
+    ...row,
+    dinhMucVatTuSCTX: formatLocalFloat(dinhMucVatTu),
+    chiPhiVatTuSCTX: formatNumberForDisplay(chiPhiVatTu),
+  };
+};
 
 export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProps) {
   const navigate = useNavigate();
   const closePath = PATHS.SLIDE_RAILS.LIST;
-
-  // ====== CÁC HÀM TIỆN ÍCH ======
-  const parseLocalFloat = (str: string | undefined | null): number => {
-    if (!str) return 0;
-    const cleanStr = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(cleanStr || "0");
-  };
-
-  const formatNumberForDisplay = (value: number | undefined | null): string => {
-    if (value === null || value === undefined) return "0";
-    return new Intl.NumberFormat("de-DE", {
-      maximumFractionDigits: 0,
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatLocalFloat = (value: number | undefined | null): string => {
-    if (value === null || value === undefined) return "0";
-    return new Intl.NumberFormat("vi-VN", {
-      maximumFractionDigits: 4,
-    }).format(value);
-  };
-
-  const formatInputDisplay = (value: string | undefined | null): string => {
-    if (!value) return "";
-    const parts = value.split(",");
-    const integerPart = parts[0];
-    const decimalPart = parts[1];
-    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    if (value.endsWith(",")) {
-      return formattedInteger + ",";
-    }
-    if (decimalPart !== undefined) {
-      return formattedInteger + "," + decimalPart;
-    }
-    return formattedInteger;
-  };
 
   // === Gọi API ===
   const { data: equipmentData = [] } = useApi<Equipment>(
@@ -111,7 +131,6 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     "/api/catalog/part?pageIndex=1&pageSize=10000"
   );
 
-  // Payload là mảng EquipmentPayload[]
   const { postData, loading: isSubmitting } = useApi<EquipmentPayload[]>(
     "/api/pricing/maintainunitpriceequipment"
   );
@@ -132,7 +151,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     }));
   }, [equipmentData]);
 
-  useEffect(() => {}, []);
+  useEffect(() => {}, []); // Giữ nguyên useEffect trống
 
   // === Xử lý sự kiện ===
   const handleClose = () => {
@@ -141,6 +160,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
   };
 
   const handleSelectChange = (selected: any) => {
+    // ... (Logic chọn thiết bị và lọc phụ tùng giữ nguyên)
     const newSelectedIds = selected ? selected.map((s: any) => s.value) : [];
     const oldRowsMap = new Map<string, PartRowData>();
     partRows.forEach((row) => {
@@ -155,7 +175,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
           if (existingRowData) {
             return existingRowData;
           }
-          return {
+          const initialRow: PartRowData = {
             partId: part.id,
             equipmentId: part.equipmentId,
             tenPhuTung: part.name,
@@ -167,6 +187,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
             dinhMucVatTuSCTX: "0",
             chiPhiVatTuSCTX: "0",
           };
+          return calculateRowCosts(initialRow);
         }
       );
 
@@ -194,23 +215,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     }
 
     const updatedRow = { ...newRows[index], [field]: cleanValue };
-
-    const donGia = updatedRow.donGiaVatTu || 0;
-    const dinhMucThoiGian = parseLocalFloat(updatedRow.dinhMucThoiGian);
-    const soLuongVatTu = parseLocalFloat(updatedRow.soLuongVatTu);
-    const sanLuongMetLo = parseLocalFloat(updatedRow.sanLuongMetLo);
-
-    let dinhMucVatTu = 0;
-    if (sanLuongMetLo !== 0 && dinhMucThoiGian !== 0) {
-      dinhMucVatTu = soLuongVatTu / dinhMucThoiGian / sanLuongMetLo;
-    }
-
-    const chiPhiVatTu = dinhMucVatTu * donGia;
-
-    updatedRow.dinhMucVatTuSCTX = formatLocalFloat(dinhMucVatTu);
-    updatedRow.chiPhiVatTuSCTX = formatNumberForDisplay(chiPhiVatTu);
-
-    newRows[index] = updatedRow;
+    newRows[index] = calculateRowCosts(updatedRow);
     setPartRows(newRows);
   };
 
@@ -242,28 +247,26 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
     [startDate, endDate]
   );
 
-  // ====== CẬP NHẬT: handleSubmit ======
+  // ====== CẬP NHẬT: handleSubmit (LOGIC SỬA ĐÚNG) ======
   const handleSubmit = async () => {
-    // Validation
+    // 1. Validation
     if (!startDate) return alert("⚠️ Vui lòng chọn Ngày bắt đầu!");
     if (!endDate) return alert("⚠️ Vui lòng chọn Ngày kết thúc!");
     if (startDate > endDate) return alert("⚠️ Ngày kết thúc không được nhỏ hơn Ngày bắt đầu!");
     if (partRows.length === 0) return alert("⚠️ Vui lòng chọn ít nhất một thiết bị!");
 
-    // Gom nhóm các rows theo equipmentId
+    // 2. Tạo Payload
     const groupedByEquipment = new Map<string, PartRowData[]>();
-    
     partRows.forEach(row => {
       const existing = groupedByEquipment.get(row.equipmentId) || [];
       existing.push(row);
       groupedByEquipment.set(row.equipmentId, existing);
     });
 
-    // Tạo Payload dạng Mảng (Array)
     const payload: EquipmentPayload[] = Array.from(groupedByEquipment.entries()).map(([equipmentId, rows]) => ({
       equipmentId: equipmentId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate: startDate!.toISOString(),
+      endDate: endDate!.toISOString(),
       costs: rows.map(row => ({
         partId: row.partId,
         quantity: parseLocalFloat(row.soLuongVatTu),
@@ -274,16 +277,45 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
 
     console.log("📤 POST payload:", payload);
 
+    // 3. ĐÓNG FORM NGAY LẬP TỨC
+    handleClose(); 
+
     try {
-      await postData(payload, () => {
-        console.log("✅ Đã gửi thành công!");
-        onSuccess?.(); // Gọi callback onSuccess trước
-        handleClose();
-      });
-    } catch (error) {
-      console.error("Lỗi khi gửi dữ liệu:", error);
+        // 4. CHẠY API và CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
+        await postData(payload, undefined); 
+
+        // 5. RELOAD DỮ LIỆU VÀ CHỜ NEXT TICK
+        if (onSuccess) {
+            await onSuccess(); 
+        };
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // 6. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Tạo đơn giá và định mức thành công!");
+
+    } catch (e: any) {
+        // 7. BẮT LỖI và alert thất bại
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("Mã đã tồn tại") || detail.includes("exists")) {
+                errorMessage = "Dữ liệu đơn giá đã tồn tại trong khoảng thời gian này!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại. Vui lòng kiểm tra kết nối mạng.";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 8. HIỂN THỊ ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
   };
+
 
   const selectedOptions = equipmentOptions.filter((opt) =>
     selectedEquipmentIds.includes(opt.value)
@@ -294,6 +326,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
       className="layout-input-container"
       style={{ position: "relative", zIndex: 10000, height: "auto" }}
     >
+      {/* ... (Phần UI giữ nguyên) ... */}
       <button className="close-btn" onClick={handleClose} title="Đóng">
         <X size={16} />
       </button>
@@ -310,7 +343,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
         <div className="layout-input-header1" style={{ position: "fixed", zIndex: 9999999, backgroundColor: "#f1f2f5", width: "755px" }}>
           
           {/* BỔ SUNG: Hàng chọn ngày tháng */}
-          <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+          <div className="date-row-slot" style={{ marginTop: "0px", marginBottom: "10px" }}>
             <FormRow rows={dateRowData} />
           </div>
 
@@ -334,7 +367,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
         
         <div
           style={{
-            marginTop: "250px", // Tăng margin top để tránh bị che bởi header
+            marginTop: "180px", // Tăng margin top để tránh bị che bởi header
             width: "100%",
             maxHeight: "400px",
           }}
@@ -360,6 +393,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                   className="input-row"
                   style={{ width: "100px", marginBottom: "21px" }}
                 >
+                  {/* ... UI logic cho Tên phụ tùng ... */}
                   <label
                     htmlFor={`${item.name}-${index}`}
                     style={{
@@ -394,6 +428,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                 className="input-row"
                 style={{ width: "100px", marginBottom: "21px" }}
               >
+                {/* ... UI logic cho Đơn giá vật tư ... */}
                 <label
                   htmlFor={`donGiaVatTu-${index}`}
                   style={{
@@ -430,6 +465,7 @@ export default function SlideRailsInput({ onClose, onSuccess }: RepairsInputProp
                   className="input-row"
                   style={{ width: "80px", marginBottom: "21px" }}
                 >
+                  {/* ... UI logic cho ĐVT ... */}
                   <label
                     htmlFor={`${item.name}-${index}`}
                     style={{
