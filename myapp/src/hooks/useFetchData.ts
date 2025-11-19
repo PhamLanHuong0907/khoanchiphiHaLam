@@ -1,11 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback, useRef } from "react";
-
-interface PaginatedResponse<T> {
-  items: T[];
-  totalCount: number;
-}
-
 export function useApi<T = any>(
   basePath: string,
   options: { 
@@ -69,6 +62,7 @@ export function useApi<T = any>(
       safeSetState(setError, err.message || "Error fetching data");
       safeSetState(setData, []); 
       setTotalCount(0);
+      throw err;
     } finally {
       safeSetState(setLoading, false);
     }
@@ -120,6 +114,7 @@ export function useApi<T = any>(
       } catch (err: any) {
         console.error("Error posting data:", err);
         safeSetState(setError, err.message || "Error posting data");
+        throw err;
       } finally {
         safeSetState(setLoading, false);
       }
@@ -151,6 +146,7 @@ export function useApi<T = any>(
       } catch (err: any) {
         console.error("Error putting data:", err);
         safeSetState(setError, err.message);
+        throw err;
       } finally {
         safeSetState(setLoading, false);
       }
@@ -179,6 +175,7 @@ export function useApi<T = any>(
       } catch (err: any) {
         console.error("Error deleting data:", err);
         safeSetState(setError, err.message);
+        throw err;
       } finally {
         safeSetState(setLoading, false);
       }
@@ -206,6 +203,7 @@ export function useApi<T = any>(
       } catch (err: any) {
         console.error("Error fetching by ID:", err);
         setError(err.message || "Error fetching by ID");
+        throw err;
         return null;
       } finally {
         setLoading(false);

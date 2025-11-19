@@ -41,21 +41,18 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
     const payload = { id, name };
     
     // Khởi tạo Promise API, truyền logic reload vào callback thành công
-    const apiPromise = putData(payload, async () => {
-      if (onSuccess) {
-          await onSuccess(); // Chờ reload dữ liệu bảng cha
-      }
-    });
-
+    
     // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Optimistic Close)
     onClose?.();
 
     try {
         // 2. CHỜ API VÀ RELOAD HOÀN TẤT
-        await apiPromise; 
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
 
-        // 3. ✅ CHỜ NEXT RENDER TICK (Thay thế setTimeout cố định)
-        await new Promise(resolve => setTimeout(resolve, 0));
+await new Promise(r => setTimeout(r, 0));
 
         // 4. HIỆN ALERT (Sau khi UI đã cập nhật xong)
         alert("✅ Cập nhật đơn vị tính thành công!");
@@ -71,7 +68,7 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
     {
       label: "Đơn vị tính",
       type: "text" as const,
-      placeholder: "Nhập tên đơn vị tính, ví dụ cm",
+      placeholder: "Nhập tên đơn vị tính, ví dụ: cái",
     },
   ];
 

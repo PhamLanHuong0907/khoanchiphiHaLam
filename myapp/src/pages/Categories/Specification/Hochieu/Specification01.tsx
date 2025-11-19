@@ -10,17 +10,16 @@ import { useApi } from "../../../../hooks/useFetchData";
 interface Passport {
   id: string;
   name: string;
-  sd: string; // API trả về string (theo Input/Edit)
+  sd: string; 
   sc: number;
 }
 
 const Specification01: React.FC = () => {
-  const basePath = `api/product/passport`;
+  const basePath = `/api/product/passport`; // ✔ thêm dấu /
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
   
   const { data, loading, error, refresh } = useApi<Passport>(fetchPath);
 
-  // ✅ Wrapper Async
   const handleRefresh = async () => {
     await refresh();
   };
@@ -29,25 +28,17 @@ const Specification01: React.FC = () => {
     "STT",
     <div className="flex items-center gap-1" key="name">
       <span>Hộ chiếu, Sđ, Sc</span>
-      <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
-    </div>,
-    <div className="flex items-center gap-1" key="sd">
-      <span>Sđ</span>
-      <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
-    </div>,
-    <div className="flex items-center gap-1" key="sc">
-      <span>Sc</span>
-      <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
+      <ChevronsUpDown size={13} className="text-gray-400 text-xs" /> {/* ✔ gray-400 */}
     </div>,
     "Sửa",
   ];
   
-  const columnWidths = [6, 39, 30, 20, 4];
+  const columnWidths = [6, 90, 4];
 
   const items = [
     { label: "Hộ chiếu, Sđ, Sc", path: "/Specification01" },
     { label: "Độ kiên cố than, đá", path: "/Specification02" },
-    { label: "Tỷ lệ đá kẹp (Ckep)", path: "/Specification03" },
+    { label: "Tỷ lệ đá kẹp (Ckẹp)", path: "/Specification03" },
     { label: "Chèn", path: "/Specification04" },
     { label: "Bước chống", path: "/Specification05" },
   ];
@@ -55,13 +46,10 @@ const Specification01: React.FC = () => {
   const tableData =
     data?.map((row, index) => [
       index + 1,
-      row.name || "",
-      row.sd || "0", // Sđ là string
-      row.sc?.toLocaleString() || "0",
+      `H/c ${row.name}; Sđ= ${row.sd}; Sc=${row.sc}`,
       <PencilButton
         key={row.id}
         id={row.id}
-        // ✅ Truyền handleRefresh
         editElement={<Specification01Edit id={row.id} onSuccess={handleRefresh} />}
       />,
     ]) || [];
@@ -95,16 +83,14 @@ const Specification01: React.FC = () => {
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}
-            // ✅ Truyền handleRefresh
-            createElement={<Specification01Input onSuccess={handleRefresh} />} 
+            createElement={<Specification01Input onSuccess={handleRefresh} />}
             navbarMiniItems={items}
             basePath={basePath}
-            // ✅ Truyền handleRefresh
-            onDeleted={handleRefresh} 
-            columnLefts={['undefined','undefined','undefined','undefined','undefined']}
+            onDeleted={handleRefresh}
+            columnLefts={['undefined', 'undefined', 'undefined', 'undefined', 'undefined']} 
           />
         )}
-        
+
         {/* Loading Overlay */}
         {isLoading && (
           <div style={{
@@ -115,8 +101,8 @@ const Specification01: React.FC = () => {
             bottom: 0,
             background: 'rgba(255, 255, 255, 0.6)',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            alignItems: 'center',    // ✔ camelCase
+            justifyContent: 'center', // ✔ camelCase
             zIndex: 50,
             borderRadius: '8px',
             backdropFilter: 'blur(2px)'

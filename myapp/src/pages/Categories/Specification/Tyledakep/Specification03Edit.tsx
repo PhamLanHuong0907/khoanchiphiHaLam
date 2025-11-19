@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from "react"; // 1. Thêm React, useEffect, useState
+import React, { useEffect, useState } from "react";
 import PATHS from "../../../../hooks/path";
 import LayoutInput from "../../../../layout/layout_input";
-import { useApi } from "../../../../hooks/useFetchData"; // 2. Thêm useApi
+import { useApi } from "../../../../hooks/useFetchData"; 
 
 // 3. Cập nhật props
 interface Specification03EditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Sửa type
 }
 
-// 4. Interface cho dữ liệu (dựa trên mẫu JSON của Specification03.tsx)
+// 4. Interface cho dữ liệu (Thêm trường mới)
 interface StoneClampRatio {
   id: string;
   value: string;
+  adjustmentFactor: number; // Trường mới
 }
 
 export default function Specification03Edit({ id, onClose, onSuccess }: Specification03EditProps) {
   // 5. Khai báo API
-  const basePath = `/api/product/stoneclampratio`; // (Lấy từ file Specification03.tsx)
+  const basePath = `/api/product/stoneclampratio`;
   const { fetchById, putData, loading: loadingData, error: dataError }
     = useApi<StoneClampRatio>(basePath);
 
@@ -26,9 +27,10 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
   const [currentData, setCurrentData] = useState<StoneClampRatio | null>(null);
   const [formData, setFormData] = useState({
     value: "",
+    adjustmentFactor: "", // Trường mới
   });
 
-  // 7. Load data by ID
+  // 7. Load data by ID (giữ nguyên)
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -38,11 +40,12 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
     loadData();
   }, [id, fetchById]);
 
-  // 8. Sync data to form state
+  // 8. Sync data to form state (Cập nhật logic sync)
   useEffect(() => {
     if (currentData) {
       setFormData({
         value: currentData.value,
+        adjustmentFactor: currentData.adjustmentFactor?.toString() || "",
       });
     }
   }, [currentData]);
@@ -52,34 +55,69 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
     if (!id) return alert("❌ Thiếu ID để cập nhật!");
 
     const value = data["Tỷ lệ đá kẹp (Ckep)"]?.trim();
+    const adjustmentFactorStr = data["Hệ số điều chỉnh định mức"]?.trim(); // Trường mới
 
     // Validation
     if (!value) return alert("⚠️ Vui lòng nhập Tỷ lệ đá kẹp!");
+    if (!adjustmentFactorStr) return alert("⚠️ Vui lòng nhập Hệ số điều chỉnh định mức!");
 
-    // Payload (Mẫu JSON to put: { "id": "string", "value": "string" })
+    // Chuyển đổi an toàn
+    const adjustmentFactor = parseFloat(adjustmentFactorStr);
+    if (isNaN(adjustmentFactor)) return alert("⚠️ Hệ số điều chỉnh định mức phải là một con số!");
+
+    // Payload (Thêm trường mới)
     const payload = {
       id,
       value,
+      adjustmentFactor,
     };
+    
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.();
 
-    console.log("📤 PUT payload:", payload);
+    try {
+        // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
+      await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
 
-    // Gửi dữ liệu
-    await putData(payload, () => {
-      alert("✅ Cập nhật Tỷ lệ đá kẹp thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+await new Promise(r => setTimeout(r, 0));
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // 4. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Cập nhật Tỷ lệ đá kẹp thành công!");
+
+    } catch (e: any) {
+        // 5. BẮT LỖI VÀ XỬ LÝ
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Tỷ lệ đá kẹp này đã tồn tại trong hệ thống. Vui lòng nhập giá trị khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
+    }
   };
 
-  // Fields (giữ nguyên)
+  // Fields (Thêm trường mới)
   const fields = [
     { label: "Tỷ lệ đá kẹp (Ckep)", type: "text" as const, placeholder: "Nhập tỷ lệ đá kẹp: 2<=Ckep<=3", enableCompare: true },
+    { label: "Hệ số điều chỉnh định mức", type: "text" as const, placeholder: "Nhập hệ số điều chỉnh định mức" },
   ];
 
   return (
-    // 10. Bọc bằng Fragment
-    <>
       <LayoutInput
         title01="Danh mục / Thông số / Tỷ lệ đá kẹp"
         title="Chỉnh sửa Tỷ lệ đá kẹp"
@@ -90,9 +128,10 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
         // 11. Thêm initialData và shouldSync
         initialData={{
           "Tỷ lệ đá kẹp (Ckep)": formData.value,
+          "Hệ số điều chỉnh định mức": formData.adjustmentFactor,
         }}
         shouldSyncInitialData={true}
-      />
+      >
       {/* 12. Thêm loading/error state */}
       <div style={{ padding: '0 20px', marginTop: '-10px' }}>
         {(loadingData) && (
@@ -102,6 +141,6 @@ export default function Specification03Edit({ id, onClose, onSuccess }: Specific
           <p className="text-red-500 mt-3">Lỗi: {dataError.toString()}</p>
         )}
       </div>
-    </>
+      </LayoutInput>
   );
 }

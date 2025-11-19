@@ -79,7 +79,7 @@ const ProductionStepGroup: React.FC = () => {
           /* 2. Luôn hiển thị bảng (ngay cả khi đang tải) */
           <AdvancedTable
             title01="Danh mục / Công đoạn sản xuất / Nhóm công đoạn sản xuất"
-            title="Nhóm công đoạn sản xuất"
+            title="Công đoạn sản xuất"
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}

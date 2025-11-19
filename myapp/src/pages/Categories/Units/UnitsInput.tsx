@@ -10,7 +10,7 @@ interface UnitsInputProps {
 
 const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
   const basePath = `/api/catalog/unitofmeasure`;
-  const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
+  const { postData } = useApi(basePath, { autoFetch: false });
 
   const [formData] = useState({
     name: "",
@@ -23,28 +23,25 @@ const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
     const payload = { name };
     
     // Khởi tạo Promise API, truyền logic reload vào callback thành công
-    const apiPromise = postData(payload, async () => {
-        if (onSuccess) {
-            await onSuccess(); // Trigger Parent Refresh (loading state)
-        }
-    });
+  
 
-    // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Kích hoạt màn hình tối/overlay của Parent)
+    // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Optimistic Close)
     onClose?.(); 
 
     try {
-        // 2. CHỜ API VÀ RELOAD HOÀN TẤT (Loading overlay ở Parent đã hiện rồi ẩn)
-        await apiPromise; 
+        // 2. CHỜ API VÀ RELOAD HOÀN TẤT
+        await Promise.all([
+    postData(payload, undefined),
+    onSuccess?.()
+]);
 
-        // 3. ✅ CHỜ NEXT RENDER TICK: Loại bỏ dependency 300ms cố định
-        // Đây là cách đáng tin cậy nhất để chờ React hoàn thành việc vẽ lại UI (re-paint).
-        await new Promise(resolve => setTimeout(resolve, 0));
+await new Promise(r => setTimeout(r, 0));
 
         // 4. HIỆN ALERT (Đã reload xong, không phụ thuộc vào thời gian)
         alert("✅ Tạo đơn vị tính thành công!");
 
     } catch (e) {
-        // 5. Bắt lỗi (Vì form đã đóng)
+        // 5. Bắt lỗi (Vì form đã đóng, alert lỗi ra ngoài)
         console.error("Lỗi giao dịch sau khi đóng form:", e);
         alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
     }
@@ -54,7 +51,7 @@ const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
     {
       label: "Đơn vị tính",
       type: "text" as const,
-      placeholder: "Nhập tên đơn vị tính, ví dụ cm",
+      placeholder: "Nhập tên đơn vị tính, ví dụ: cái",
     },
   ];
 
@@ -70,8 +67,8 @@ const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
         "Đơn vị tính": formData.name,
       }}
     >
-      {saving && <p className="text-blue-500 mt-3">Đang lưu...</p>}
-      {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError}</p>}
+      {/* ❌ ĐÃ XÓA: Loại bỏ hiển thị loading/error nội bộ vì form đóng ngay lập tức 
+             và lỗi đã được xử lý qua alert trong khối catch. */}
     </LayoutInput>
   );
 };

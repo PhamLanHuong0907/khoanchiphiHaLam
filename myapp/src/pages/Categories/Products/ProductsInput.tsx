@@ -4,153 +4,95 @@ import PATHS from "../../../hooks/path";
 import { useApi } from "../../../hooks/useFetchData";
 import DropdownMenuSearchable from "../../../components/dropdown_menu_searchable";
 
-// 1. Định nghĩa Props (giống MaterialsInput)
+// 1. Định nghĩa Props
 interface ProductsInputProps {
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Sửa type
 }
 
-// 2. Interface cho các tùy chọn dropdown
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
-// 3. (Giả định) Interfaces cho dữ liệu trả về từ API dropdown
-// (API api/process/processgroup trả về { id, code })
-interface ProcessGroup {
-  id: string;
-  code: string;
-}
-// (Các API còn lại giả định trả về { id, value })
-interface ProductProperty {
-  id: string;
-  value: string;
-}
+// 2. Interfaces cho dữ liệu trả về từ API dropdown
+interface DropdownOption { value: string; label: string; }
+interface ProcessGroup { id: string; code: string; }
 
 const ProductsInput: React.FC<ProductsInputProps> = ({ onClose, onSuccess }) => {
-  // 4. ====== API setup ======
+  // 3. ====== API setup ======
   const productPath = "/api/product/product";
   const processGroupPath = "/api/process/processgroup";
-  const hardnessPath = "/api/product/hardness";
-  const stoneClampRatioPath = "/api/product/stoneclampratio";
-  const insertItemPath = "/api/product/insertitem";
 
-  // API POST
-  const { postData, loading: saving, error: saveError } = useApi(productPath);
+  // API POST (autoFetch: false)
+  const { postData, error: saveError } = useApi(productPath, { autoFetch: false });
 
-  // API GET (4 dropdowns)
-  const { fetchData: fetchProcessGroups, data: processGroups, loading: loadingProcessGroup, error: errorProcessGroup } =
+  // API GET Dropdowns
+  const { fetchData: fetchProcessGroups, data: processGroups, loading: loadingProcessGroup } =
     useApi<ProcessGroup>(processGroupPath);
-  const { fetchData: fetchHardness, data: hardness, loading: loadingHardness, error: errorHardness } =
-    useApi<ProductProperty>(hardnessPath);
-  const { fetchData: fetchStoneClampRatios, data: stoneClampRatios, loading: loadingStoneClamp, error: errorStoneClamp } =
-    useApi<ProductProperty>(stoneClampRatioPath);
-  const { fetchData: fetchInsertItems, data: insertItems, loading: loadingInsertItem, error: errorInsertItem } =
-    useApi<ProductProperty>(insertItemPath);
-
-  // 5. ====== State ======
-  // State cho 4 dropdowns
+  
+  // 4. ====== State ======
   const [selectedProcessGroup, setSelectedProcessGroup] = useState<string>("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [selectedHardness, setSelectedHardness] = useState<string>("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [selectedStoneClamp, setSelectedStoneClamp] = useState<string>("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [selectedInsertItem, setSelectedInsertItem] = useState<string>("");
-  // (State cho "Mã sản phẩm" và "Tên sản phẩm" được quản lý nội bộ bởi LayoutInput)
+  const [formData] = useState({ code: "", name: "" });
 
-  // 6. ====== Load dropdowns ======
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  // 5. Load dropdowns
+  useEffect(() => {
+    fetchProcessGroups();
+  }, [fetchProcessGroups]);
 
-useEffect(() => {
-    // 1. Định nghĩa một hàm async bên trong
-    const fetchAllData = async () => {
-      setIsInitialLoading(true); // Bắt đầu loading
-
-      try {
-        // 2. Gọi Promise.allSettled với MẢNG các hàm fetch
-        const results = await Promise.allSettled([
-          fetchProcessGroups(),
-          fetchHardness(),
-          fetchStoneClampRatios(),
-          fetchInsertItems(),
-        ]);
-
-        // 3. (Tùy chọn) Kiểm tra kết quả
-        results.forEach((result, index) => {
-          if (result.status === 'rejected') {
-            // Log ra API nào bị lỗi
-            console.error(`API call ${index} thất bại:`, result.reason);
-          }
-        });
-
-      } catch (error) {
-        // 4. Bắt các lỗi cú pháp hoặc lỗi không mong đợi
-        console.error('Lỗi không mong đợi khi fetch dữ liệu:', error);
-      } finally {
-        // 5. Tắt loading sau khi TẤT CẢ đã hoàn thành
-        setIsInitialLoading(false);
-      }
-    };
-
-    // 6. Gọi hàm async
-    fetchAllData();
-
-    // 7. Mảng dependencies giữ nguyên
-  }, [fetchProcessGroups, fetchHardness, fetchStoneClampRatios, fetchInsertItems]);
   const processGroupOptions: DropdownOption[] =
     processGroups?.map((g) => ({ value: g.id, label: g.code })) || [];
-  const hardnessOptions: DropdownOption[] =
-    hardness?.map((h) => ({ value: h.id, label: h.value })) || [];
-  const stoneClampOptions: DropdownOption[] =
-    stoneClampRatios?.map((s) => ({ value: s.id, label: s.value })) || [];
-  const insertItemOptions: DropdownOption[] =
-    insertItems?.map((i) => ({ value: i.id, label: i.value })) || [];
 
-  // 7. ====== Handle submit ======
+  // 6. ====== Handle submit (LOGIC SỬA ĐÚNG) ======
   const handleSubmit = async (data: Record<string, string>) => {
-    // Lấy giá trị từ các trường text
     const code = data["Mã sản phẩm"]?.trim();
     const name = data["Tên sản phẩm"]?.trim();
+    const processGroupId = selectedProcessGroup;
 
-    // Validation
     if (!selectedProcessGroup) return alert("⚠️ Vui lòng chọn Nhóm công đoạn sản xuất!");
     if (!code) return alert("⚠️ Vui lòng nhập Mã sản phẩm!");
     if (!name) return alert("⚠️ Vui lòng nhập Tên sản phẩm!");
 
-    // Tạo payload
-    const payload = {
-      code,
-      name,
-      processGroupId: selectedProcessGroup,
-    };
+    const payload = { code, name, processGroupId };
 
-    console.log("📤 POST payload:", payload);
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.(); 
 
-    // Gửi dữ liệu
-    await postData(payload, () => {
-      alert("✅ Tạo sản phẩm thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+    try {
+        // 2. CHẠY API VÀ CHỜ THÀNH CÔNG (Gọi trực tiếp, không dùng callback thứ hai)
+        await Promise.all([
+    postData(payload, undefined),
+    onSuccess?.()
+]);
+
+await new Promise(r => setTimeout(r, 0));
+
+        // 4. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Tạo sản phẩm thành công!");
+
+    } catch (e: any) {
+        // 5. BẮT LỖI VÀ XỬ LÝ CHI TIẾT
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            if (detail.includes("Mã đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Mã sản phẩm này đã tồn tại trong hệ thống. Vui lòng nhập mã khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỂN THỊ ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
+    }
   };
 
-  // 8. ====== Fields (Dùng custom placeholders cho dropdowns) ======
   const fields = [
     { type: "custom1" as const }, // Placeholder cho Nhóm CĐSX
     { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập tên mã sản phẩm" },
     { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm" },
   ];
 
-  // 9. Tính toán trạng thái loading/error tổng
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const isLoading = loadingProcessGroup || loadingHardness || loadingStoneClamp || loadingInsertItem || saving;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const anyError = errorProcessGroup || errorHardness || errorStoneClamp || errorInsertItem || saveError;
-
   return (
-    // Bọc bằng Fragment
       <LayoutInput
         title01="Danh mục / Sản phẩm"
         title="Tạo mới Sản phẩm"
@@ -159,7 +101,6 @@ useEffect(() => {
         closePath={PATHS.PRODUCTS.LIST}
         onClose={onClose}
         initialData={{
-          // Để trống initialData cho các trường text
           "Mã sản phẩm": "",
           "Tên sản phẩm": "",
         }}

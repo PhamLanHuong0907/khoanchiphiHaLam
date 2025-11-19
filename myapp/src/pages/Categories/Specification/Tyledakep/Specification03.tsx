@@ -1,40 +1,45 @@
-import React from "react"; // Bỏ useEffect
+import React from "react"; 
 import Layout from "../../../../layout/layout_filter";
 import AdvancedTable from "../../../../components/bodytable";
 import PencilButton from "../../../../components/PencilButtons";
 import Specification03Edit from "./Specification03Edit";
 import Specification03Input from "./Specification03Input";
-// import LabelWithIcon from "../../../../components/label"; // Bỏ
-import { ChevronsUpDown } from "lucide-react"; // Thêm
-import { useApi } from "../../../../hooks/useFetchData"; // Thêm
+import { ChevronsUpDown } from "lucide-react"; 
+import { useApi } from "../../../../hooks/useFetchData";
 
-// 1. Định nghĩa Interface
+// 1. Định nghĩa Interface (Thêm trường mới)
 interface StoneClampRatio {
   id: string;
   value: string;
+  coefficientValue: number;
 }
 
 const Specification03: React.FC = () => {
-  // 2. Khai báo API (Thay đổi)
+  // 2. Khai báo API 
   const basePath = `/api/product/stoneclampratio`;
-   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
-  // Lấy 'refresh' trực tiếp, bỏ 'fetchData'
+  const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
   const { data, loading, error, refresh } = useApi<StoneClampRatio>(fetchPath);
 
-  // 3. Bỏ 'useEffect' và 'refresh' thủ công
-  // (useApi sẽ tự động fetch lần đầu)
+  // ✅ Wrapper Async để đảm bảo việc await hoạt động đúng từ con
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
-  // 4. Cập nhật Columns (giữ nguyên)
+  // 4. Cập nhật Columns (Thêm cột mới)
   const columns = [
     "STT",
     <div className="flex items-center gap-1" key="value">
       <span>Tỷ lệ đá kẹp (Ckep)</span>
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
+    <div className="flex items-center gap-1" key="adjFactor">
+      <span>Hệ số điều chỉnh định mức</span>
+      <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
+    </div>,
     "Sửa",
   ];
-  // 5. Cập nhật columnWidths (giữ nguyên)
-  const columnWidths = [6, 84, 10];
+  // 5. Cập nhật columnWidths (Phân bổ lại)
+  const columnWidths = [6, 40, 44, 10]; 
 
   // Navbar mini (giữ nguyên)
   const items = [
@@ -45,16 +50,17 @@ const Specification03: React.FC = () => {
     { label: "Bước chống", path: "/Specification05" },
   ];
 
-  // 6. Map dữ liệu từ API
+  // 6. Map dữ liệu từ API (Thêm dữ liệu cho cột mới)
   const tableData =
     data?.map((row, index) => [
       index + 1,
       row.value || "",
+      row.coefficientValue?.toLocaleString() || "", // Dữ liệu cho cột mới
       <PencilButton
         key={row.id}
         id={row.id}
         // 'refresh' này là từ hook
-        editElement={<Specification03Edit id={row.id} onSuccess={refresh} />}
+        editElement={<Specification03Edit id={row.id} onSuccess={handleRefresh} />}
       />,
     ]) || [];
 
@@ -64,23 +70,14 @@ const Specification03: React.FC = () => {
 
   return (
     <Layout>
-      <div className="p-6">
-        {/* Thêm style cho header (giữ nguyên) */}
+      <div className="p-6 relative min-h-[500px]">
+        
         <style>{`
-          th > div {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-          }
-          th > div span:last-child {
-            font-size: 5px;
-            color: gray;
-          }
+          th > div { display: inline-flex; align-items: center; gap: 3px; }
+          th > div span:last-child { font-size: 5px; color: gray; }
         `}</style>
         
-        {/* 8. Xử lý UI - Đã cập nhật */}
-        
-        {/* 1. Ưu tiên hiển thị lỗi */}
+        {/* 8. Xử lý UI */}
         {anyError ? (
           <div className="text-center text-red-500 py-10">
             Lỗi: {anyError.toString()}
@@ -94,11 +91,11 @@ const Specification03: React.FC = () => {
             columnWidths={columnWidths}
             data={tableData} // Dùng dữ liệu động
             // 'refresh' này là từ hook
-            createElement={<Specification03Input onSuccess={refresh} />} 
+            createElement={<Specification03Input onSuccess={handleRefresh} />} 
             navbarMiniItems={items}
             basePath={basePath} // Thêm basePath
             // 'refresh' này là từ hook
-            onDeleted={refresh} 
+            onDeleted={handleRefresh} 
             columnLefts={['undefined','undefined','undefined','undefined']}
           />
         )}
@@ -107,14 +104,19 @@ const Specification03: React.FC = () => {
         {isLoading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
+            top: 0, 
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
             borderRadius: '8px',
-            zIndex: 100
+            backdropFilter: 'blur(2px)'
           }}>
+             <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>

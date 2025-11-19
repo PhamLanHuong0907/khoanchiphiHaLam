@@ -13,10 +13,7 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
   onClose,
   onSuccess,
 }) => {
-  // 1. API lấy danh sách Đơn vị tính (autoFetch: true)
   const unitPath = `/api/catalog/unitofmeasure?pageIndex=1&pageSize=1000`;
-  
-  // 2. API lưu Mã giao khoán (autoFetch: false)
   const assignmentPath = `/api/catalog/assignmentcode`;
 
   const {
@@ -26,7 +23,6 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
 
   const {
     postData,
-    loading: saving,
     error: saveError,
   } = useApi(assignmentPath, { autoFetch: false });
 
@@ -55,19 +51,42 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
 
     const payload = { code, name, unitOfMeasureId };
 
-    // Gọi API -> Chờ xử lý
-    await postData(payload, async () => {
-      // 1. Chờ reload dữ liệu bảng cha
-      if (onSuccess) {
-        await onSuccess();
-      }
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.(); 
 
-      // 2. Chờ 300ms để UI kịp vẽ lại bảng bên dưới
-      setTimeout(() => {
+    try {
+        // 2. CHỜ API HOÀN TẤT (Nếu thất bại, lỗi sẽ được ném ra)
+        // ✅ TRUYỀN UNDEFINED VÀ CHẠY LOGIC RELOAD TUẦN TỰ BÊN DƯỚI
+        await Promise.all([
+    postData(payload, undefined),
+    onSuccess?.()
+]);
+
+await new Promise(r => setTimeout(r, 0));
+        // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Tạo mã giao khoán thành công!");
-        onClose?.();
-      }, 300);
-    });
+
+    } catch (e: any) {
+        // 5. BẮT LỖI và alert thất bại
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("Mã đã tồn tại") || detail.includes("exists")) {
+                errorMessage = "Mã giao khoán này đã tồn tại trong hệ thống. Vui lòng nhập mã khác!";
+            } else if (detail.includes("HTTP error")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại. Vui lòng kiểm tra kết nối mạng hoặc liên hệ quản trị viên.";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỂN THỊ ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
+    }
   };
 
   const fields = [
@@ -109,7 +128,7 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
         />
       </div>
 
-      {saving && <p className="text-blue-500 mt-3">Đang lưu dữ liệu...</p>}
+      {/* Hiển thị lỗi cuối cùng */}
       {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError}</p>}
     </LayoutInput>
   );

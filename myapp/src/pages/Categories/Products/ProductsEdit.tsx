@@ -8,11 +8,10 @@ import { useApi } from "../../../hooks/useFetchData";
 interface ProductsEditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Sửa type
 }
 
 // 2. Interface cho dữ liệu Product (GET {id})
-// (Giả định API GET {id} trả về các ID khóa ngoại)
 interface Product {
   id: string;
   code: string;
@@ -20,13 +19,8 @@ interface Product {
   processGroupId: string;
 }
 
-// Interface cho các tùy chọn dropdown (Utility)
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
 // Interfaces cho dữ liệu trả về từ API dropdown
+interface DropdownOption { value: string; label: string; }
 interface ProcessGroup { id: string; code: string; }
 
 
@@ -40,19 +34,13 @@ const ProductsEdit: React.FC<ProductsEditProps> = ({ id, onClose, onSuccess }) =
     useApi<Product>(productPath);
 
   // API GET Dropdowns
-  const { fetchData: fetchProcessGroups, data: processGroups, loading: loadingProcessGroup, error: errorProcessGroup } =
+  const { fetchData: fetchProcessGroups, data: processGroups, loading: loadingProcessGroup } =
     useApi<ProcessGroup>(processGroupPath);
 
   // 4. ====== State ======
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  // State cho 4 dropdowns
   const [selectedProcessGroup, setSelectedProcessGroup] = useState<string>("");
-
-  // State cho text inputs
-  const [formData, setFormData] = useState({
-    code: "",
-    name: "",
-  });
+  const [formData, setFormData] = useState({ code: "", name: "" });
 
   // 5. ====== Load material by ID ======
   useEffect(() => {
@@ -65,85 +53,77 @@ const ProductsEdit: React.FC<ProductsEditProps> = ({ id, onClose, onSuccess }) =
   }, [id, fetchById]);
 
   // 6. ====== Load dropdowns ======
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-useEffect(() => {
-    // 1. Định nghĩa một hàm async bên trong
-    const fetchAllData = async () => {
-      setIsInitialLoading(true); // Bắt đầu loading
-
-      try {
-        // 2. Gọi Promise.allSettled với MẢNG các hàm fetch
-        const results = await Promise.allSettled([
-          fetchProcessGroups(),
-        ]);
-
-        // 3. (Tùy chọn) Kiểm tra kết quả
-        results.forEach((result, index) => {
-          if (result.status === 'rejected') {
-            // Log ra API nào bị lỗi
-            console.error(`API call ${index} thất bại:`, result.reason);
-          }
-        });
-
-      } catch (error) {
-        // 4. Bắt các lỗi cú pháp hoặc lỗi không mong đợi
-        console.error('Lỗi không mong đợi khi fetch dữ liệu:', error);
-      } finally {
-        // 5. Tắt loading sau khi TẤT CẢ đã hoàn thành
-        setIsInitialLoading(false);
-      }
-    };
-
-    // 6. Gọi hàm async
-    fetchAllData();
-
-    // 7. Mảng dependencies giữ nguyên
+  useEffect(() => {
+    fetchProcessGroups();
   }, [fetchProcessGroups]);
 
   // 7. ====== Sync data to form (QUAN TRỌNG) ======
   useEffect(() => {
     if (currentProduct) {
-      // Sync text inputs
       setFormData({
         code: currentProduct.code,
         name: currentProduct.name,
       });
+      // ✅ Sync dropdown ID
+      setSelectedProcessGroup(currentProduct.processGroupId || "");
     }
-  }, [currentProduct]); // Phụ thuộc vào currentProduct
+  }, [currentProduct]);
 
   // 8. Map data API sang định dạng DropdownOption
   const processGroupOptions: DropdownOption[] =
     processGroups?.map((g) => ({ value: g.id, label: g.code })) || [];
 
-  // 9. ====== PUT submit ======
+
+  // 9. ====== PUT submit (LOGIC SỬA ĐÚNG) ======
   const handleSubmit = async (data: Record<string, string>) => {
     if (!id) return alert("❌ Thiếu ID để cập nhật!");
 
     const code = data["Mã sản phẩm"]?.trim();
     const name = data["Tên sản phẩm"]?.trim();
+    const processGroupId = selectedProcessGroup;
 
     // Validation
     if (!selectedProcessGroup) return alert("⚠️ Vui lòng chọn Nhóm công đoạn sản xuất!");
     if (!code) return alert("⚠️ Vui lòng nhập Mã sản phẩm!");
     if (!name) return alert("⚠️ Vui lòng nhập Tên sản phẩm!");
 
-    // Tạo payload (giống hệt payload của Input, nhưng thêm ID)
-    const payload = {
-      id,
-      code,
-      name,
-      processGroupId: selectedProcessGroup,
-    };
+    const payload = { id, code, name, processGroupId };
+    
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.(); 
 
-    console.log("📤 PUT payload:", payload);
+    try {
+        // 2. CHẠY API VÀ CHỜ THÀNH CÔNG (Gọi trực tiếp putData)
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
 
-    // Gửi dữ liệu
-    await putData(payload, () => {
-      alert("✅ Cập nhật sản phẩm thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+await new Promise(r => setTimeout(r, 0));
+        // 4. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Cập nhật sản phẩm thành công!");
+
+    } catch (e: any) {
+        // 5. BẮT LỖI VÀ XỬ LÝ
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("Mã đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Mã sản phẩm này đã tồn tại trong hệ thống. Vui lòng nhập mã khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
+    }
   };
 
   // 10. ====== Fields (Dùng custom placeholders) ======
@@ -152,11 +132,6 @@ useEffect(() => {
     { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập mã sản phẩm, ví dụ: SP01" },
     { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm, ví dụ: Lò chợ 11-1.26 lò chống..." },
   ];
-
-  // 11. Tính toán trạng thái loading/error tổng
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const isLoading = loadingMaterial || loadingProcessGroup ;
-  const anyError = errorMaterial || errorProcessGroup ;
 
   return (
       <LayoutInput
@@ -170,7 +145,6 @@ useEffect(() => {
           "Mã sản phẩm": formData.code,
           "Tên sản phẩm": formData.name,
         }}
-        // QUAN TRỌNG: Cần cờ này để cập nhật form khi data async về
         shouldSyncInitialData={true}
       >
         {/* Render các dropdown tùy chỉnh */}
@@ -178,15 +152,13 @@ useEffect(() => {
           <DropdownMenuSearchable
             label="Nhóm công đoạn sản xuất"
             options={processGroupOptions}
-            value={selectedProcessGroup}
+            value={currentProduct?.processGroupId || selectedProcessGroup} // Sử dụng currentProduct khi load lần đầu
             onChange={setSelectedProcessGroup}
             placeholder="Chọn mã nhóm công đoạn sản xuất"
             isDisabled={loadingProcessGroup}
           />
         </div>
       </LayoutInput>
-
-
   );
 };
 

@@ -7,7 +7,7 @@ import { useApi } from "../../../hooks/useFetchData";
 interface WorkCodeEditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Async
+  onSuccess?: () => Promise<void> | void; 
 }
 
 interface WorkCode {
@@ -29,7 +29,6 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
   const {
     fetchById,
     putData,
-    loading: loadingWorkCode,
     error: errorWorkCode,
   } = useApi<WorkCode>(workCodePath);
 
@@ -89,21 +88,27 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
 
     const payload = { id, code, name, unitOfMeasureId };
     
-    await putData(
-      payload,
-      async () => {
-        // 1. Chờ reload dữ liệu
-        if (onSuccess) {
-            await onSuccess();
-        }
+    // Khởi tạo Promise API
+    // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Optimistic Close)
+    onClose?.(); 
+    
+    try {
+        // 2. CHỜ API VÀ RELOAD HOÀN TẤT
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
+
+await new Promise(r => setTimeout(r, 0));
         
-        // 2. Chờ 300ms UI vẽ xong
-        setTimeout(() => {
-            alert("✅ Cập nhật mã giao khoán thành công!");
-            onClose?.();
-        }, 300);
-      },
-    );
+        // 4. HIỆN ALERT
+        alert("✅ Cập nhật mã giao khoán thành công!");
+
+    } catch (e) {
+        // 5. Bắt lỗi
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
+    }
   };
 
   const fields = [
@@ -144,7 +149,7 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
           />
         </div>
 
-        {loadingWorkCode && <p className="text-blue-500 mt-3">Đang lưu dữ liệu...</p>}
+        {/* Hiển thị lỗi cuối cùng */}
         {errorWorkCode && <p className="text-red-500 mt-3">Lỗi: {errorWorkCode}</p>}
       </LayoutInput>
   );

@@ -78,7 +78,7 @@ const Unit: React.FC = () => {
         
         {/* Overlay Loading khi đang refresh dữ liệu */}
         {loading && (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-50 rounded-lg backdrop-blur-[2px]">
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-500000000000000000 rounded-lg backdrop-blur-[2px]">
             <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}

@@ -1,4 +1,4 @@
-import React from "react"; // Bỏ useEffect và useMemo
+import React from "react"; 
 import Layout from "../../../layout/layout_filter";
 import AdvancedTable from "../../../components/bodytable";
 import PencilButton from "../../../components/PencilButtons";
@@ -7,7 +7,7 @@ import SparePartsInput from "./SparePartsInput";
 import SparePartsEdit from "./SparePartEdit";
 import { useApi } from "../../../hooks/useFetchData";
 
-// 1. SỬA ĐỔI: Interface khớp hoàn toàn với JSON result
+// SỬA ĐỔI: Interface khớp hoàn toàn với JSON result
 interface SparePart {
   id: string;
   code: string;           // Mã phụ tùng
@@ -16,28 +16,25 @@ interface SparePart {
   unitOfMeasureName: string; // <-- API đã cung cấp
   equipmentId: string;
   equipmentCode: string;     // <-- API đã cung cấp
-  costAmmount: number;       // <-- Tên đúng từ API (có typo)
+  costAmmount: number;       // <-- Tên đúng từ API
 }
-
-// (Các interface không cần thiết đã bị xóa)
 
 const SpareParts: React.FC = () => {
   const basePath = `/api/catalog/part`;
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
-  // 2. SỬA ĐỔI: Gọi 1 API chính, lấy 'refresh' trực tiếp
+  // Gọi 1 API chính, lấy 'refresh' trực tiếp
   const { data, loading, error, refresh } = useApi<SparePart>(fetchPath);
 
-  // (Các useApi không cần thiết đã bị xóa)
+  // ✅ Helper Async để đảm bảo việc await hoạt động đúng từ con
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
-  // 3. SỬA ĐỔI: Bỏ 'refresh' thủ công và 'useEffect'
-  // (useApi sẽ tự động fetch lần đầu)
 
-  // (Các useMemo không cần thiết đã bị xóa)
-
-  // ====== Định nghĩa Cột (Key nên khớp tên field API nếu có thể) ======
+  // ====== Định nghĩa Cột ======
   const columns = [
     "STT",
-    <div className="flex items-center gap-1" key="equipmentCode"> {/* Sửa key */}
+    <div className="flex items-center gap-1" key="equipmentCode">
       <span>Mã thiết bị</span>
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
@@ -56,39 +53,35 @@ const SpareParts: React.FC = () => {
 
   const columnWidths = [6, 15, 15, 36, 10, 14, 4];
 
-  // 4. SỬA ĐỔI: tableData đọc trực tiếp các trường từ API data
+  // Map dữ liệu từ API
   const tableData =
     data?.map((row, index) => [
       index + 1,
-      row.equipmentCode || "",     // <-- Đọc trực tiếp từ API
+      row.equipmentCode || "",
       row.code || "",
       row.name || "",
-      row.unitOfMeasureName || "", // <-- Đọc trực tiếp từ API
-      // SỬA ĐỔI: Đọc đúng tên trường 'costAmmount'
+      row.unitOfMeasureName || "",
       row.costAmmount?.toLocaleString() || "0",
       <PencilButton
         key={row.id}
         id={row.id}
-        // 'refresh' này là từ hook
-        editElement={<SparePartsEdit id={row.id} onSuccess={refresh} />}
+        // ✅ Truyền handleRefresh
+        editElement={<SparePartsEdit id={row.id} onSuccess={handleRefresh} />}
       />,
     ]) || [];
 
-  // 5. SỬA ĐỔI: Đơn giản hóa loading/error
   const isLoading = loading;
   const anyError = error;
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="p-6 relative min-h-[500px]">
         {/* Style cho sort icon */}
         <style>{`
           th > div { display: inline-flex; align-items: center; gap: 3px; }
           th > div span:last-child { font-size: 5px; color: gray; }
         `}</style>
 
-        {/* 6. SỬA ĐỔI: Cập nhật logic return */}
-        
         {/* 1. Ưu tiên hiển thị lỗi */}
         {anyError ? (
           <div className="text-center text-red-500 py-10">Lỗi: {anyError.toString()}</div>
@@ -100,11 +93,11 @@ const SpareParts: React.FC = () => {
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}
-            // 'refresh' này là từ hook
-            createElement={<SparePartsInput onSuccess={refresh} />}
+            // ✅ Truyền handleRefresh
+            createElement={<SparePartsInput onSuccess={handleRefresh} />}
             basePath={basePath}
-            // 'refresh' này là từ hook
-            onDeleted={refresh}
+            // ✅ Truyền handleRefresh
+            onDeleted={handleRefresh}
             columnLefts={['undefined','undefined','undefined','undefined',6,'undefined','undefined']}
           />
         )}
@@ -113,14 +106,19 @@ const SpareParts: React.FC = () => {
         {isLoading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
             borderRadius: '8px',
-            zIndex: 100
+            backdropFilter: 'blur(2px)'
           }}>
+             <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>

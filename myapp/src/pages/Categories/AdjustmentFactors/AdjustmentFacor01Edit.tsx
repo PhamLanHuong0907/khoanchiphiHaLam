@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react"; // 1. Thêm React, useEffect, useState
+import { useEffect, useState } from "react";
 import PATHS from "../../../hooks/path";
 import LayoutInput from "../../../layout/layout_input";
-import { useApi } from "../../../hooks/useFetchData"; // 2. Thêm useApi
+import { useApi } from "../../../hooks/useFetchData";
 
-// 3. Cập nhật props
 interface AdjustmentFactor01EditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Sửa type
 }
 
-// 4. Interface cho dữ liệu
 interface AdjustmentFactor {
   id: string;
   code: string;
@@ -18,19 +16,16 @@ interface AdjustmentFactor {
 }
 
 export default function AdjustmentFactor01Edit({ id, onClose, onSuccess }: AdjustmentFactor01EditProps) {
-  // 5. Khai báo API
   const basePath = `api/adjustment/adjustmentfactor`;
-  const { fetchById, putData } =
-    useApi<AdjustmentFactor>(basePath);
+  const { fetchById, putData } = useApi<AdjustmentFactor>(basePath);
 
-  // 6. State
   const [currentData, setCurrentData] = useState<AdjustmentFactor | null>(null);
   const [formData, setFormData] = useState({
     code: "",
     name: "",
   });
 
-  // 7. Load data by ID
+  // Load data by ID (giữ nguyên)
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -40,7 +35,7 @@ export default function AdjustmentFactor01Edit({ id, onClose, onSuccess }: Adjus
     loadData();
   }, [id, fetchById]);
 
-  // 8. Sync data to form state
+  // Sync data to form state (giữ nguyên)
   useEffect(() => {
     if (currentData) {
       setFormData({
@@ -57,24 +52,48 @@ export default function AdjustmentFactor01Edit({ id, onClose, onSuccess }: Adjus
     const code = data["Mã hệ số điều chỉnh"]?.trim();
     const name = data["Tên hệ số điều chỉnh"]?.trim();
 
-    // Validation
     if (!code) return alert("⚠️ Vui lòng nhập Mã hệ số điều chỉnh!");
     if (!name) return alert("⚠️ Vui lòng nhập Tên hệ số điều chỉnh!");
 
-    const payload = {
-      id,
-      code,
-      name,
-    };
+    const payload = { id, code, name };
 
-    console.log("📤 PUT payload:", payload);
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.();
+    
+    try {
+        // 2. CHẠY API và CHỜ THÀNH CÔNG
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
 
-    // Gửi dữ liệu
-    await putData(payload, () => {
-      alert("✅ Cập nhật hệ số thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+await new Promise(r => setTimeout(r, 0));
+
+
+        // 4. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Cập nhật hệ số điều chỉnh thành công!");
+
+    } catch (e: any) {
+        // 5. BẮT LỖI VÀ XỬ LÝ
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("Mã đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Mã hệ số điều chỉnh này đã tồn tại trong hệ thống. Vui lòng nhập mã khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
+    }
   };
 
   // Fields (giữ nguyên)
@@ -84,21 +103,18 @@ export default function AdjustmentFactor01Edit({ id, onClose, onSuccess }: Adjus
   ];
 
   return (
-    // 10. Bọc bằng Fragment
       <LayoutInput
         title01="Danh mục / Hệ số điều chỉnh"
-        title="Chỉnh sửa Hệ số điều chỉnh" // Sửa title
+        title="Chỉnh sửa Hệ số điều chỉnh" 
         fields={fields}
         onSubmit={handleSubmit}
         onClose={onClose}
         closePath={PATHS.ADJUSTMENT_FACTORS_01.LIST}
-        // 11. Thêm initialData và shouldSync
         initialData={{
           "Mã hệ số điều chỉnh": formData.code,
           "Tên hệ số điều chỉnh": formData.name,
         }}
         shouldSyncInitialData={true}
       />
-      
   );
 }

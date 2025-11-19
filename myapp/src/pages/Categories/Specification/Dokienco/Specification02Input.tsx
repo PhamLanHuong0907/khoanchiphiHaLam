@@ -5,16 +5,14 @@ import { useApi } from "../../../../hooks/useFetchData";
 
 interface Specification02InputProps {
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Async
+  onSuccess?: () => Promise<void> | void; 
 }
 
 export default function Specification02Input({ onClose, onSuccess }: Specification02InputProps) {
   const basePath = `/api/product/hardness`; 
   
-  // ✅ autoFetch: false để tránh load list không cần thiết
-  const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
+  const { postData, error: saveError } = useApi(basePath, { autoFetch: false });
 
-  // State binding (tùy chọn, giúp quản lý form tốt hơn)
   const [formData] = useState({
     value: "",
   });
@@ -26,21 +24,43 @@ export default function Specification02Input({ onClose, onSuccess }: Specificati
 
     const payload = { value };
 
-    console.log("📤 POST payload:", payload);
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.(); 
 
-    // Gọi API -> Chờ xử lý
-    await postData(payload, async () => {
-      // 1. Chờ reload dữ liệu bảng cha
-      if (onSuccess) {
-        await onSuccess();
-      }
+    try {
+        // 2. CHẠY API và CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
+        
+        await Promise.all([
+    postData(payload, undefined),
+    onSuccess?.()
+]);
 
-      // 2. Chờ 300ms UI vẽ xong
-      setTimeout(() => {
+await new Promise(r => setTimeout(r, 0));
+
+        // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Tạo Độ kiên cố thành công!");
-        onClose?.();
-      }, 300);
-    });
+
+    } catch (e: any) {
+        // 5. BẮT LỖI và xử lý chi tiết bằng tiếng Việt
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Giá trị độ kiên cố này đã tồn tại trong hệ thống. Vui lòng nhập giá trị khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
+    }
   };
 
   const fields = [
@@ -64,8 +84,7 @@ export default function Specification02Input({ onClose, onSuccess }: Specificati
         "Độ kiên cố than, đá (f)": formData.value,
       }}
     >
-      {/* Hiển thị trạng thái */}
-      {saving && <p className="text-blue-500 mt-3">Đang xử lý...</p>}
+      {/* Chỉ hiển thị lỗi, không cần hiển thị loading nội bộ vì form đóng ngay */}
       {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError.toString()}</p>}
     </LayoutInput>
   );

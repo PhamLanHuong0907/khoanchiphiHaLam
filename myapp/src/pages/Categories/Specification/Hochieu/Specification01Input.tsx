@@ -5,16 +5,14 @@ import { useApi } from "../../../../hooks/useFetchData";
 
 interface Specification01InputProps {
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Async
+  onSuccess?: () => Promise<void> | void; 
 }
 
 export default function Specification01Input({ onClose, onSuccess }: Specification01InputProps) {
   const basePath = `/api/product/passport`;
   
-  // ✅ autoFetch: false
-  const { postData, loading: saving, error: saveError } = useApi(basePath, { autoFetch: false });
+  const { postData, error: saveError } = useApi(basePath, { autoFetch: false });
 
-  // State binding (tùy chọn)
   const [formData] = useState({
     name: "",
     sd: "",
@@ -39,25 +37,48 @@ export default function Specification01Input({ onClose, onSuccess }: Specificati
     const payload = { name, sd, sc };
     console.log("📤 POST payload:", payload);
 
-    // Gọi API
-    await postData(payload, async () => {
-      // 1. Chờ reload dữ liệu
-      if (onSuccess) {
-        await onSuccess();
-      }
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.(); 
 
-      // 2. Chờ 300ms UI vẽ xong
-      setTimeout(() => {
+    try {
+        // 2. CHẠY API và CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
+        await Promise.all([
+    postData(payload, undefined),
+    onSuccess?.()
+]);
+
+await new Promise(r => setTimeout(r, 0));
+
+        // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Tạo Hộ chiếu thành công!");
-        onClose?.();
-      }, 300);
-    });
+
+    } catch (e: any) {
+        // 5. BẮT LỖI và xử lý chi tiết bằng tiếng Việt
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Dữ liệu Hộ chiếu này đã tồn tại trong hệ thống. Vui lòng nhập giá trị khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
+    }
   };
   
   const fields = [
     { label: "Hộ chiếu", type: "text" as const, placeholder: "Nhập hộ chiếu" },
-    { label: "Sđ", type: "text" as const, placeholder: "Nhập Sđ: 2<=Sđ<=3", enableCompare: true }, 
-    { label: "Sc", type: "text" as const, placeholder: "Nhập Sc" }, 
+    { label: "Sđ", type: "text" as const, placeholder: "Nhập Sđ", enableCompare: true }, 
+    { label: "Sc", type: "text" as const, placeholder: "Nhập Sc", enableCompare: true }, 
   ];
 
   return (
@@ -74,7 +95,7 @@ export default function Specification01Input({ onClose, onSuccess }: Specificati
           "Sc": formData.sc,
         }}
       >
-        {saving && <p className="text-blue-500 mt-3">Đang xử lý...</p>}
+        {/* Hiển thị lỗi cuối cùng */}
         {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError.toString()}</p>}
       </LayoutInput>
   );

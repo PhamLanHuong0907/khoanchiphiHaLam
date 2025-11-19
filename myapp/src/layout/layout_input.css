@@ -10,8 +10,8 @@
   width: 800px;
   padding-right: 20px;
   padding-left: 20px;
-  min-height: 650px; /* ✅ Giới hạn chiều cao của popup */
-  max-height: 650px;
+  min-height: 600px; /* ✅ Giới hạn chiều cao của popup */
+  max-height: 600px;
   border-radius: 8px;
   background-color: rgba(241, 242, 245, 1);
   margin: 0 auto;

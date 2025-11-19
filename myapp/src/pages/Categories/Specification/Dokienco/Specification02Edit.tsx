@@ -6,7 +6,7 @@ import { useApi } from "../../../../hooks/useFetchData";
 interface Specification02EditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Async
+  onSuccess?: () => Promise<void> | void; 
 }
 
 interface Hardness {
@@ -23,6 +23,7 @@ export default function Specification02Edit({ id, onClose, onSuccess }: Specific
     value: "",
   });
 
+  // Load data by ID (giữ nguyên)
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -32,6 +33,7 @@ export default function Specification02Edit({ id, onClose, onSuccess }: Specific
     loadData();
   }, [id, fetchById]);
 
+  // Sync data to form state (giữ nguyên)
   useEffect(() => {
     if (currentData) {
       setFormData({
@@ -49,21 +51,42 @@ export default function Specification02Edit({ id, onClose, onSuccess }: Specific
 
     const payload = { id, value };
 
-    console.log("📤 PUT payload:", payload);
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.(); 
 
-    // Gửi dữ liệu
-    await putData(payload, async () => {
-      // 1. Chờ reload dữ liệu
-      if (onSuccess) {
-        await onSuccess();
-      }
+    try {
+        // 2. CHẠY API và CHỜ THÀNH CÔNG
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
 
-      // 2. Chờ 300ms UI vẽ xong
-      setTimeout(() => {
+await new Promise(r => setTimeout(r, 0));
+
+        // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Cập nhật Độ kiên cố thành công!");
-        onClose?.();
-      }, 300);
-    });
+
+    } catch (e: any) {
+        // 5. BẮT LỖI và xử lý chi tiết bằng tiếng Việt
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Giá trị độ kiên cố này đã tồn tại trong hệ thống. Vui lòng nhập giá trị khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
+    }
   };
 
   const fields = [
@@ -88,6 +111,7 @@ export default function Specification02Edit({ id, onClose, onSuccess }: Specific
       }}
       shouldSyncInitialData={true}
     >
+      {/* Hiển thị trạng thái */}
       {loadingData && <p className="text-blue-500 mt-3">Đang xử lý dữ liệu...</p>}
       {dataError && <p className="text-red-500 mt-3">Lỗi: {dataError.toString()}</p>}
     </LayoutInput>

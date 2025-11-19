@@ -1,22 +1,17 @@
+import { useEffect, useState } from "react";
 import PATHS from "../../../hooks/path";
 import LayoutInput from "../../../layout/layout_input";
-import { useApi } from "../../../hooks/useFetchData"; // 2. Import useApi
-import DropdownMenuSearchable from "../../../components/dropdown_menu_searchable"; // 2. Import Dropdown
-import { useState, useEffect } from "react";
-// 3. Cập nhật props
+import { useApi } from "../../../hooks/useFetchData";
+import DropdownMenuSearchable from "../../../components/dropdown_menu_searchable";
+
 interface AdjustmentFactors02EditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; 
 }
 
-// Interface cho Dropdown
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
-// Interface cho API GET {id} (dựa trên mẫu JSON file List)
+// Interfaces (Giữ nguyên)
+interface DropdownOption { value: string; label: string; }
 interface AdjustmentFactorDescription {
   id: string;
   description: string;
@@ -25,16 +20,8 @@ interface AdjustmentFactorDescription {
   maintenanceAdjustmentValue: number;
   electricityAdjustmentValue: number;
 }
-
-// Interface cho API GET Dropdown
-interface ProcessGroup {
-  id: string;
-  name: string; 
-}
-interface AdjustmentFactor {
-  id: string;
-  code: string; 
-}
+interface ProcessGroup { id: string; name: string; }
+interface AdjustmentFactor { id: string; code: string; }
 
 export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: AdjustmentFactors02EditProps) {
   // 4. Khai báo API
@@ -47,12 +34,12 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     useApi<AdjustmentFactorDescription>(basePath);
 
   // API GET Dropdowns
-  const { fetchData: fetchProcessGroups, data: processGroups, loading: loadingProcessGroup, error: errorProcessGroup } =
+  const { fetchData: fetchProcessGroups, data: processGroups, loading: loadingProcessGroup } =
     useApi<ProcessGroup>(processGroupPath);
-  const { fetchData: fetchAdjustmentFactors, data: adjustmentFactors, loading: loadingFactor, error: errorFactor } =
+  const { fetchData: fetchAdjustmentFactors, data: adjustmentFactors, loading: loadingFactor } =
     useApi<AdjustmentFactor>(adjustmentFactorPath);
 
-  // 5. State
+  // 5. State (giữ nguyên)
   const [currentData, setCurrentData] = useState<AdjustmentFactorDescription | null>(null);
   const [selectedProcessGroup, setSelectedProcessGroup] = useState<string>("");
   const [selectedAdjustmentFactor, setSelectedAdjustmentFactor] = useState<string>("");
@@ -62,7 +49,7 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     electricityValue: "",
   });
 
-  // 6. Load data by ID
+  // 6. Load data by ID (giữ nguyên)
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -72,13 +59,13 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     loadData();
   }, [id, fetchById]);
 
-  // 7. Load dropdown data
+  // 7. Load dropdown data (giữ nguyên)
   useEffect(() => {
     fetchProcessGroups();
     fetchAdjustmentFactors();
   }, [fetchProcessGroups, fetchAdjustmentFactors]);
 
-  // 8. Sync data to form state
+  // 8. Sync data to form state (giữ nguyên)
   useEffect(() => {
     if (currentData) {
       setFormData({
@@ -91,13 +78,13 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     }
   }, [currentData]);
 
-  // 9. Map options
+  // 9. Map options (giữ nguyên)
   const processGroupOptions: DropdownOption[] =
     processGroups?.map((g) => ({ value: g.id, label: g.name })) || [];
   const adjustmentFactorOptions: DropdownOption[] =
     adjustmentFactors?.map((f) => ({ value: f.id, label: f.code })) || [];
 
-  // 10. Cập nhật handleSubmit (logic PUT)
+  // 10. Cập nhật handleSubmit (LOGIC SỬA ĐÚNG)
   const handleSubmit = async (data: Record<string, string>) => {
     if (!id) return alert("❌ Thiếu ID để cập nhật!");
 
@@ -110,13 +97,13 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     if (!selectedAdjustmentFactor) return alert("⚠️ Vui lòng chọn Mã hệ số điều chỉnh!");
     if (!description) return alert("⚠️ Vui lòng nhập Diễn giải!");
     if (!maintenanceValueStr) return alert("⚠️ Vui lòng nhập Trị số SCTX!");
-    if (!electricityValueStr) return alert("⚠️ Vui lòng nhập Trị số điện năng!");
+    if (!electricityValueStr) return alert("⚠️ Vui lòng nhập Trị số điều chỉnh điện năng!");
 
     const maintenanceAdjustmentValue = parseFloat(maintenanceValueStr);
     const electricityAdjustmentValue = parseFloat(electricityValueStr);
 
     if (isNaN(maintenanceAdjustmentValue)) return alert("⚠️ Trị số SCTX phải là một con số!");
-    if (isNaN(electricityAdjustmentValue)) return alert("⚠️ Trị số điện năng phải là một con số!");
+    if (isNaN(electricityAdjustmentValue)) return alert("⚠️ Trị số điều chỉnh điện năng phải là một con số!");
 
     // Payload (thêm ID)
     const payload = {
@@ -128,16 +115,43 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
       electricityAdjustmentValue,
     };
 
-    console.log("📤 PUT payload:", payload);
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.();
 
-    await putData( payload, () => {
-      alert("✅ Cập nhật diễn giải thành công!");
-      onSuccess?.();
-      onClose?.();
-    });
+    try {
+        // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
+      await new Promise(r => setTimeout(r, 0));
+        // 4. HIỆN ALERT THÀNH CÔNG
+        alert("✅ Cập nhật diễn giải thành công!");
+
+    } catch (e: any) {
+        // 5. BẮT LỖI VÀ XỬ LÝ
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Dữ liệu này đã tồn tại trong hệ thống. Vui lòng kiểm tra lại Mã hệ số và Nhóm công đoạn!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
+    }
   };
 
-  // 11. Cập nhật fields
+  // 11. Cập nhật fields (giữ nguyên)
   const fields = [
     { type: "custom1" as const }, 
     { type: "custom2" as const }, 
@@ -147,14 +161,14 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
   ];
 
   const isLoading = loadingData || loadingProcessGroup || loadingFactor;
-  const anyError = dataError || errorProcessGroup || errorFactor;
+  const anyError = dataError ;
 
   return (
     // 12. Bọc bằng Fragment
     <>
       <LayoutInput
         title01="Danh mục / Hệ số điều chỉnh / Diễn giải"
-        title="Chỉnh sửa Diễn giải Hệ số điều chỉnh" // Sửa title
+        title="Chỉnh sửa Diễn giải Hệ số điều chỉnh"
         fields={fields}
         onSubmit={handleSubmit}
         closePath={PATHS.ADJUSTMENT_FACTORS_02.LIST}

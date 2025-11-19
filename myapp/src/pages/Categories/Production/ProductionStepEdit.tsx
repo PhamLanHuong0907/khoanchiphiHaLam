@@ -7,7 +7,7 @@ import { useApi } from "../../../hooks/useFetchData";
 interface ProductionStepEditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void; // ✅ Sửa type
 }
 
 interface ProductionStep {
@@ -26,16 +26,11 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
   const stepPath = `/api/process/productionprocess`;
   const groupPath = `/api/process/processgroup`;
 
-  const {
-    fetchById,
-    putData,
-  } = useApi<ProductionStep>(stepPath);
+  // API WorkCode
+  const { fetchById, putData, error: errorStep } = useApi<ProductionStep>(stepPath);
 
-  const {
-    fetchData: fetchGroups,
-    data: processGroups,
-    loading: loadingGroups,
-  } = useApi<{ id: string; name: string }>(groupPath);
+  // API Dropdown
+  const { fetchData: fetchGroups, data: processGroups, loading: loadingGroups } = useApi<{ id: string; name: string }>(groupPath);
 
   // ====== State ======
   const [currentStep, setCurrentStep] = useState<ProductionStep | null>(null);
@@ -45,7 +40,7 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
     name: "",
   });
 
-  // ====== Fetch công đoạn theo ID ======
+  // Fetch công đoạn theo ID (giữ nguyên)
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -55,7 +50,7 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
     loadData();
   }, [id, fetchById]);
 
-  // ====== Gán dữ liệu vào form ======
+  // Gán dữ liệu vào form (giữ nguyên)
   useEffect(() => {
     if (currentStep) {
       setFormData({
@@ -66,7 +61,7 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
     }
   }, [currentStep]);
 
-  // ====== Load danh sách nhóm công đoạn ======
+  // Load danh sách nhóm công đoạn (giữ nguyên)
   useEffect(() => {
     fetchGroups();
   }, [fetchGroups]);
@@ -89,16 +84,44 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
     if (!name) return alert("⚠️ Vui lòng nhập tên công đoạn!");
 
     const payload = { id, code, name, processGroupId };
-    console.log("📤 PUT:", payload);
+    
+    // 1. ĐÓNG FORM NGAY LẬP TỨC
+    onClose?.();
 
-    await putData(
-      payload,
-      () => {
+    try {
+        // 2. CHẠY API và CHỜ THÀNH CÔNG (Gọi trực tiếp putData)
+        await Promise.all([
+    putData(payload, undefined),
+    onSuccess?.()
+]);
+
+await new Promise(r => setTimeout(r, 0));
+
+        
+        // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Cập nhật công đoạn sản xuất thành công!");
-        onSuccess?.(); // refresh danh sách
-        onClose?.();   // đóng popup
-      },
-    );
+
+    } catch (e: any) {
+        // 5. BẮT LỖI VÀ XỬ LÝ
+        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        
+        let errorMessage = "Đã xảy ra lỗi không xác định.";
+
+        if (e && typeof e.message === 'string') {
+            const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
+            
+            if (detail.includes("Mã đã tồn tại") || detail.includes("duplicate")) {
+                errorMessage = "Mã công đoạn sản xuất này đã tồn tại. Vui lòng nhập mã khác!";
+            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+            } else {
+                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+            }
+        }
+        
+        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
+        alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
+    }
   };
 
   // ====== Fields ======
@@ -117,7 +140,6 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
   ];
 
   return (
-    // SỬA ĐỔI: Bọc bằng Fragment
       <LayoutInput
         title01="Danh mục / Công đoạn sản xuất"
         title="Chỉnh sửa Công đoạn sản xuất"
@@ -129,10 +151,9 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
           "Mã công đoạn sản xuất": formData.code,
           "Tên công đoạn sản xuất": formData.name,
         }}
-        shouldSyncInitialData={true} // ✅ cập nhật lại form khi fetch thành công
+        shouldSyncInitialData={true}
       >
         {/* ✅ Dropdown nhóm công đoạn */}
-        {/* SỬA ĐỔI: Thêm className="custom" để khớp với type */}
         <div className="custom" key={1}>
           <DropdownMenuSearchable
             label="Nhóm công đoạn sản xuất"
@@ -144,7 +165,8 @@ const ProductionStepEdit: React.FC<ProductionStepEditProps> = ({
           />
         </div>
 
-        {/* Trạng thái tải & lỗi (ĐÃ XÓA KHỎI ĐÂY) */}
+        {/* Hiển thị lỗi cuối cùng */}
+        {errorStep && <p className="text-red-500 mt-2">❌ Lỗi: {errorStep}</p>}
       </LayoutInput>
 
   );

@@ -1,4 +1,4 @@
-import React from "react"; // Bỏ useEffect
+import React from "react"; 
 import Layout from "../../../layout/layout_filter";
 import AdvancedTable from "../../../components/bodytable";
 import PencilButton from "../../../components/PencilButtons";
@@ -7,7 +7,7 @@ import EquipmentInput from "./EquipmentInput";
 import EquipmentEdit from "./EquipmentEdit";
 import { useApi } from "../../../hooks/useFetchData";
 
-// SỬA ĐỔI: Cập nhật Interface theo API
+// Cập nhật Interface theo API
 interface EquipmentItem {
   id: string;
   code: string;
@@ -20,8 +20,12 @@ interface EquipmentItem {
 const Equipment: React.FC = () => {
   const basePath = `/api/catalog/equipment`;
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
-  // SỬA ĐỔI: Lấy 'refresh' trực tiếp, bỏ 'fetchData'
   const { data, loading, error, refresh } = useApi<EquipmentItem>(fetchPath);
+
+  // ✅ Helper Async để đảm bảo việc await hoạt động đúng từ con
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
   // ====== Cột bảng ======
   const columns = [
@@ -35,15 +39,13 @@ const Equipment: React.FC = () => {
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
     "ĐVT",
-    // SỬA ĐỔI: Thêm cột Đơn giá
     <div className="flex items-center gap-1" key="price">
-      <span>Đơn giá</span>
+      <span>Đơn giá điện năng (kWh)</span>
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
     "Sửa",
   ];
 
-  // SỬA ĐỔI: Cân đối lại độ rộng cột (Tổng = 100%)
   const columnWidths = [6, 15, 45, 10, 19, 5];
 
   // ====== Dữ liệu bảng ======
@@ -53,71 +55,56 @@ const Equipment: React.FC = () => {
       row.code || "",
       row.name || "",
       row.unitOfMeasureName || "",
-      // SỬA ĐỔI: Thêm dữ liệu Đơn giá (định dạng số vi-VN)
       row.currentPrice?.toLocaleString('vi-VN') || "0", 
       <PencilButton
         key={row.id}
         id={row.id}
-        // 'refresh' này là từ hook
-        editElement={<EquipmentEdit id={row.id} onSuccess={refresh} />}
+        // ✅ Truyền handleRefresh
+        editElement={<EquipmentEdit id={row.id} onSuccess={handleRefresh} />}
       />,
     ]) || [];
 
-  // SỬA ĐỔI: Cập nhật columnLefts cho khớp số lượng cột (6 cột)
-  // Cột ĐVT và Đơn giá có thể cần căn chỉnh, ở đây để undefined theo mặc định
-  const columnLefts = ['undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined'];
-
   return (
     <Layout>
-      <div className="p-6">
-        <style>{`
-          th > div {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-          }
-          th > div span:last-child {
-            font-size: 5px;
-            color: gray;
-          }
-        `}</style>
-
-        {/* SỬA ĐỔI: Cập nhật logic return */}
-
-        {/* 1. Ưu tiên hiển thị lỗi */}
+      <div className="p-6 relative min-h-[500px]">
+        
         {error ? (
           <div className="text-center text-red-500 py-10">
             Lỗi: {error.toString()}
           </div>
         ) : (
-          /* 2. Luôn hiển thị bảng (ngay cả khi đang tải) */
           <AdvancedTable
-            title01="Danh mục / Thiết bị"
+            title01="Danh mục / Mã thiết bị"
             title="Thiết bị"
             columns={columns}
             columnWidths={columnWidths}
             data={tableData}
-            // 'refresh' này là từ hook
-            createElement={<EquipmentInput onSuccess={refresh} />}
+            // ✅ Truyền handleRefresh
+            createElement={<EquipmentInput onSuccess={handleRefresh} />}
             basePath={basePath}
-            // 'refresh' này là từ hook
-            onDeleted={refresh}
-            columnLefts={columnLefts}
+            // ✅ Truyền handleRefresh
+            onDeleted={handleRefresh}
+            columnLefts={['undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined']}
           />
         )}
         
-        {/* 3. Hiển thị loading overlay riêng biệt */}
+        {/* Loading Overlay */}
         {loading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
+            top: 0, 
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
             borderRadius: '8px',
-            zIndex: 100
+            backdropFilter: 'blur(2px)'
           }}>
+            <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>

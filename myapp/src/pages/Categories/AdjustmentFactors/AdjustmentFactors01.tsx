@@ -1,12 +1,11 @@
-import React from "react"; // Bỏ useEffect
+import React from "react"; 
 import Layout from "../../../layout/layout_filter";
 import AdvancedTable from "../../../components/bodytable";
 import PencilButton from "../../../components/PencilButtons";
-// import LabelWithIcon from "../../../components/label"; // Bỏ
-import { ChevronsUpDown } from "lucide-react"; // Thêm
+import { ChevronsUpDown } from "lucide-react";
 import AdjustmentFactor01Edit from "./AdjustmentFacor01Edit";
 import AdjustmentFactor01Input from "./AdjustmentFactor01Input";
-import { useApi } from "../../../hooks/useFetchData"; // Thêm
+import { useApi } from "../../../hooks/useFetchData";
 
 // 1. Định nghĩa Interface
 interface AdjustmentFactor {
@@ -19,12 +18,12 @@ const AdjustmentFactors01: React.FC = () => {
   // 2. Khai báo API (SỬA ĐỔI)
   const basePath = `api/adjustment/adjustmentfactor`;
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
-  // Lấy 'refresh' trực tiếp, bỏ 'fetchData'
   const { data, loading, error, refresh } = useApi<AdjustmentFactor>(fetchPath);
 
-  // 3. SỬA ĐỔI: Bỏ 'useEffect' và 'refresh' thủ công
-  // const refresh = () => fetchData();
-  // useEffect(() => { ... }, [fetchData]);
+  // ✅ Wrapper Async để đảm bảo việc await hoạt động đúng từ con
+  const handleRefresh = async () => {
+    await refresh();
+  };
 
   // 4. Cập nhật Columns (giữ nguyên)
   const columns = [
@@ -51,8 +50,8 @@ const AdjustmentFactors01: React.FC = () => {
       <PencilButton
         key={row.id}
         id={row.id} // Dùng id từ API
-        // 'refresh' này là từ hook
-        editElement={<AdjustmentFactor01Edit id={row.id} onSuccess={refresh} />} 
+        // ✅ Truyền handleRefresh
+        editElement={<AdjustmentFactor01Edit id={row.id} onSuccess={handleRefresh} />} 
       />,
     ]) || [];
 
@@ -68,18 +67,11 @@ const AdjustmentFactors01: React.FC = () => {
 
   return (
     <Layout>
-      <div className="p-6">
-        {/* Thêm style cho header (giữ nguyên) */}
+      <div className="p-6 relative min-h-[500px]">
+        {/* Style giữ nguyên */}
         <style>{`
-          th > div {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-          }
-          th > div span:last-child {
-            font-size: 5px;
-            color: gray;
-          }
+          th > div { display: inline-flex; align-items: center; gap: 3px; }
+          th > div span:last-child { font-size: 5px; color: gray; }
         `}</style>
         
         {/* 7. Xử lý UI - Đã cập nhật */}
@@ -92,17 +84,17 @@ const AdjustmentFactors01: React.FC = () => {
         ) : (
           /* 2. Luôn hiển thị bảng (ngay cả khi đang tải) */
           <AdvancedTable
-            title01="Danh mục / Hệ số điều chỉnh"
+            title01="Danh mục / Hệ số điều chỉnh / Hệ số điều chỉnh"
             title="Hệ số điều chỉnh"
             columns={columns}
             columnWidths={columnWidths}
             data={tableData} // Dùng dữ liệu động
-            // 'refresh' này là từ hook
-            createElement={<AdjustmentFactor01Input onSuccess={refresh} />} 
+            // ✅ Truyền handleRefresh
+            createElement={<AdjustmentFactor01Input onSuccess={handleRefresh} />} 
             navbarMiniItems={items}
             basePath={basePath} // Thêm basePath
-            // 'refresh' này là từ hook
-            onDeleted={refresh} 
+            // ✅ Truyền handleRefresh
+            onDeleted={handleRefresh} 
             columnLefts={['undefined','undefined','undefined','undefined','undefined','undefined','undefined','undefined']}
           />
         )}
@@ -111,14 +103,19 @@ const AdjustmentFactors01: React.FC = () => {
         {isLoading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
+            top: 0, 
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
             borderRadius: '8px',
-            zIndex: 100
+            backdropFilter: 'blur(2px)'
           }}>
+             <span className="text-blue-600 font-medium">Đang tải dữ liệu...</span>
           </div>
         )}
       </div>
