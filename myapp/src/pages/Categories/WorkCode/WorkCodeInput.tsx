@@ -65,7 +65,8 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
         ]);
 
         await new Promise(r => setTimeout(r, 0));
-        
+        onClose?.();
+        onSuccess?.()
         // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Tạo mã giao khoán thành công!");
 
@@ -90,8 +91,7 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
         // 6. HIỂN THỊ ALERT THẤT BẠI CHI TIẾT
         alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
-    onClose?.();
-    onSuccess?.()
+    
   };
 
   const fields = [

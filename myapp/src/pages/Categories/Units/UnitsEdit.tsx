@@ -46,6 +46,7 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
  
 
     try {
+      onClose?.();
         // 2. CHỜ API VÀ RELOAD HOÀN TẤT
         await Promise.all([
     putData(payload, undefined),
@@ -53,7 +54,8 @@ const UnitsEdit: React.FC<UnitsEditProps> = ({ id, onClose, onSuccess }) => {
 ]);
 
 await new Promise(r => setTimeout(r, 0));
-
+         
+    onSuccess?.()
         // 4. HIỆN ALERT (Sau khi UI đã cập nhật xong)
         alert("✅ Cập nhật đơn vị tính thành công!");
         
@@ -62,8 +64,7 @@ await new Promise(r => setTimeout(r, 0));
         console.error("Lỗi giao dịch sau khi đóng form:", e);
         alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
     }
-    onClose?.();
-    onSuccess?.()
+   
   };
 
   const fields = [

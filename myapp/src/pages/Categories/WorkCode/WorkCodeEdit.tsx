@@ -89,17 +89,18 @@ const WorkCodeEdit: React.FC<WorkCodeEditProps> = ({
     
     // 1. ✅ ĐÓNG FORM NGAY LẬP TỨC (Optimistic UI)
     // Đặt ở đây để form đóng ngay, tạo cảm giác nhanh
-    onClose?.(); 
+   
     
     try {
         // 2. CHỜ API VÀ RELOAD HOÀN TẤT
         await Promise.all([
             putData(payload, undefined),
-            onSuccess?.() // ✅ SỬA LỖI LOGIC: Chỉ refresh bảng nếu API thành công
+           // ✅ SỬA LỖI LOGIC: Chỉ refresh bảng nếu API thành công
         ]);
 
         await new Promise(r => setTimeout(r, 0));
-        
+        onClose?.();
+        onSuccess?.()
         // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Cập nhật mã giao khoán thành công!");
 

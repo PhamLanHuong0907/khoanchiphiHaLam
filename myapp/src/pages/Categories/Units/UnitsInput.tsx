@@ -36,7 +36,8 @@ const UnitsInput: React.FC<UnitsInputProps> = ({ onClose, onSuccess }) => {
 ]);
 
 await new Promise(r => setTimeout(r, 0));
-
+onClose?.();
+    onSuccess?.()
         // 4. HIỆN ALERT (Đã reload xong, không phụ thuộc vào thời gian)
         alert("✅ Tạo đơn vị tính thành công!");
 
@@ -45,8 +46,7 @@ await new Promise(r => setTimeout(r, 0));
         console.error("Lỗi giao dịch sau khi đóng form:", e);
         alert("❌ Đã xảy ra lỗi. Vui lòng kiểm tra lại dữ liệu.");
     }
-    onClose?.();
-    onSuccess?.()
+    
   };
 
   const fields = [

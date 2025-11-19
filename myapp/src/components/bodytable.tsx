@@ -307,6 +307,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   };
 
   // 👇 CẬP NHẬT LOGIC XÓA TẠI ĐÂY
+ // 👇 CẬP NHẬT LOGIC XÓA TẠI ĐÂY (Đã song song hóa)
   const handleDelete = async () => {
     if (selectedRows.length === 0) return;
 
@@ -315,10 +316,9 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
         // 1. Gọi API xóa
         if (basePath) {
           // Lấy danh sách ID
-          // (Logic lấy ID giữ nguyên như file gốc của bạn)
           const idsToDelete = selectedRows
             .map((i) => {
-              const row = sortedData[i]; // Note: sortedData cần được define trong component
+              const row = sortedData[i];
               if (!row) return null;
               const pencilButton = row.find(
                 (cell): cell is React.ReactElement<any> =>
@@ -328,28 +328,33 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
             })
             .filter((id) => id !== null && id !== undefined);
 
-          for (const id of idsToDelete) {
+          // --- THAY ĐỔI Ở ĐÂY: Dùng Promise.all thay vì vòng lặp for tuần tự ---
+          const deletePromises = idsToDelete.map(async (id) => {
             const res = await fetch(`${basePath}/${id}`, {
               method: "DELETE",
               headers: { accept: "application/json" },
             });
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          }
+            return res;
+          });
+
+          // Chờ tất cả các request hoàn thành song song
+          await Promise.all(deletePromises);
+          // --------------------------------------------------------------------
         }
 
         // 2. Cập nhật UI (Optimistic Update - Xóa ngay lập tức trên Client)
-        // Giúp UI mượt mà, nhưng vẫn cần await reload thật
         const rowsInSortedData = selectedRows.map((i) => sortedData[i]);
         const updated = tableData.filter((row) => !rowsInSortedData.includes(row));
         setTableData(updated);
         setSelectedRows([]);
 
-        // 3. CHỜ RELOAD DỮ LIỆU TỪ SERVER (Quan trọng nhất)
+        // 3. CHỜ RELOAD DỮ LIỆU TỪ SERVER
         if (onDeleted) {
            await onDeleted();
         }
 
-        // 4. HIỆN ALERT SAU KHI RELOAD XONG (Delay 300ms cho Paint)
+        // 4. HIỆN ALERT SAU KHI RELOAD XONG
         setTimeout(() => {
             alert("Xóa thành công");
             setShowDeleteModal(false);
