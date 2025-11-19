@@ -122,13 +122,13 @@ await new Promise(r => setTimeout(r, 0));
   const formRowPropData = costRows.map((row, index) => [
     { label: "Ngày bắt đầu", placeholder: "dd/mm/yy", type: "date" as const, value: row.startDate ? new Date(row.startDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, "startDate", date?.toISOString() || ""), },
     { label: "Ngày kết thúc", placeholder: "dd/mm/yy", type: "date" as const, value: row.endDate ? new Date(row.endDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, "endDate", date?.toISOString() || ""), },
-    { label: "Đơn giá điện năng (kWh)", placeholder: "Nhập đơn giá điện năng", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, "amount", parsedValue); } }, },
+    { label: "Đơn giá điện năng (kWh)", placeholder: "Nhập đơn giá điện năng (kWh), ví dụ 234.000", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, "amount", parsedValue); } }, },
   ]);
 
   // ====== RETURN CHÍNH CỦA COMPONENT 'EquipmentInput' ======
   const fields = [
-    { label: "Mã thiết bị", type: "text" as const, placeholder: "Nhập mã thiết bị, ví dụ: BDLT5054", },
-    { label: "Tên thiết bị", type: "text" as const, placeholder: "Nhập tên thiết bị, ví dụ: Bơm điện LT 50/54", },
+    { label: "Mã thiết bị", type: "text" as const, placeholder: "Nhập mã thiết bị, ví dụ: BTB650", },
+    { label: "Tên thiết bị", type: "text" as const, placeholder: "Nhập tên thiết bị, ví dụ: Băng tải 650", },
     { type: "custom1" as const },
   ];
   

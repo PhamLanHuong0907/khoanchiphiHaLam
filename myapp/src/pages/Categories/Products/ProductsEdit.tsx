@@ -131,8 +131,8 @@ await new Promise(r => setTimeout(r, 0));
   // 10. ====== Fields (Dùng custom placeholders) ======
   const fields = [
     { type: "custom1" as const }, // Placeholder cho Nhóm CĐSX
-    { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập mã sản phẩm, ví dụ: SP01" },
-    { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm, ví dụ: Lò chợ 11-1.26 lò chống..." },
+    { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập mã sản phẩm, ví dụ: SP02" },
+    { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm, ví dụ: Lò chứa nước" },
   ];
 
   return (

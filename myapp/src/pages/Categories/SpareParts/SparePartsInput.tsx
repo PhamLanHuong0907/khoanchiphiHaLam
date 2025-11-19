@@ -149,14 +149,14 @@ await new Promise(r => setTimeout(r, 0));
  const formRowPropData = costRows.map((row, index) => [
   { label: "Ngày bắt đầu", placeholder: "dd/mm/yy", type: "date" as const, value: row.startDate ? new Date(row.startDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'startDate', date?.toISOString() || ""), },
   { label: "Ngày kết thúc", placeholder: "dd/mm/yy", type: "date" as const, value: row.endDate ? new Date(row.endDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'endDate', date?.toISOString() || ""), },
-  { label: "Đơn giá vật tư (đ)", placeholder: "Nhập đơn giá vật tư", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
+  { label: "Đơn giá vật tư (đ)", placeholder: "Nhập đơn giá vật tư (đ), ví dụ: 234.567", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
  ]);
 
  return (
    <LayoutInput
     title01="Danh mục / Phụ tùng"
     title="Tạo mới Phụ tùng"
-    fields={[ { type: "custom1" as const }, { label: "Mã phụ tùng", type: "text" as const, placeholder: "Nhập mã phụ tùng, ví dụ: BCTB" }, { label: "Tên phụ tùng", type: "text" as const, placeholder: "Nhập tên phụ tùng, ví dụ: Bánh công tác bơm LT50-50" }, { type: "custom2" as const }, ]}
+    fields={[ { type: "custom1" as const }, { label: "Mã phụ tùng", type: "text" as const, placeholder: "Nhập mã phụ tùng, ví dụ: VB6310" }, { label: "Tên phụ tùng", type: "text" as const, placeholder: "Nhập tên phụ tùng, ví dụ: Vòng bi 6310" }, { type: "custom2" as const }, ]}
     onSubmit={handleSubmit}
     formRowComponent={ <FormRow title="Đơn giá vật tư (đ)" title1="vật tư (đ)" rows={formRowPropData} onAdd={handleAddCostRow} onRemove={handleRemoveCostRow} /> }
     closePath={PATHS.SPARE_PARTS.LIST}
@@ -165,12 +165,12 @@ await new Promise(r => setTimeout(r, 0));
    >
     {/* Custom slot for Equipment dropdown */}
     <div className="custom1" key={1}>
- <DropdownMenuSearchable label="Thiết bị" options={equipmentOptions} value={selectedEquipmentId} onChange={setSelectedEquipmentId} placeholder="Chọn thiết bị..." isDisabled={loadingEquipment} />
+ <DropdownMenuSearchable label="Thiết bị" options={equipmentOptions} value={selectedEquipmentId} onChange={setSelectedEquipmentId} placeholder="Chọn thiết bị" isDisabled={loadingEquipment} />
     </div>
 
     {/* Custom slot for Unit of Measure dropdown */}
     <div className="custom2" key={2}>
-     <DropdownMenuSearchable label="Đơn vị tính" options={unitOptions} value={selectedUnitId} onChange={setSelectedUnitId} placeholder="Chọn đơn vị tính..." isDisabled={loadingUnit} />
+     <DropdownMenuSearchable label="Đơn vị tính" options={unitOptions} value={selectedUnitId} onChange={setSelectedUnitId} placeholder="Chọn đơn vị tính" isDisabled={loadingUnit} />
     </div>
    </LayoutInput> );
 };

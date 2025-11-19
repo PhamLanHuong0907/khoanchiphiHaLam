@@ -132,12 +132,12 @@ await new Promise(r => setTimeout(r, 0));
     {
       label: "Mã công đoạn sản xuất",
       type: "text" as const,
-      placeholder: "Nhập mã công đoạn sản xuất",
+      placeholder: "Nhập mã công đoạn sản xuất, ví dụ: DLT",
     },
     {
       label: "Tên công đoạn sản xuất",
       type: "text" as const,
-      placeholder: "Nhập tên công đoạn sản xuất",
+      placeholder: "Nhập tên công đoạn sản xuất, ví dụ: Đào lò than",
     },
   ];
 
@@ -162,7 +162,7 @@ await new Promise(r => setTimeout(r, 0));
             options={groupOptions}
             value={selectedGroupId}
             onChange={(value) => setSelectedGroupId(value)}
-            placeholder="Chọn nhóm công đoạn sản xuất..."
+            placeholder="Chọn nhóm công đoạn sản xuất"
             isDisabled={loadingGroups}
           />
         </div>

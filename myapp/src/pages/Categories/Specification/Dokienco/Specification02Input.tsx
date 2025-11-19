@@ -67,7 +67,7 @@ await new Promise(r => setTimeout(r, 0));
     { 
       label: "Độ kiên cố than, đá (f)", 
       type: "text" as const, 
-      placeholder: "Nhập độ kiên cố than, đá (f): 2<=f<=3", 
+      placeholder: "Nhập độ kiên cố than, đá (f), ví dụ: 1<f<2", 
       enableCompare: true 
     },
   ];

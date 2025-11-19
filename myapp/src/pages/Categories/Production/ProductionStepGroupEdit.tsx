@@ -109,12 +109,12 @@ await new Promise(r => setTimeout(r, 0));
     {
       label: "Mã nhóm công đoạn sản xuất",
       type: "text" as const,
-      placeholder: "Nhập mã nhóm công đoạn sản xuất",
+      placeholder: "Nhập mã nhóm công đoạn sản xuất, ví dụ: DL",
     },
     {
       label: "Tên nhóm công đoạn sản xuất",
       type: "text" as const,
-      placeholder: "Nhập tên nhóm công đoạn sản xuất",
+      placeholder: "Nhập tên nhóm công đoạn sản xuất, ví dụ: Đào lò",
     },
   ];
 

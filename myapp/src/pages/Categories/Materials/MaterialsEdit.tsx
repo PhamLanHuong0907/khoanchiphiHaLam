@@ -131,9 +131,9 @@ const handleRemoveCostRow = (rowIndex: number) => { if (costRows.length <= 1) re
 
 // Tạo 'rows' prop cho FormRow (Giữ nguyên logic phức tạp)
 const formRowPropData = costRows.map((row, index) => [
-{ label: "Ngày bắt đầu", placeholder: "Chọn ngày", type: "date" as const, value: row.startDate ? new Date(row.startDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'startDate', date?.toISOString() || ""), },
-{ label: "Ngày kết thúc", placeholder: "Chọn ngày", type: "date" as const, value: row.endDate ? new Date(row.endDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'endDate', date?.toISOString() || ""), },
-{ label: "Đơn giá vật tư (đ)", placeholder: "Nhập đơn giá", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
+{ label: "Ngày bắt đầu", placeholder: "dd/mm/yyyy", type: "date" as const, value: row.startDate ? new Date(row.startDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'startDate', date?.toISOString() || ""), },
+{ label: "Ngày kết thúc", placeholder: "dd/mm/yyyy", type: "date" as const, value: row.endDate ? new Date(row.endDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'endDate', date?.toISOString() || ""), },
+{ label: "Đơn giá vật tư (đ)", placeholder: "Nhập đơn giá vật tư (đ), ví dụ: 234.567", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
 ]);
 
 return (
@@ -153,12 +153,12 @@ shouldSyncInitialData={true}
 >
 {/* Dropdown Mã giao khoán */}
 <div className="custom1" key={1}>
-<DropdownMenuSearchable label="Mã giao khoán" options={assignmentOptions} value={selectedAssignmentCode} onChange={setSelectedAssignmentCode} placeholder="Chọn mã giao khoán..." isDisabled={loadingAssignment} />
+<DropdownMenuSearchable label="Mã giao khoán" options={assignmentOptions} value={selectedAssignmentCode} onChange={setSelectedAssignmentCode} placeholder="Chọn mã giao khoán" isDisabled={loadingAssignment} />
 </div>
 
 {/* Dropdown Đơn vị tính */}
 <div className="custom2" key={2}>
-<DropdownMenuSearchable label="Đơn vị tính" options={unitOptions} value={selectedUnit} onChange={setSelectedUnit} placeholder="Chọn đơn vị tính..." isDisabled={loadingUnit} />
+<DropdownMenuSearchable label="Đơn vị tính" options={unitOptions} value={selectedUnit} onChange={setSelectedUnit} placeholder="Chọn đơn vị tính" isDisabled={loadingUnit} />
 </div>
 </LayoutInput>
 );

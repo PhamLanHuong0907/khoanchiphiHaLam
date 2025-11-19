@@ -90,7 +90,7 @@ export default function Specification03Input({
       label: "Tỷ lệ đá kẹp (Ckep)",
       type: "text" as const,
       // Placeholder hướng dẫn đúng định dạng dấu chấm
-      placeholder: "VD: 1.98 <=Ckep<8", 
+      placeholder: "Nhập tỷ lệ đá kẹp, ví dụ: 2<=Ckep<3", 
       enableCompare: true,
       // Chặn dấu phẩy, ép dùng dấu chấm
       onKeyDown: blockCommaInput,
@@ -98,7 +98,7 @@ export default function Specification03Input({
     {
       label: "Hệ số điều chỉnh định mức",
       type: "text" as const,
-      placeholder: "VD: 1.98",
+      placeholder: "Nhập hệ só điều chỉnh định mức, ví dụ: 1,2",
       // Chặn dấu phẩy
       onKeyDown: blockCommaInput,
     },

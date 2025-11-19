@@ -66,7 +66,7 @@ await new Promise(r => setTimeout(r, 0));
     {
       label: "Bước chống",
       type: "text" as const,
-      placeholder: "Nhập bước chống"
+      placeholder: "Nhập bước chống, ví dụ: Bước chống 0.5m/vì"
     },
   ];
 

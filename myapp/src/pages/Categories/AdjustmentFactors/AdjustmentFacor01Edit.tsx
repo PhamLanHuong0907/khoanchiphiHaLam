@@ -100,8 +100,8 @@ await new Promise(r => setTimeout(r, 0));
 
   // Fields (giữ nguyên)
   const fields = [
-    { label: "Mã hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập mã hệ số điều chỉnh" },
-    { label: "Tên hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập tên hệ số điều chỉnh" },
+    { label: "Mã hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập mã hệ số điều chỉnh, ví dụ: K1" },
+    { label: "Tên hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập tên hệ số điều chỉnh, ví dụ: Hệ số điều chỉnh theo chất lượng thiết bị" },
   ];
 
   return (

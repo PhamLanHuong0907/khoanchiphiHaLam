@@ -88,7 +88,7 @@ await new Promise(r => setTimeout(r, 0));
   };
 
   const fields = [
-    { label: "Bước chống", type: "text" as const, placeholder: "Nhập thông số bước chống" },
+    { label: "Bước chống", type: "text" as const, placeholder: "Nhập bước chống, ví dụ: Bước chống 0.5m/vì" },
   ];
 
   return (

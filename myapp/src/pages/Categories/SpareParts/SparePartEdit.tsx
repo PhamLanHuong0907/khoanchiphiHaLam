@@ -232,8 +232,8 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
       onChange: (date: Date | null) => handleCostRowChange(index, 'endDate', date?.toISOString() || ""),
     },
     {
-      label: "Đơn giá phụ tùng (đ)",
-      placeholder: "Nhập đơn giá",
+      label: "Đơn giá vật tư (đ)",
+      placeholder: "Nhập đơn giá vật tư (đ), ví dụ: 234.567",
       type: "text" as const,
       value: formatNumberForDisplay(row.amount),
       onChange: (value: string) => {
@@ -251,8 +251,8 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
       title="Chỉnh sửa Phụ tùng"
       fields={[
         { type: "custom1" as const },
-        { label: "Mã phụ tùng", type: "text" as const, placeholder: "Nhập mã phụ tùng" },
-        { label: "Tên phụ tùng", type: "text" as const, placeholder: "Nhập tên phụ tùng" },
+        { label: "Mã phụ tùng", type: "text" as const, placeholder: "Nhập mã phụ tùng, ví dụ: VB6310" },
+        { label: "Tên phụ tùng", type: "text" as const, placeholder: "Nhập tên phụ tùng, ví dụ: Vòng bi 6310" },
         { type: "custom2" as const },
       ]}
       onSubmit={handleSubmit}
@@ -280,7 +280,7 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
           options={equipmentOptions}
           value={selectedEquipmentId}
           onChange={setSelectedEquipmentId}
-          placeholder="Chọn thiết bị..."
+          placeholder="Chọn thiết bị"
           isDisabled={loadingEquipment}
         />
       </div>
@@ -292,7 +292,7 @@ const SparePartsEdit: React.FC<SparePartsEditProps> = ({ id, onClose, onSuccess 
           options={unitOptions}
           value={selectedUnitId}
           onChange={setSelectedUnitId}
-          placeholder="Chọn đơn vị tính..."
+          placeholder="Chọn đơn vị tính"
           isDisabled={loadingUnit}
         />
       </div>

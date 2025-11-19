@@ -125,17 +125,17 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
   const fields = [
     { type: "custom1" as const }, 
     { type: "custom2" as const }, 
-    { label: "Diễn giải", type: "text" as const, placeholder: "Nhập thông số diễn giải" },
+    { label: "Diễn giải", type: "text" as const, placeholder: "Nhập diễn giải, ví dụ: Thiết bị loại A" },
     { 
         label: "Trị số điều chỉnh SCTX", 
         type: "text" as const, 
-        placeholder: "Nhập trị số (VD: 9,8) - Có thể bỏ trống",
+        placeholder: "Nhập trị số điều chỉnh SCTX, ví dụ: 1,3",
         onKeyDown: blockDotInput // ✅ Chặn dấu chấm
     },
     { 
         label: "Trị số điều chỉnh điện năng", 
         type: "text" as const, 
-        placeholder: "Nhập trị số (VD: 9,8) - Có thể bỏ trống",
+        placeholder: "Nhập trị số điện năng, ví dụ: 1,3",
         onKeyDown: blockDotInput // ✅ Chặn dấu chấm
     },
   ];
@@ -160,11 +160,11 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
         {/* Dropdowns */}
         <div className="custom1" key={1}>
           <DropdownMenuSearchable
-            label="Nhóm công đoạn"
+            label="Nhóm công đoạn sản xuất"
             options={processGroupOptions}
             value={selectedProcessGroup}
             onChange={setSelectedProcessGroup}
-            placeholder="Chọn nhóm công đoạn..."
+            placeholder="Chọn nhóm CĐSX"
             isDisabled={loadingProcessGroup}
           />
         </div>
@@ -174,7 +174,7 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
             options={adjustmentFactorOptions}
             value={selectedAdjustmentFactor}
             onChange={setSelectedAdjustmentFactor}
-            placeholder="Chọn mã hệ số..."
+            placeholder="Chọn mã hệ số điều chỉnh"
             isDisabled={loadingFactor}
           />
         </div>

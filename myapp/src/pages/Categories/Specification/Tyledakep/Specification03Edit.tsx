@@ -113,8 +113,8 @@ await new Promise(r => setTimeout(r, 0));
 
   // Fields (Thêm trường mới)
   const fields = [
-    { label: "Tỷ lệ đá kẹp (Ckep)", type: "text" as const, placeholder: "Nhập tỷ lệ đá kẹp: 2<=Ckep<=3", enableCompare: true },
-    { label: "Hệ số điều chỉnh định mức", type: "text" as const, placeholder: "Nhập hệ số điều chỉnh định mức" },
+    { label: "Tỷ lệ đá kẹp (Ckep)", type: "text" as const, placeholder: "Nhập tỷ lệ đá kẹp, ví dụ: 2<=Ckep<3", enableCompare: true },
+    { label: "Hệ số điều chỉnh định mức", type: "text" as const, placeholder: "Nhập hệ số điều chỉnh định mức, ví dụ: 1,2" },
   ];
 
   return (

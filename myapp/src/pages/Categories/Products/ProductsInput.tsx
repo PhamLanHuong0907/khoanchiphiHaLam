@@ -88,8 +88,8 @@ await new Promise(r => setTimeout(r, 0));
 
   const fields = [
     { type: "custom1" as const }, // Placeholder cho Nhóm CĐSX
-    { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập tên mã sản phẩm" },
-    { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm" },
+    { label: "Mã sản phẩm", type: "text" as const, placeholder: "Nhập mã sản phẩm, ví dụ: SP02" },
+    { label: "Tên sản phẩm", type: "text" as const, placeholder: "Nhập tên sản phẩm, ví dụ: Lò chứa nước" },
   ];
 
   return (

@@ -94,14 +94,14 @@ export default function Specification01Input({ onClose, onSuccess }: Specificati
     { 
         label: "Hộ chiếu", 
         type: "text" as const, 
-        placeholder: "Nhập hộ chiếu",
+        placeholder: "Nhập hộ chiếu, ví dụ: 1A",
         // ✅ Đã thêm chặn dấu chấm cho Hộ chiếu
         onKeyDown: blockDotInput 
     },
     { 
         label: "Sđ", 
         type: "text" as const, 
-        placeholder: "Nhập Sđ (VD: 9,8)", 
+        placeholder: "Nhập Sđ, ví dụ: 2", 
         enableCompare: true,
         // ✅ Đã thêm chặn dấu chấm
         onKeyDown: blockDotInput 
@@ -109,7 +109,7 @@ export default function Specification01Input({ onClose, onSuccess }: Specificati
     { 
         label: "Sc", 
         type: "text" as const, 
-        placeholder: "Nhập Sc (VD: 9,8)", 
+        placeholder: "Nhập Sc, ví dụ: 1,5", 
         enableCompare: true,
         // ✅ Đã thêm chặn dấu chấm
         onKeyDown: blockDotInput 

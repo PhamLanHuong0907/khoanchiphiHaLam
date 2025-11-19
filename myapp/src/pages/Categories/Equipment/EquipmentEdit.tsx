@@ -139,14 +139,14 @@ const handleRemoveCostRow = (rowIndex: number) => { if (costRows.length <= 1) re
 const formRowPropData = costRows.map((row, index) => [
 { label: "Ngày bắt đầu", placeholder: "dd/mm/yy", type: "date" as const, value: row.startDate ? new Date(row.startDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'startDate', date?.toISOString() || ""), },
 { label: "Ngày kết thúc", placeholder: "dd/mm/yy", type: "date" as const, value: row.endDate ? new Date(row.endDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'endDate', date?.toISOString() || ""), },
-{ label: "Đơn giá điện năng (kWh)", placeholder: "Nhập đơn giá điện năng", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
+{ label: "Đơn giá điện năng (kWh)", placeholder: "Nhập đơn giá điện năng (kWh)", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
 ]);
 
 return (
 <LayoutInput
 title01="Danh mục / Mã thiết bị"
 title="Chỉnh sửa Mã thiết bị"
-fields={[ { type: "custom1" as const }, { label: "Mã thiết bị", type: "text" as const, placeholder: "Nhập mã thiết bị, ví dụ: BDLT5054" }, { label: "Tên thiết bị", type: "text" as const, placeholder: "Nhập tên thiết bị, ví dụ: Bơm điện LT 50/54" }, ]}
+fields={[ { type: "custom1" as const }, { label: "Mã thiết bị", type: "text" as const, placeholder: "Nhập mã thiết bị, ví dụ: BT650" }, { label: "Tên thiết bị", type: "text" as const, placeholder: "Nhập tên thiết , ví dụ: Băng tải 650" }, ]}
 onSubmit={handleSubmit}
 formRowComponent={<FormRow title="Đơn giá điện năng (kWh)" title1="điện năng (kWh)" rows={formRowPropData} onAdd={handleAddCostRow} onRemove={handleRemoveCostRow} />}
 closePath={PATHS.EQUIPMENT.LIST}
@@ -159,7 +159,7 @@ shouldSyncInitialData={true}
 >
 {/* Custom slot "custom1" cho Đơn vị tính */}
 <div className="custom1" key={1}>
-<DropdownMenuSearchable label="Đơn vị tính" options={unitOptions} value={selectedUnit} onChange={setSelectedUnit} placeholder="Chọn đơn vị tính..." isDisabled={loadingUnit} />
+<DropdownMenuSearchable label="Đơn vị tính" options={unitOptions} value={selectedUnit} onChange={setSelectedUnit} placeholder="Chọn đơn vị tính" isDisabled={loadingUnit} />
 </div>
 </LayoutInput>
 );

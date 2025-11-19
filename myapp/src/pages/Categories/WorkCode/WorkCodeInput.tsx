@@ -128,7 +128,7 @@ const WorkCodeInput: React.FC<WorkCodeInputProps> = ({
           options={unitOptions}
           value={selectedUnitId}
           onChange={(value) => setSelectedUnitId(value)}
-          placeholder="Chọn đơn vị tính..."
+          placeholder="Chọn đơn vị tính"
           isDisabled={loadingUnits}
         />
       </div>

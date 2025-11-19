@@ -64,7 +64,7 @@ await new Promise(r => setTimeout(r, 0));
   };
 
   const fields = [
-    { label: "Chèn", type: "text" as const, placeholder: "Nhập thông số chèn" },
+    { label: "Chèn", type: "text" as const, placeholder: "Nhập chèn, ví dụ: Chèn gỗ" },
   ];
 
   return (

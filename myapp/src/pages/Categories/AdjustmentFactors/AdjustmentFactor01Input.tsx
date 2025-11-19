@@ -65,8 +65,8 @@ export default function AdjustmentFactor01Input({ onClose, onSuccess }: Adjustme
 
   // ✅ SỬA ĐỔI: Loại bỏ customApiStatus khỏi fields
   const fields = [
-    { label: "Mã hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập mã hệ số điều chỉnh, ví dụ: 1" },
-    { label: "Tên hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập tên hệ số điều chỉnh, ví dụ: " },
+    { label: "Mã hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập mã hệ số điều chỉnh, ví dụ: K1" },
+    { label: "Tên hệ số điều chỉnh", type: "text" as const, placeholder: "Nhập tên hệ số điều chỉnh, ví dụ: Hệ số điều chỉnh theo chất lượng thiết bị" },
   ];
 
   return (

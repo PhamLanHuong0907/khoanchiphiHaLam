@@ -127,20 +127,20 @@ export default function Specification01Edit({ id, onClose, onSuccess }: Specific
     { 
         label: "Hộ chiếu", 
         type: "text" as const, 
-        placeholder: "Nhập hộ chiếu",
+        placeholder: "Nhập hộ chiếu, ví dụ: 1A",
         onKeyDown: blockDotInput // Chặn dấu chấm
     },
     { 
         label: "Sđ", 
         type: "text" as const, 
-        placeholder: "Nhập Sđ (VD: 9,8)", 
+        placeholder: "Nhập Sđ, ví dụ: 2", 
         enableCompare: true,
         onKeyDown: blockDotInput // Chặn dấu chấm
     },
     { 
         label: "Sc", 
         type: "text" as const, 
-        placeholder: "Nhập Sc (VD: 9,8)", 
+        placeholder: "Nhập Sc, ví dụ: 1,5", 
         enableCompare: true,
         onKeyDown: blockDotInput // Chặn dấu chấm
     }, 
