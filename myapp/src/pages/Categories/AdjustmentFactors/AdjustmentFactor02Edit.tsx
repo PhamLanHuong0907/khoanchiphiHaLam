@@ -47,6 +47,13 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     electricityValue: "",
   });
 
+  // --- 1. HÀM CHẶN NHẬP DẤU CHẤM (.) ---
+  const blockDotInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === '.') {
+      e.preventDefault();
+    }
+  };
+
   // Load ID
   useEffect(() => {
     const loadData = async () => {
@@ -62,8 +69,14 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     if (currentData) {
       setFormData({
         description: currentData.description || "",
-        maintenanceValue: currentData.maintenanceAdjustmentValue?.toString() || "0",
-        electricityValue: currentData.electricityAdjustmentValue?.toString() || "0",
+        // --- 2. XỬ LÝ HIỂN THỊ: Thay dấu chấm (.) bằng dấu phẩy (,) ---
+        // Dùng ?? "" để xử lý null/undefined, sau đó convert string và replace
+        maintenanceValue: currentData.maintenanceAdjustmentValue != null 
+            ? String(currentData.maintenanceAdjustmentValue).replace('.', ',') 
+            : "",
+        electricityValue: currentData.electricityAdjustmentValue != null 
+            ? String(currentData.electricityAdjustmentValue).replace('.', ',') 
+            : "",
       });
       setSelectedProcessGroup(currentData.processGroupId || "");
       setSelectedAdjustmentFactor(currentData.adjustmentFactorId || "");
@@ -88,13 +101,21 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     if (!maintenanceValueStr) return alert("⚠️ Vui lòng nhập Trị số SCTX!");
     if (!electricityValueStr) return alert("⚠️ Vui lòng nhập Trị số điều chỉnh điện năng!");
 
+    // --- 3. XỬ LÝ TRƯỚC KHI PUT: Thay dấu phẩy (,) bằng dấu chấm (.) ---
+    const formattedMaintenance = maintenanceValueStr.replace(/,/g, '.');
+    const formattedElectricity = electricityValueStr.replace(/,/g, '.');
+
+    // Validation số học
+    if (isNaN(Number(formattedMaintenance))) return alert("⚠️ Trị số SCTX không hợp lệ!");
+    if (isNaN(Number(formattedElectricity))) return alert("⚠️ Trị số điện năng không hợp lệ!");
+
     const payload = {
       id,
       description,
       adjustmentFactorId: selectedAdjustmentFactor,
       processGroupId: selectedProcessGroup,
-      maintenanceAdjustmentValue: parseFloat(maintenanceValueStr),
-      electricityAdjustmentValue: parseFloat(electricityValueStr),
+      maintenanceAdjustmentValue: parseFloat(formattedMaintenance),
+      electricityAdjustmentValue: parseFloat(formattedElectricity),
     };
 
     onClose?.();
@@ -122,15 +143,24 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
     { type: "custom1" as const }, 
     { type: "custom2" as const }, 
     { label: "Diễn giải", type: "text" as const, placeholder: "Nhập thông số diễn giải" },
-    { label: "Trị số điều chỉnh SCTX", type: "text" as const, placeholder: "Nhập trị số điều chỉnh SCTX" },
-    { label: "Trị số điều chỉnh điện năng", type: "text" as const, placeholder: "Nhập trị số điều chỉnh điện năng" },
+    { 
+        label: "Trị số điều chỉnh SCTX", 
+        type: "text" as const, 
+        placeholder: "Nhập trị số (VD: 9,8)",
+        onKeyDown: blockDotInput // ✅ Chặn dấu chấm
+    },
+    { 
+        label: "Trị số điều chỉnh điện năng", 
+        type: "text" as const, 
+        placeholder: "Nhập trị số (VD: 9,8)",
+        onKeyDown: blockDotInput // ✅ Chặn dấu chấm
+    },
   ];
 
   const isLoading = loadingData || loadingProcessGroup || loadingFactor;
   const anyError = dataError;
 
   return (
-      // ✅ FIX: Bỏ thẻ div bao ngoài, trả về trực tiếp LayoutInput
       <LayoutInput
         title01="Danh mục / Hệ số điều chỉnh / Diễn giải"
         title="Chỉnh sửa Diễn giải Hệ số điều chỉnh"
@@ -166,7 +196,6 @@ export default function AdjustmentFactors02Edit({ id, onClose, onSuccess }: Adju
           />
         </div>
 
-        {/* ✅ FIX: Đưa Loading/Error vào bên trong LayoutInput */}
         <div style={{ padding: '10px 0' }}>
             {isLoading && <span className="text-blue-500">Đang tải dữ liệu...</span>}
             {anyError && <span className="text-red-500">Lỗi: {anyError.toString()}</span>}

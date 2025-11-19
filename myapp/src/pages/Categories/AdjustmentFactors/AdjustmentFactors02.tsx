@@ -34,15 +34,15 @@ const AdjustmentFactors02: React.FC = () => {
   const columns = [
     "STT", // Đổi "" thành "STT"
     <div className="flex items-center gap-1" key="group">
-      <span>Nhóm công đoạn</span>
+      <span>Nhóm CĐSX</span>
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
     <div className="flex items-center gap-1" key="code">
-      <span>Mã hệ số</span>
+      <span>Mã HSĐC</span>
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
     <div className="flex items-center gap-1" key="desc">
-      <span>Diễn giải</span>
+      <span>Diễn giải HSĐC</span>
       <ChevronsUpDown size={13} className="text-gray-100 text-xs" />
     </div>,
     <div className="flex items-center gap-1" key="sctx">
@@ -103,7 +103,7 @@ const AdjustmentFactors02: React.FC = () => {
         ) : (
           /* 2. Luôn hiển thị bảng (ngay cả khi đang tải) */
           <AdvancedTable
-            title01="Danh mục / Hệ số điều chỉnh / Diễn giải hệ số điều chỉnh"
+            title01="Danh mục / Hệ số điều chỉnh / Diễn giải"
             title="Hệ số điều chỉnh"
             columns={columns}
             columnWidths={columnWidths}

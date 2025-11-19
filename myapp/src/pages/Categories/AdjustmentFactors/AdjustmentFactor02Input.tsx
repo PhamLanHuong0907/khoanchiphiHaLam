@@ -14,16 +14,15 @@ interface DropdownOption { value: string; label: string; }
 interface ProcessGroup { id: string; name: string; }
 interface AdjustmentFactor { id: string; code: string; }
 
-
 export default function AdjustmentFactors02Input({ onClose, onSuccess }: AdjustmentFactors02InputProps) {
   const postPath = "/api/adjustment/adjustmentfactordescription";
   const processGroupPath = "/api/process/processgroup";
   const adjustmentFactorPath = "/api/adjustment/adjustmentfactor";
 
-  // API POST (autoFetch: false)
+  // API POST
   const { postData, loading: saving, error: saveError } = useApi(postPath, { autoFetch: false }); 
 
-  // API GET Dropdowns (autoFetch mặc định là true)
+  // API GET Dropdowns
   const { 
     data: processGroups, 
     loading: loadingProcessGroup,
@@ -45,49 +44,75 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
   const adjustmentFactorOptions: DropdownOption[] =
     adjustmentFactors?.map((f) => ({ value: f.id, label: f.code })) || [];
 
+  // --- HÀM CHẶN NHẬP DẤU CHẤM (.) ---
+  const blockDotInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === '.') {
+      e.preventDefault();
+    }
+  };
+
   // Handle Submit
   const handleSubmit = async (data: Record<string, string>) => {
+    // Lấy dữ liệu
     const description = data["Diễn giải"]?.trim();
-    const maintenanceValueStr = data["Trị số điều chỉnh SCTX"]?.trim();
-    const electricityValueStr = data["Trị số điều chỉnh điện năng"]?.trim();
+    const maintenanceValueStr = data["Trị số điều chỉnh SCTX"]?.trim(); // Có thể rỗng
+    const electricityValueStr = data["Trị số điều chỉnh điện năng"]?.trim(); // Có thể rỗng
 
+    // Validation bắt buộc (Chỉ còn Nhóm công đoạn, Mã hệ số, Diễn giải)
     if (!selectedProcessGroup) return alert("⚠️ Vui lòng chọn Nhóm công đoạn!");
     if (!selectedAdjustmentFactor) return alert("⚠️ Vui lòng chọn Mã hệ số điều chỉnh!");
     if (!description) return alert("⚠️ Vui lòng nhập Diễn giải!");
-    if (!maintenanceValueStr) return alert("⚠️ Vui lòng nhập Trị số SCTX!");
-    if (!electricityValueStr) return alert("⚠️ Vui lòng nhập Trị số điều chỉnh điện năng!");
 
-    const maintenanceAdjustmentValue = parseFloat(maintenanceValueStr);
-    const electricityAdjustmentValue = parseFloat(electricityValueStr);
+    // --- XỬ LÝ FORMAT VÀ VALIDATION SỐ HỌC ---
+    
+    // 1. Xử lý SCTX
+    let finalMaintenance: number | null = null;
+    if (maintenanceValueStr) {
+        // Nếu có nhập -> Đổi phẩy thành chấm
+        const formatted = maintenanceValueStr.replace(/,/g, '.');
+        if (isNaN(Number(formatted))) {
+            return alert("⚠️ Trị số SCTX phải là số hợp lệ (VD: 9,8)!");
+        }
+        finalMaintenance = parseFloat(formatted);
+    }
 
-    if (isNaN(maintenanceAdjustmentValue)) return alert("⚠️ Trị số SCTX phải là một con số!");
-    if (isNaN(electricityAdjustmentValue)) return alert("⚠️ Trị số điều chỉnh điện năng phải là một con số!");
+    // 2. Xử lý Điện năng
+    let finalElectricity: number | null = null;
+    if (electricityValueStr) {
+        // Nếu có nhập -> Đổi phẩy thành chấm
+        const formatted = electricityValueStr.replace(/,/g, '.');
+        if (isNaN(Number(formatted))) {
+            return alert("⚠️ Trị số điều chỉnh điện năng phải là số hợp lệ (VD: 9,8)!");
+        }
+        finalElectricity = parseFloat(formatted);
+    }
 
+    // Payload
     const payload = {
       description,
       adjustmentFactorId: selectedAdjustmentFactor,
       processGroupId: selectedProcessGroup,
-      maintenanceAdjustmentValue,
-      electricityAdjustmentValue,
+      maintenanceAdjustmentValue: finalMaintenance, // Null hoặc Number
+      electricityAdjustmentValue: finalElectricity, // Null hoặc Number
     };
-    
-
 
     try {
         await Promise.all([
             postData(payload, undefined),
-          
         ]);
         await new Promise(r => setTimeout(r, 0));
         alert("✅ Tạo diễn giải thành công!");
+        
+        onClose?.();
+        onSuccess?.();
     } catch (e: any) {
-        console.error("Lỗi giao dịch sau khi đóng form:", e);
+        console.error("Lỗi giao dịch:", e);
         let errorMessage = "Đã xảy ra lỗi không xác định.";
         if (e && typeof e.message === 'string') {
             const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
             if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
                 errorMessage = "Dữ liệu này đã tồn tại. Vui lòng kiểm tra lại!";
-            } else if (detail.includes("HTTP error") || detail.includes("network")) {
+            } else if (detail.includes("network")) {
                 errorMessage = "Lỗi kết nối máy chủ.";
             } else {
                 errorMessage = `Lỗi nghiệp vụ: ${detail}`;
@@ -95,23 +120,30 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
         }
         alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
-    onClose?.();
-    onSuccess?.()
   };
 
   const fields = [
     { type: "custom1" as const }, 
     { type: "custom2" as const }, 
     { label: "Diễn giải", type: "text" as const, placeholder: "Nhập thông số diễn giải" },
-    { label: "Trị số điều chỉnh SCTX", type: "text" as const, placeholder: "Nhập trị số điều chỉnh SCTX" },
-    { label: "Trị số điều chỉnh điện năng", type: "text" as const, placeholder: "Nhập trị số điều chỉnh điện năng" },
+    { 
+        label: "Trị số điều chỉnh SCTX", 
+        type: "text" as const, 
+        placeholder: "Nhập trị số (VD: 9,8) - Có thể bỏ trống",
+        onKeyDown: blockDotInput // ✅ Chặn dấu chấm
+    },
+    { 
+        label: "Trị số điều chỉnh điện năng", 
+        type: "text" as const, 
+        placeholder: "Nhập trị số (VD: 9,8) - Có thể bỏ trống",
+        onKeyDown: blockDotInput // ✅ Chặn dấu chấm
+    },
   ];
 
   const isLoading = loadingProcessGroup || loadingFactor || saving;
   const anyError = errorProcessGroup || errorFactor || saveError;
 
   return (
-      // ✅ FIX: Bỏ thẻ div bao ngoài, trả về trực tiếp LayoutInput
       <LayoutInput
         title01="Danh mục / Hệ số điều chỉnh / Diễn giải"
         title="Tạo mới Diễn giải Hệ số điều chỉnh"
@@ -147,7 +179,6 @@ export default function AdjustmentFactors02Input({ onClose, onSuccess }: Adjustm
           />
         </div>
 
-        {/* ✅ FIX: Đưa Loading/Error vào bên trong LayoutInput (làm children) */}
         <div style={{ padding: '10px 0', color: 'blue' }}>
             {isLoading && <span className="text-blue-500">Đang xử lý...</span>}
             {anyError && <span className="text-red-500">Lỗi: {anyError.toString()}</span>}
