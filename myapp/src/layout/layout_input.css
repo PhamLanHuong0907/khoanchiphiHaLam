@@ -115,8 +115,7 @@
 }
 
 .input-text:focus {
-  border-color: #0066cc;
-  box-shadow: 0 0 0 1px #0066cc33;
+  border-color: #999;
 }
 
 /* --- Ô hiển thị dropdown label --- */

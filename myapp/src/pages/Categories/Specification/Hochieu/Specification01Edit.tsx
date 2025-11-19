@@ -6,14 +6,14 @@ import { useApi } from "../../../../hooks/useFetchData";
 interface Specification01EditProps {
   id?: string;
   onClose?: () => void;
-  onSuccess?: () => Promise<void> | void; // ✅ Async
+  onSuccess?: () => Promise<void> | void; 
 }
 
 interface Passport {
   id: string;
   name: string;
-  sd: string;
-  sc: number;
+  sd: string; // Server trả về string (ví dụ "9.8")
+  sc: number; // Server trả về number (ví dụ 9.8)
 }
 
 export default function Specification01Edit({ id, onClose, onSuccess }: Specification01EditProps) {
@@ -27,7 +27,14 @@ export default function Specification01Edit({ id, onClose, onSuccess }: Specific
     sc: "", 
   });
 
-  // Load data by ID (giữ nguyên)
+  // --- 1. HÀM CHẶN NHẬP DẤU CHẤM (.) ---
+  const blockDotInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === '.') {
+      e.preventDefault();
+    }
+  };
+
+  // Load data by ID
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
@@ -37,13 +44,14 @@ export default function Specification01Edit({ id, onClose, onSuccess }: Specific
     loadData();
   }, [id, fetchById]);
 
-  // Sync data to form state (giữ nguyên)
+  // --- 2. XỬ LÝ HIỂN THỊ: CHUYỂN '.' THÀNH ',' ---
   useEffect(() => {
     if (currentData) {
       setFormData({
         name: currentData.name,
-        sd: currentData.sd,
-        sc: currentData.sc.toString(), 
+        // Kiểm tra nếu có giá trị thì thay thế '.' bằng ','
+        sd: currentData.sd ? String(currentData.sd).replace('.', ',') : "", 
+        sc: currentData.sc ? String(currentData.sc).replace('.', ',') : "", 
       });
     }
   }, [currentData]);
@@ -52,35 +60,46 @@ export default function Specification01Edit({ id, onClose, onSuccess }: Specific
     if (!id) return alert("❌ Thiếu ID để cập nhật!");
 
     const name = data["Hộ chiếu"]?.trim();
-    const sd = data["Sđ"]?.trim();
-    const scString = data["Sc"]?.trim();
+    const rawSd = data["Sđ"]?.trim();
+    const rawSc = data["Sc"]?.trim();
 
     if (!name) return alert("⚠️ Vui lòng nhập Hộ chiếu!");
-    if (!sd) return alert("⚠️ Vui lòng nhập Sđ!");
-    if (!scString) return alert("⚠️ Vui lòng nhập Sc!");
+    if (!rawSd) return alert("⚠️ Vui lòng nhập Sđ!");
+    if (!rawSc) return alert("⚠️ Vui lòng nhập Sc!");
     
-    const sc = parseFloat(scString.replace(',', '.'));
-    if (isNaN(sc)) {
-      return alert("⚠️ Sc phải là một con số!");
-    }
+    // --- 3. XỬ LÝ TRƯỚC KHI PUT: CHUYỂN ',' THÀNH '.' ---
+    const formattedSd = rawSd.replace(/,/g, '.'); // "9,8" -> "9.8"
+    const formattedSc = rawSc.replace(/,/g, '.'); // "9,8" -> "9.8"
 
-    const payload = { id, name, sd, sc };
+    // Validation số
+    if (isNaN(Number(formattedSd))) return alert("⚠️ Sđ phải là số hợp lệ (VD: 9,8)!");
+    if (isNaN(Number(formattedSc))) return alert("⚠️ Sc phải là số hợp lệ (VD: 9,8)!");
+
+    const payload = { 
+        id, 
+        name, 
+        // sd: Theo interface là string, nên giữ dạng "9.8"
+        sd: formattedSd, 
+        // sc: Theo interface là number, nên parse sang số thực
+        sc: parseFloat(formattedSc) 
+    };
+
     console.log("📤 PUT payload:", payload);
 
     // 1. ĐÓNG FORM NGAY LẬP TỨC
-    onClose?.(); 
-
     try {
         // 2. CHẠY API VÀ CHỜ THÀNH CÔNG
         await Promise.all([
-    putData(payload, undefined),
-    onSuccess?.()
-]);
+            putData(payload, undefined),
+        ]);
 
-await new Promise(r => setTimeout(r, 0));
+        await new Promise(r => setTimeout(r, 0));
         
         // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Cập nhật Hộ chiếu thành công!");
+        
+        onClose?.();
+        onSuccess?.();
 
     } catch (e: any) {
         // 5. BẮT LỖI VÀ XỬ LÝ
@@ -92,25 +111,39 @@ await new Promise(r => setTimeout(r, 0));
             const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
             
             if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
-                errorMessage = "Dữ liệu Hộ chiếu này đã tồn tại trong hệ thống. Vui lòng nhập giá trị khác!";
-            } else if (detail.includes("HTTP error") || detail.includes("network")) {
-                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+                errorMessage = "Dữ liệu Hộ chiếu này đã tồn tại. Vui lòng nhập giá trị khác!";
+            } else if (detail.includes("network")) {
+                errorMessage = "Lỗi kết nối máy chủ.";
             } else {
-                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+                errorMessage = `Lỗi: ${detail}`;
             }
         }
         
-        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ CẬP NHẬT THẤT BẠI: ${errorMessage}`);
     }
-    onClose?.();
-    onSuccess?.()
   };
 
   const fields = [
-    { label: "Hộ chiếu", type: "text" as const, placeholder: "Nhập hộ chiếu" },
-    { label: "Sđ", type: "text" as const, placeholder: "Nhập Sđ", enableCompare: true },
-    { label: "Sc", type: "text" as const, placeholder: "Nhập Sc", enableCompare: true }, 
+    { 
+        label: "Hộ chiếu", 
+        type: "text" as const, 
+        placeholder: "Nhập hộ chiếu",
+        onKeyDown: blockDotInput // Chặn dấu chấm
+    },
+    { 
+        label: "Sđ", 
+        type: "text" as const, 
+        placeholder: "Nhập Sđ (VD: 9,8)", 
+        enableCompare: true,
+        onKeyDown: blockDotInput // Chặn dấu chấm
+    },
+    { 
+        label: "Sc", 
+        type: "text" as const, 
+        placeholder: "Nhập Sc (VD: 9,8)", 
+        enableCompare: true,
+        onKeyDown: blockDotInput // Chặn dấu chấm
+    }, 
   ];
 
   return (

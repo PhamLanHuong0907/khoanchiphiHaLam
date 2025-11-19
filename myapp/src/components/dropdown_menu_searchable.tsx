@@ -45,7 +45,7 @@ const DropdownMenuSearchable: React.FC<DropdownMenuSearchableProps> = ({
         styles={{
           control: (base) => ({
             ...base,
-            borderColor: "#ccc",
+            borderColor: "#999",
             boxShadow: "none",
             "&:hover": { borderColor: "#999" },
             minHeight: "34.6px",

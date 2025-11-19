@@ -19,68 +19,101 @@ export default function Specification01Input({ onClose, onSuccess }: Specificati
     sc: "",
   });
 
-  const handleSubmit = async (data: Record<string, string>) => {
-    const name = data["Hộ chiếu"]?.trim();
-    const sd = data["Sđ"]?.trim(); 
-    const scString = data["Sc"]?.trim();
-
-    if (!name) return alert("⚠️ Vui lòng nhập Hộ chiếu!");
-    if (!sd) return alert("⚠️ Vui lòng nhập Sđ!");
-    if (!scString) return alert("⚠️ Vui lòng nhập Sc!");
-
-    // Chuyển đổi Sc sang số an toàn
-    const sc = parseFloat(scString.replace(',', '.')); // Hỗ trợ cả dấu phẩy
-    if (isNaN(sc)) {
-      return alert("⚠️ Sc phải là một con số!");
+  // --- HÀM CHẶN NHẬP DẤU CHẤM (.) ---
+  // Áp dụng cho tất cả các input
+  const blockDotInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === '.') {
+      e.preventDefault();
     }
+  };
 
-    const payload = { name, sd, sc };
+  const handleSubmit = async (data: Record<string, string>) => {
+    // Lấy dữ liệu dạng String từ Form
+    const name = data["Hộ chiếu"]?.trim();
+    const rawSd = data["Sđ"]?.trim(); 
+    const rawSc = data["Sc"]?.trim();
+
+    // Validation rỗng
+    if (!name) return alert("⚠️ Vui lòng nhập Hộ chiếu!");
+    if (!rawSd) return alert("⚠️ Vui lòng nhập Sđ!");
+    if (!rawSc) return alert("⚠️ Vui lòng nhập Sc!");
+
+    // --- XỬ LÝ SỐ LIỆU (Sđ, Sc) ---
+    // 1. Thay thế dấu phẩy (,) thành dấu chấm (.) để đúng chuẩn số học
+    const formattedSd = rawSd.replace(/,/g, '.');
+    const formattedSc = rawSc.replace(/,/g, '.');
+
+    // 2. Kiểm tra tính hợp lệ (Dù input là string nhưng nội dung phải là số)
+    if (isNaN(Number(formattedSd))) return alert("⚠️ Sđ phải là số hợp lệ (VD: 9,8)!");
+    if (isNaN(Number(formattedSc))) return alert("⚠️ Sc phải là số hợp lệ (VD: 9,8)!");
+
+    // 3. Tạo Payload
+    // Lưu ý: name giữ nguyên String, sd và sc chuyển thành Number (float)
+    const payload = { 
+        name: name, 
+        sd: parseFloat(formattedSd), // "9,8" -> 9.8
+        sc: parseFloat(formattedSc)  // "9,8" -> 9.8
+    };
+    
     console.log("📤 POST payload:", payload);
 
-    // 1. ĐÓNG FORM NGAY LẬP TỨC
-    
-
     try {
-        // 2. CHẠY API và CHỜ THÀNH CÔNG (Không dùng callback thứ hai)
+        // Gọi API
         await Promise.all([
-    postData(payload, undefined),
- 
-]);
+          postData(payload, undefined),
+        ]);
 
-await new Promise(r => setTimeout(r, 0));
+        // Delay nhỏ để UI kịp phản hồi
+        await new Promise(r => setTimeout(r, 0));
 
-        // 4. HIỆN ALERT THÀNH CÔNG
         alert("✅ Tạo Hộ chiếu thành công!");
+        
+        onClose?.();
+        onSuccess?.();
 
     } catch (e: any) {
-        // 5. BẮT LỖI và xử lý chi tiết bằng tiếng Việt
-        console.error("Lỗi giao dịch sau khi đóng form:", e);
-        
+        console.error("Lỗi giao dịch:", e);
         let errorMessage = "Đã xảy ra lỗi không xác định.";
 
         if (e && typeof e.message === 'string') {
             const detail = e.message.replace(/HTTP error! status: \d+ - /i, '').trim();
-            
             if (detail.includes("đã tồn tại") || detail.includes("duplicate")) {
-                errorMessage = "Dữ liệu Hộ chiếu này đã tồn tại trong hệ thống. Vui lòng nhập giá trị khác!";
-            } else if (detail.includes("HTTP error") || detail.includes("network")) {
-                errorMessage = "Yêu cầu đến máy chủ thất bại (Mất kết nối hoặc lỗi máy chủ).";
+                errorMessage = "Dữ liệu này đã tồn tại. Vui lòng kiểm tra lại!";
+            } else if (detail.includes("network")) {
+                errorMessage = "Lỗi kết nối máy chủ.";
             } else {
-                errorMessage = `Lỗi nghiệp vụ: ${detail}`;
+                errorMessage = `Lỗi: ${detail}`;
             }
         }
-        
-        // 6. HIỆN ALERT THẤT BẠI CHI TIẾT
         alert(`❌ TẠO THẤT BẠI: ${errorMessage}`);
     }
-    onClose?.();
-    onSuccess?.()
   };
   
+  // Cấu hình các trường input
   const fields = [
-    { label: "Hộ chiếu", type: "text" as const, placeholder: "Nhập hộ chiếu" },
-    { label: "Sđ", type: "text" as const, placeholder: "Nhập Sđ", enableCompare: true }, 
-    { label: "Sc", type: "text" as const, placeholder: "Nhập Sc", enableCompare: true }, 
+    { 
+        label: "Hộ chiếu", 
+        type: "text" as const, 
+        placeholder: "Nhập hộ chiếu",
+        // ✅ Đã thêm chặn dấu chấm cho Hộ chiếu
+        onKeyDown: blockDotInput 
+    },
+    { 
+        label: "Sđ", 
+        type: "text" as const, 
+        placeholder: "Nhập Sđ (VD: 9,8)", 
+        enableCompare: true,
+        // ✅ Đã thêm chặn dấu chấm
+        onKeyDown: blockDotInput 
+    }, 
+    { 
+        label: "Sc", 
+        type: "text" as const, 
+        placeholder: "Nhập Sc (VD: 9,8)", 
+        enableCompare: true,
+        // ✅ Đã thêm chặn dấu chấm
+        onKeyDown: blockDotInput 
+    }, 
   ];
 
   return (
@@ -97,7 +130,6 @@ await new Promise(r => setTimeout(r, 0));
           "Sc": formData.sc,
         }}
       >
-        {/* Hiển thị lỗi cuối cùng */}
         {saveError && <p className="text-red-500 mt-3">Lỗi: {saveError.toString()}</p>}
       </LayoutInput>
   );

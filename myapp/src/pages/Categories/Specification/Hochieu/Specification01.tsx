@@ -15,7 +15,7 @@ interface Passport {
 }
 
 const Specification01: React.FC = () => {
-  const basePath = `/api/product/passport`; // ✔ thêm dấu /
+  const basePath = `/api/product/passport`;
   const fetchPath = `${basePath}?pageIndex=1&pageSize=1000`;
   
   const { data, loading, error, refresh } = useApi<Passport>(fetchPath);
@@ -28,7 +28,7 @@ const Specification01: React.FC = () => {
     "STT",
     <div className="flex items-center gap-1" key="name">
       <span>Hộ chiếu, Sđ, Sc</span>
-      <ChevronsUpDown size={13} className="text-gray-400 text-xs" /> {/* ✔ gray-400 */}
+      <ChevronsUpDown size={13} className="text-gray-400 text-xs" />
     </div>,
     "Sửa",
   ];
@@ -43,16 +43,26 @@ const Specification01: React.FC = () => {
     { label: "Bước chống", path: "/Specification05" },
   ];
 
-  const tableData =
-    data?.map((row, index) => [
-      index + 1,
-      `H/c ${row.name}; Sđ= ${row.sd}; Sc=${row.sc}`,
-      <PencilButton
-        key={row.id}
-        id={row.id}
-        editElement={<Specification01Edit id={row.id} onSuccess={handleRefresh} />}
-      />,
-    ]) || [];
+  // --- PHẦN CHỈNH SỬA CHÍNH Ở ĐÂY ---
+  const tableData = data?.map((row, index) => {
+      // 1. Xử lý Sđ: Chuyển sang string -> replace chấm thành phẩy
+      const sdDisplay = row.sd ? String(row.sd).replace('.', ',') : "";
+      
+      // 2. Xử lý Sc: Chuyển number sang string -> replace chấm thành phẩy
+      const scDisplay = row.sc ? String(row.sc).replace('.', ',') : "";
+
+      return [
+        index + 1,
+        // 3. Hiển thị chuỗi đã được format
+        `H/c ${row.name}; Sđ= ${sdDisplay}; Sc=${scDisplay}`,
+        <PencilButton
+          key={row.id}
+          id={row.id}
+          editElement={<Specification01Edit id={row.id} onSuccess={handleRefresh} />}
+        />,
+      ];
+    }) || [];
+  // -----------------------------------
 
   const isLoading = loading;
   const anyError = error;
@@ -101,8 +111,8 @@ const Specification01: React.FC = () => {
             bottom: 0,
             background: 'rgba(255, 255, 255, 0.6)',
             display: 'flex',
-            alignItems: 'center',    // ✔ camelCase
-            justifyContent: 'center', // ✔ camelCase
+            alignItems: 'center',
+            justifyContent: 'center',
             zIndex: 50,
             borderRadius: '8px',
             backdropFilter: 'blur(2px)'

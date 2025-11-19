@@ -133,7 +133,7 @@ const handleRemoveCostRow = (rowIndex: number) => { if (costRows.length <= 1) re
 const formRowPropData = costRows.map((row, index) => [
 { label: "Ngày bắt đầu", placeholder: "Chọn ngày", type: "date" as const, value: row.startDate ? new Date(row.startDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'startDate', date?.toISOString() || ""), },
 { label: "Ngày kết thúc", placeholder: "Chọn ngày", type: "date" as const, value: row.endDate ? new Date(row.endDate) : null, onChange: (date: Date | null) => handleCostRowChange(index, 'endDate', date?.toISOString() || ""), },
-{ label: "Đơn giá vật tư", placeholder: "Nhập đơn giá", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
+{ label: "Đơn giá vật tư (đ)", placeholder: "Nhập đơn giá", type: "text" as const, value: formatNumberForDisplay(row.amount), onChange: (value: string) => { const parsedValue = parseFormattedNumber(value); if (!isNaN(Number(parsedValue)) || parsedValue === "") { handleCostRowChange(index, 'amount', parsedValue); } }, },
 ]);
 
 return (
@@ -142,7 +142,7 @@ title01="Danh mục / Vật tư, tài sản"
 title="Chỉnh sửa Vật tư, tài sản"
 fields={[ { type: "custom1" as const }, { label: "Mã vật tư, tài sản", type: "text" as const, placeholder: "Nhập mã vật tư, tài sản, ví dụ: TN01" }, { label: "Tên vật tư, tài sản", type: "text" as const, placeholder: "Nhập tên vật tư, tài sản, ví dụ: Thuốc nổ" }, { type: "custom2" as const }, ]}
 onSubmit={handleSubmit}
-formRowComponent={<FormRow title="Đơn giá vật tư" rows={formRowPropData} onAdd={handleAddCostRow} onRemove={handleRemoveCostRow} />}
+formRowComponent={<FormRow title="Đơn giá vật tư (đ)" title1="vật tư (đ)" rows={formRowPropData} onAdd={handleAddCostRow} onRemove={handleRemoveCostRow} />}
 closePath={PATHS.MATERIALS.LIST}
 onClose={onClose}
 initialData={{
