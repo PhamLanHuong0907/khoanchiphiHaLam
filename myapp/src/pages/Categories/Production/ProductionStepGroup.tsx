@@ -95,13 +95,17 @@ const ProductionStepGroup: React.FC = () => {
         {loading && (
           <div style={{
             position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            zIndex: 100
+      top: 0, 
+      left: 0, 
+      right: 0, 
+      bottom: 0,
+      background: 'rgba(255, 255, 255, 0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      borderRadius: '8px',
+      backdropFilter: 'blur(2px)'
           }}>
           </div>
         )}
